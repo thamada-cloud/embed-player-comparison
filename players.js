@@ -434,10 +434,3 @@ function applyFrameAttrs(f, p, entry, theme) {
   if (!entry.aspect) f.height = entry.h;
   return f;
 }
-
-/* Per-group tallies, used to stamp counts onto the scope chips. */
-function groupCounts() {
-  const t = {};
-  PLAYERS.forEach((p) => { t[p.group] = (t[p.group] || 0) + 1; });
-  return t;
-}

@@ -5,7 +5,7 @@ one shared registry. No build step, no dependencies.
 
 | Page | For |
 | --- | --- |
-| `index.html` | **One at a time.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
+| `index.html` | **One at a time, all 50.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
 | `gallery.html` | **All 50 on one page, no filter.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
 
 ## Files
@@ -23,12 +23,8 @@ one shared registry. No build step, no dependencies.
 - **One player at a time.** Previous and next, arrow keys, or the jump list.
 - **Content toggle.** Live radio or podcast. A platform with no live radio product
   shows its podcast player and says so on the card.
-- **Scope filter.** Multi-select chips, each stamped with how many players it
-  holds, plus an **All** button. Defaults to Core, which is 7 cards and the right
-  length for a real session. The other groups are for internal review, and the
-  counts make clear that they are there. The jump dropdown is grouped by scope for
-  the same reason: only the switched-on groups are listed, so the labels have to
-  say what is and is not showing.
+- **No filter.** All 50 players, always. The jump dropdown lists every one,
+  grouped by category for navigation.
 - **Width selector.** Phone, tablet, full. Embed responsiveness varies sharply
   between platforms and is one of the things participants react to.
 - **Theme toggle.** Applies each platform's own dark or light parameter where one
@@ -240,7 +236,8 @@ mount on a full scroll and all 36 paint, at 1, 2 and 3 columns. **0 cards drift
 more than 4px** as frames mount. Silence all takes
 the page to 0 iframes and preserves scroll position.
 
-**Both pages.** Every control exercised while capturing page and console errors.
+**Both pages.** Neither page filters anything: all 50 cards are reachable on load.
+Every control exercised while capturing page and console errors.
 **0 errors originate from our own code.** The two that do appear come from inside
 third-party embeds, Captivate's own bundle and Audiomack's Next.js build,
 confirmed by stack trace.

@@ -90,24 +90,6 @@ header {
 .btn:disabled { opacity: .4; cursor: default; }
 .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 
-/* Scope is multi-select, so it must NOT look like the pick-one segmented
-   controls beside it. Separate chips with a check mark and a live count. */
-.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-.chips button {
-  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
-  background: var(--bg); color: var(--text-dim);
-  border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px;
-  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
-}
-.chips button:hover { color: var(--text); border-color: var(--text-dim); }
-.chips button[aria-pressed="true"] {
-  background: var(--accent); color: var(--accent-fg);
-  border-color: var(--accent); font-weight: 600;
-}
-.chips button .tick { font-size: 10px; opacity: .55; }
-.chips button[aria-pressed="true"] .tick { opacity: 1; }
-.chips button .n { font-variant-numeric: tabular-nums; opacity: .65; font-weight: 400; }
-
 select.jump {
   font: inherit; font-size: 13px; padding: 5px 10px;
   border: 1px solid var(--border); border-radius: 999px;

@@ -37,18 +37,6 @@ footer {
   <div class="brandmark">Embed Player Comparison <span id="modeDesc"></span></div>
 
   <div class="ctrl">
-    <label>Scope</label>
-    <div class="chips" id="groupSeg">
-      <button data-group="parity" aria-pressed="true"><span class="tick">✓</span>Core <span class="n"></span></button>
-      <button data-group="hosts" aria-pressed="false"><span class="tick">✓</span>Hosts <span class="n"></span></button>
-      <button data-group="other" aria-pressed="false"><span class="tick">✓</span>Other <span class="n"></span></button>
-      <button data-group="infra" aria-pressed="false"><span class="tick">✓</span>Infra <span class="n"></span></button>
-      <button data-group="blocked" aria-pressed="false"><span class="tick">✓</span>Blocked <span class="n"></span></button>
-      <button id="allBtn" title="Turn on every group">All 50</button>
-    </div>
-  </div>
-
-  <div class="ctrl">
     <label>Content</label>
     <div class="seg" id="modeSeg">
       <button data-mode="live" aria-pressed="false">Live Radio</button>
@@ -104,14 +92,12 @@ const state = {
   width: 900,
   theme: 'light',
   i: 0,
-  groups: new Set(['parity']),
   order: PLAYERS.map((_, n) => n)   /* indices into PLAYERS, shuffleable */
 };
 
-/* The visible roster is the shuffled order filtered to the active groups, so
-   a real session is 7 cards and an internal review can be all of them. */
+/* Every player, in the current shuffle order. No filtering. */
 function visible() {
-  return state.order.filter((pi) => state.groups.has(PLAYERS[pi].group));
+  return state.order;
 }
 
 const $ = (s) => document.querySelector(s);
@@ -218,11 +204,7 @@ function render() {
   const contentLine = state.mode === 'live'
     ? 'Live radio, ' + LIVE_LABEL
     : 'Podcast, ' + PODCAST_LABEL;
-  const scopeLine = [...state.groups].filter((g) => GROUPS[g])
-    .map((g) => GROUPS[g].label).join(' + ');
-  $('#contentNote').innerHTML =
-    esc(contentLine) + '<br><span style="opacity:.75">Showing ' + n + ' of ' +
-    PLAYERS.length + ' players. Scope: ' + esc(scopeLine || 'nothing selected') + '</span>';
+  $('#contentNote').textContent = contentLine;
   $('#modeDesc').textContent = state.mode === 'live' ? 'live radio' : 'podcast';
 }
 
@@ -290,53 +272,11 @@ $('#shuffle').addEventListener('click', () => {
   render();
 });
 
-/* Scope toggles are multi-select. Refusing to empty the last group avoids an
-   empty stage the moderator has to debug mid-session. */
-$('#groupSeg').addEventListener('click', (e) => {
-  /* Must match ONLY the group chips. The All button is inside this container,
-     and a bare closest('button') also caught it, adding an undefined group to
-     the set and throwing in render(). */
-  const b = e.target.closest('button[data-group]'); if (!b) return;
-  const g = b.dataset.group;
-  if (state.groups.has(g)) {
-    if (state.groups.size === 1) return;
-    state.groups.delete(g);
-  } else {
-    state.groups.add(g);
-  }
-  b.setAttribute('aria-pressed', String(state.groups.has(g)));
-  state.i = 0;
-  buildJump();
-  render();
-});
-
-$('#allBtn').addEventListener('click', () => {
-  Object.keys(GROUPS).forEach((g) => state.groups.add(g));
-  document.querySelectorAll('#groupSeg button[data-group]').forEach((b) => {
-    b.setAttribute('aria-pressed', 'true');
-  });
-  state.i = 0;
-  buildJump();
-  render();
-});
-
 document.addEventListener('keydown', (e) => {
   if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
   if (e.key === 'ArrowRight') { e.preventDefault(); go(state.i + 1); }
   if (e.key === 'ArrowLeft')  { e.preventDefault(); go(state.i - 1); }
 });
-
-/* Stamp each scope chip with how many players it holds. Without this the page
-   looks like it only has 7 players and the rest are undiscoverable. */
-(function stampCounts() {
-  const tally = {};
-  PLAYERS.forEach((p) => { tally[p.group] = (tally[p.group] || 0) + 1; });
-  document.querySelectorAll('#groupSeg button[data-group]').forEach((b) => {
-    b.querySelector('.n').textContent = tally[b.dataset.group] || 0;
-  });
-  const all = document.getElementById('allBtn');
-  all.textContent = 'All ' + PLAYERS.length;
-})();
 
 document.documentElement.setAttribute('data-theme', state.theme);
 buildJump();
