@@ -52,16 +52,21 @@ Verified per-platform IDs for that episode.
 only valid comparison set for a content question.
 iHeartRadio, TuneIn, YouTube, Apple Podcasts, Spotify, Deezer, Omny Studio.
 
-**Hosts, 12 players.** Podcast hosting players. Each only serves shows it hosts,
+**Hosts, 13 players.** Podcast hosting players. Each only serves shows it hosts,
 so the content differs. These are what publishers actually embed, which makes them
 the most relevant chrome comparison even though the content cannot match.
 Megaphone, Acast, Libsyn, Captivate, Transistor, Simplecast, Audioboom, Spreaker,
-Podbean, Buzzsprout, Blubrry, Castbox.
+Podbean, Buzzsprout, Blubrry, Castbox, iVoox.
 
-**Other, 10 players.** Other audio and video embeds, different content, form
+**Other, 12 players.** Other audio and video embeds, different content, form
 comparison only.
-Apple Music, Tidal, NPR, Mixcloud, Audiomack, Bandcamp, Vimeo, Dailymotion,
-TikTok, Twitch.
+Apple Music, Tidal, NPR, Mixcloud, Audiomack, Bandcamp, SoundCloud, Zeno.fm,
+Vimeo, Dailymotion, TikTok, Twitch.
+
+**Infra, 4 players.** White-label and enterprise player infrastructure. Useful for
+deciding what our own player chrome should look like, not consumer brands anyone
+has an opinion about. Keep them out of a participant session.
+Wistia, Brightcove, Streamable, Odysee.
 
 **Blocked, 14 entries.** Cannot be embedded at all. Kept visible with the reason.
 
@@ -88,6 +93,25 @@ negatives on some hosts.
 | Radio Garden | No iframe player. Their content API is public if you want to build your own. |
 | Radio France | X-Frame-Options DENY |
 
+## Zeno.fm and the live radio arm
+
+Live radio is the thin arm of this comparison. Only iHeart and TuneIn have a real
+public live radio embed for a station we do not own. Zeno.fm is the one meaningful
+addition, and it is worth knowing why.
+
+It is free, needs no ownership, and its station API at `zeno.fm/api/stations` is
+public. It carries real broadcast brands, including ESPN Radio KVSF, BBC World
+Service, France Inter, France Info and ABC Newsradio. BBC World Service is the
+interesting one, because BBC Sounds itself refuses framing.
+
+The card ships pointed at ESPN Radio KVSF, a real US commercial broadcast station
+and the closest competitive analogue to Z100 in the roster. Swap the slug to
+change station.
+
+One trap. The Zeno player URL returns 200 for any slug, real or fabricated, at an
+identical byte length. Confirm a station by loading the frame and checking it
+mounts an `audio` element, never by status code.
+
 ## Known limits
 
 - **Apple Music and Tidal need a subscription and a signed-in browser.** Keep both
@@ -100,6 +124,29 @@ negatives on some hosts.
   frame-ancestors, so the card is blank when the page is opened from a local file.
 - **Castbox does carry Stuff You Should Know** but its embed id was not resolvable
   from any public endpoint, so that card uses a different channel.
+
+## Investigated and rejected
+
+Kept here so nobody re-runs the same research.
+
+- **Reddit** and **JW Player** both frame and technically paint, but too thinly to
+  distinguish a real player from an error state, and Reddit's JSON API returns 403
+  so a real post id could not be pinned. Left out rather than shipped unverified.
+- **Art19** is the most competitively relevant thing still missing, Amazon-owned and
+  a direct rival to Omny. Its show slugs 404 and no public listing was found.
+- **RedCircle** (403) and **Fireside** (404) both failed on the only IDs available.
+- **Rumble** frames but needs a real video id, which its listing pages do not expose.
+- **Triton / StreamTheWorld** is the streaming infrastructure many US broadcast
+  stations actually run on, and so the highest-value unknown. The player host tried
+  does not resolve.
+- **Google Podcasts** folded into YouTube Music, **Stitcher** into SiriusXM,
+  **RadioPublic**'s domain is dead, **Breaker** and **Chartable** are gone.
+- **Social surfaces** (Instagram, X, Facebook video, Bluesky) were all verified as
+  frameable and painting, but deliberately left out. They answer a different
+  question, which is where clips get distributed rather than where episodes get
+  played.
+- **International music** (Boomplay, Anghami, JioSaavn, Qobuz, Beatport) was not
+  probed. Worth doing only if reach outside the US matters.
 
 ## Adding a player
 
@@ -139,7 +186,7 @@ read into cross-origin frames and so can tell a real player from a silent blank.
 The Claude Code browser pane blocks iheart.com, so it cannot be used to check the
 iHeart cards.
 
-Result: **86 checks across all 43 cards in both content modes, 0 blanks.** All 29
+Result: **100 checks across all 50 cards in both content modes, 0 blanks.** All 36
 embeddable players paint real content. All 14 blocked cards mount no iframe and
 show their reason.
 

@@ -192,6 +192,7 @@ footer {
       <button data-group="parity" aria-pressed="true">Core</button>
       <button data-group="hosts" aria-pressed="false">Hosts</button>
       <button data-group="other" aria-pressed="false">Other</button>
+      <button data-group="infra" aria-pressed="false">Infra</button>
       <button data-group="blocked" aria-pressed="false">Blocked</button>
     </div>
   </div>
@@ -263,6 +264,7 @@ const GROUPS = {
   parity:  { label: 'Core',    note: 'Same station and same episode in every player. This is the valid comparison set.' },
   hosts:   { label: 'Hosts',   note: 'Podcast hosting players. Different content, because each one only serves shows it hosts. These are what publishers actually embed, so compare the player chrome.' },
   other:   { label: 'Other',   note: 'Other audio and video embeds. Different content. Form comparison only.' },
+  infra:   { label: 'Infra',   note: 'White-label and enterprise player infrastructure. Useful for deciding what our own player chrome should look like. Keep these out of a participant session, they are not consumer brands.' },
   blocked: { label: 'Blocked', note: 'Cannot be embedded at all. Kept visible with the reason so the team stops re-asking.' }
 };
 
@@ -504,6 +506,70 @@ const PLAYERS = [
              'Offline case': 'Twitch channels go on and off air. When the channel is dark the player shows an OFFLINE panel with a recent rerun, which is a real state but a weak stimulus. Check it before a session and swap the channel if needed.',
              'Verified': 'Renders on thamada-cloud.github.io. It will be blank from a local file, which is expected, not a bug.' } },
 
+  /* SoundCloud and Zeno.fm were added after the first build. SoundCloud closes a
+     real gap in the audio brand set. Zeno.fm roughly triples the live radio arm,
+     which is otherwise just iHeart and TuneIn. */
+  { id: 'soundcloud', name: 'SoundCloud', status: 'ok', group: 'other',
+    allow: 'autoplay; encrypted-media; fullscreen',
+    modes: { podcast: { src: 'https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F274720380', h: 300,
+      caveat: 'Unrelated music track. SoundCloud does not carry this show.' } },
+    facts: { 'Content': 'Unrelated music track',
+             'Sign-in': 'Not required to play',
+             'ID source': 'Free oEmbed at soundcloud.com/oembed?format=json&url={permalink} returns the numeric track id and the full iframe',
+             'Heights': 'Ships at 166, 300 or 450. The visual variant needs 300 or more.',
+             'Use': 'Form comparison only' } },
+
+  { id: 'zeno', name: 'Zeno.fm', status: 'ok', group: 'other',
+    allow: 'autoplay; encrypted-media',
+    modes: { live: { src: 'https://zeno.fm/player/espn-radio-kvsf', h: 250,
+      caveat: 'ESPN Radio KVSF, a real US broadcast station, standing in for Z100. Zeno does not carry iHeart stations.' } },
+    facts: { 'Content': 'ESPN Radio KVSF live. A real commercial broadcast station, which makes it the closest competitive analogue to Z100 in this roster.',
+             'Sign-in': 'Not required to play',
+             'Why it matters': 'Free, no ownership requirement, and the only meaningful addition to the live radio arm besides iHeart and TuneIn.',
+             'Alternates': 'Swap the slug for bbc-world-service-english, france-inter-tgbo or abc-newsradio. BBC World Service is notable because BBC Sounds itself refuses framing.',
+             'ID source': 'Free public station API at zeno.fm/api/stations',
+             'Watch out': 'The player URL returns 200 for any slug, real or not, at an identical byte length. Confirm a station by loading the frame and checking it mounts an audio element, not by status code.' } },
+
+  /* ===================== PLAYER INFRASTRUCTURE ===================== */
+  { id: 'wistia', name: 'Wistia', status: 'ok', group: 'infra',
+    allow: 'autoplay; fullscreen; picture-in-picture; clipboard-write', allowfullscreen: true,
+    modes: { podcast: { src: 'https://fast.wistia.net/embed/iframe/26sk4lmiix', aspect: true,
+      caveat: 'Unrelated video. Wistia is a white-label host, so there is no consumer brand to react to.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Why it is here': 'A widely used white-label video player. Look at the chrome, not the brand.',
+             'Use': 'Chrome reference only. Not a participant card.' } },
+  { id: 'brightcove', name: 'Brightcove', status: 'ok', group: 'infra',
+    allow: 'autoplay; fullscreen; encrypted-media; picture-in-picture', allowfullscreen: true,
+    modes: { podcast: { src: 'https://players.brightcove.net/1752604059001/default_default/index.html?videoId=6140448705001', aspect: true,
+      caveat: 'Unrelated video on the Brightcove demo account.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Pattern': 'players.brightcove.net/{accountId}/{playerId}/index.html?videoId={id}. Every part is account-specific.',
+             'Why it is here': 'The enterprise broadcast video player many media companies license.',
+             'Use': 'Chrome reference only. Not a participant card.' } },
+  { id: 'streamable', name: 'Streamable', status: 'ok', group: 'infra',
+    allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true,
+    modes: { podcast: { src: 'https://streamable.com/e/moo', aspect: true,
+      caveat: 'Unrelated video.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Why it is here': 'The minimal end of the video player spectrum, near zero chrome. A useful lower bound.',
+             'Use': 'Chrome reference only. Not a participant card.' } },
+  { id: 'odysee', name: 'Odysee', status: 'ok', group: 'infra',
+    allow: 'autoplay; fullscreen; encrypted-media', allowfullscreen: true,
+    modes: { podcast: { src: 'https://odysee.com/$/embed/@Odysee:8/welcome-to-odysee:8', aspect: true,
+      caveat: 'Unrelated video.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Why it is here': 'An independent video platform, a different design tradition from YouTube.',
+             'Use': 'Chrome reference only. Not a participant card.' } },
+
+  { id: 'ivoox', name: 'iVoox', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://www.ivoox.com/player_ej_179998078_4_1.html', h: 200,
+      caveat: 'Unrelated Spanish-language episode. iVoox does not carry this show.' } },
+    facts: { 'Content': 'Unrelated Spanish-language episode',
+             'Why it is here': 'The largest Spanish-language podcast platform. Relevant only if reach outside the US matters.',
+             'Watch out': 'The player 200s for any id, including fabricated ones. This id came from a real episode link on ivoox.com, pattern player_ej_{id}_4_1.html.',
+             'Use': 'Form comparison only' } },
+
   /* ===================== CANNOT BE EMBEDDED ===================== */
   { id: 'amazonmusic', name: 'Amazon Music', status: 'blocked', group: 'blocked',
     why: 'Sends X-Frame-Options SAMEORIGIN',
@@ -626,9 +692,14 @@ function render() {
     const entry = r.entry;
 
     if (r.fellBack) {
+      /* Word this by the direction of the fallback. Live-only players such as
+         Zeno.fm, Apple Music and Twitch fall back the other way, and telling a
+         moderator the opposite of the truth mid-session is worse than silence. */
       const bar = document.createElement('div');
       bar.className = 'fallback-bar';
-      bar.textContent = 'No live radio on this platform. Showing its podcast player instead.';
+      bar.textContent = r.to === 'podcast'
+        ? 'No live radio on this platform. Showing its podcast player instead.'
+        : 'No podcast on this platform. Showing its live radio player instead.';
       card.appendChild(bar);
     }
     if (entry.caveat) {
