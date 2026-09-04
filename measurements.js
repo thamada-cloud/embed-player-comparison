@@ -111,7 +111,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 23,
-    "kb": 12.6
+    "kb": 0.2
    },
    "narrow": {
     "scrollW": 375,
@@ -120,12 +120,12 @@ const MEASUREMENTS = {
     "clientH": 200
    },
    "pixels": {
-    "light": 233.3,
-    "dark": 233.3
+    "light": 233.2,
+    "dark": 233.4
    },
    "themeResponds": false,
-   "lightLuma": 233.3,
-   "darkLuma": 233.3,
+   "lightLuma": 233.2,
+   "darkLuma": 233.4,
    "measured": true
   },
   "tunein": {
@@ -186,7 +186,7 @@ const MEASUREMENTS = {
      "platformPush": true,
      "textLen": 1622,
      "textSample": "Hear what you want, where and when you want it, download the TuneIn app today. LISTEN FREE IN APP Share with Facebook Tw",
-     "settleSeconds": 4.3
+     "settleSeconds": 4.4
     },
     "dark": {
      "frame": {
@@ -238,8 +238,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 45,
-    "kb": 4.0
+    "requests": 48,
+    "kb": 0.2
    },
    "narrow": {
     "scrollW": 375,
@@ -577,7 +577,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 34,
-    "kb": 416.4
+    "kb": 1415.1
    },
    "narrow": {
     "scrollW": 375,
@@ -694,11 +694,11 @@ const MEASUREMENTS = {
     "clientH": 300
    },
    "pixels": {
-    "light": 48.1,
+    "light": 48.2,
     "dark": 48.1
    },
    "themeResponds": false,
-   "lightLuma": 48.1,
+   "lightLuma": 48.2,
    "darkLuma": 48.1,
    "measured": true
   },
@@ -931,7 +931,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 13,
-    "kb": 507.5
+    "kb": 506.9
    },
    "narrow": {
     "scrollW": 375,
@@ -940,12 +940,12 @@ const MEASUREMENTS = {
     "clientH": 374
    },
    "pixels": {
-    "light": 163.3,
-    "dark": 163.4
+    "light": 163.2,
+    "dark": 163.3
    },
    "themeResponds": false,
-   "lightLuma": 163.3,
-   "darkLuma": 163.4,
+   "lightLuma": 163.2,
+   "darkLuma": 163.3,
    "measured": true
   },
   "acast": {
@@ -1029,7 +1029,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 11,
-    "kb": 179.7
+    "kb": 64.3
    },
    "narrow": {
     "scrollW": 375,
@@ -1493,7 +1493,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 8,
-    "kb": 1.1
+    "kb": 15.6
    },
    "narrow": {
     "scrollW": 375,
@@ -1725,7 +1725,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 6,
-    "kb": 68.4
+    "kb": 15.3
    },
    "narrow": {
     "scrollW": 375,
@@ -2215,7 +2215,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 27,
-    "kb": 558.9
+    "kb": 549.6
    },
    "narrow": {
     "scrollW": 375,
@@ -2307,7 +2307,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 36,
-    "kb": 7.4
+    "kb": 11.5
    },
    "narrow": {
     "scrollW": 375,
@@ -2527,7 +2527,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 38,
-    "kb": 371.3
+    "kb": 356.5
    },
    "narrow": {
     "scrollW": 375,
@@ -2600,7 +2600,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 76,
      "textSample": "Bridget Small - 2nd September 2026 by Mixcloud NTS Radio FOLLOW 00:00 -59:51",
-     "settleSeconds": 4.4
+     "settleSeconds": 4.3
     },
     "dark": {
      "frame": {
@@ -2650,8 +2650,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 59,
-    "kb": 1288.5
+    "requests": 55,
+    "kb": 1334.0
    },
    "narrow": {
     "scrollW": 375,
@@ -2724,7 +2724,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 136,
      "textSample": "Future Purple Reign This song is only available for premium subscribers. Start your free trial. Play Purple Reign 0:00 0",
-     "settleSeconds": 5.6
+     "settleSeconds": 4.3
     },
     "dark": {
      "frame": {
@@ -2775,7 +2775,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 54,
-    "kb": 62.4
+    "kb": null
    },
    "narrow": {
     "scrollW": 375,
@@ -3010,114 +3010,6 @@ const MEASUREMENTS = {
    "darkLuma": 166.4,
    "measured": true
   },
-  "dailymotion": {
-   "id": "dailymotion",
-   "name": "Dailymotion",
-   "group": "other",
-   "status": "ok",
-   "blocked": false,
-   "declaredHeight": null,
-   "aspect": true,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(13, 13, 13)",
-     "color": "rgb(255, 255, 255)",
-     "radius": "0px",
-     "play": {
-      "w": 80,
-      "h": 80,
-      "area": 6400,
-      "via": "aria-label",
-      "cx": 0.5,
-      "cy": 0.5,
-      "radius": "100px",
-      "accessibleName": "Play",
-      "tag": "button"
-     },
-     "waveform": null,
-     "artwork": null,
-     "progress": {
-      "kind": "input",
-      "w": 368,
-      "h": 4,
-      "interactive": true
-     },
-     "timecodes": [
-      "0:04",
-      "1:08:25"
-     ],
-     "controlCount": 10,
-     "outboundLinks": 2,
-     "platformPush": false,
-     "textLen": 163,
-     "textSample": "Top Gear Guy Finds His Mrs. Right #englishsubtitle #fullfilm #verticaldrama\ud83d\udca5\ud83c\udfac\u26a1\ufe0f | Drama Royals 0:04 1:08:25 Speed 2x C",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(13, 13, 13)",
-     "color": "rgb(255, 255, 255)",
-     "radius": "0px",
-     "play": {
-      "w": 80,
-      "h": 80,
-      "area": 6400,
-      "via": "aria-label",
-      "cx": 0.5,
-      "cy": 0.5,
-      "radius": "100px",
-      "accessibleName": "Play",
-      "tag": "button"
-     },
-     "waveform": null,
-     "artwork": null,
-     "progress": {
-      "kind": "input",
-      "w": 368,
-      "h": 4,
-      "interactive": true
-     },
-     "timecodes": [
-      "0:04",
-      "1:08:25"
-     ],
-     "controlCount": 10,
-     "outboundLinks": 2,
-     "platformPush": false,
-     "textLen": 163,
-     "textSample": "Top Gear Guy Finds His Mrs. Right #englishsubtitle #fullfilm #verticaldrama\ud83d\udca5\ud83c\udfac\u26a1\ufe0f | Drama Royals 0:04 1:08:25 Speed 2x C",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 101,
-    "kb": 135.8
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 360,
-    "clientH": 360
-   },
-   "pixels": {
-    "light": 36.3,
-    "dark": 36.1
-   },
-   "themeResponds": false,
-   "lightLuma": 36.3,
-   "darkLuma": 36.1,
-   "measured": true
-  },
   "tiktok": {
    "id": "tiktok",
    "name": "TikTok",
@@ -3198,8 +3090,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 54,
-    "kb": 360.0
+    "requests": 55,
+    "kb": 3347.9
    },
    "narrow": {
     "scrollW": 375,
@@ -3208,12 +3100,12 @@ const MEASUREMENTS = {
     "clientH": 740
    },
    "pixels": {
-    "light": 210.4,
-    "dark": 210.3
+    "light": 210.3,
+    "dark": 208.8
    },
    "themeResponds": false,
-   "lightLuma": 210.4,
-   "darkLuma": 210.3,
+   "lightLuma": 210.3,
+   "darkLuma": 208.8,
    "measured": true
   },
   "soundcloud": {
@@ -3337,11 +3229,11 @@ const MEASUREMENTS = {
    },
    "pixels": {
     "light": 221.0,
-    "dark": 221.0
+    "dark": 221.1
    },
    "themeResponds": false,
    "lightLuma": 221.0,
-   "darkLuma": 221.0,
+   "darkLuma": 221.1,
    "measured": true
   },
   "zeno": {
@@ -3434,8 +3326,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 146,
-    "kb": 55.4
+    "requests": 156,
+    "kb": 4545.7
    },
    "narrow": {
     "scrollW": 375,
@@ -3655,7 +3547,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 7,
-    "kb": 225.4
+    "kb": 13.5
    },
    "narrow": {
     "scrollW": 375,
@@ -3670,94 +3562,6 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 145.6,
    "darkLuma": 145.6,
-   "measured": true
-  },
-  "odysee": {
-   "id": "odysee",
-   "name": "Odysee",
-   "group": "infra",
-   "status": "ok",
-   "blocked": false,
-   "declaredHeight": null,
-   "aspect": true,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 160,
-      "h": 160,
-      "areaShare": 0.1,
-      "cx": 0.5,
-      "cy": 0.3,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 2,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 51,
-     "textSample": "No Content Found Publish Something Repost Something",
-     "settleSeconds": 4.4
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(255, 255, 255)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 160,
-      "h": 160,
-      "areaShare": 0.1,
-      "cx": 0.5,
-      "cy": 0.3,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 2,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 51,
-     "textSample": "No Content Found Publish Something Repost Something",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 112,
-    "kb": 1404.7
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 360,
-    "clientH": 360
-   },
-   "pixels": {
-    "light": 32.7,
-    "dark": 29.7
-   },
-   "themeResponds": false,
-   "lightLuma": 32.7,
-   "darkLuma": 29.7,
    "measured": true
   },
   "ivoox": {

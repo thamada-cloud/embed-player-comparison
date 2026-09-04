@@ -180,14 +180,36 @@ frame height, and YouTube and Spotify report overhangs of 228px and 38px. Those
 are hidden or absolutely positioned panels, not clipping. All three render
 complete at their documented heights.
 
-## Removed for not loading
+## Autoplay
+
+Measured across every player with the browser's real autoplay policy, no override:
+each frame is mounted, left alone, and its media elements checked twice to see
+whether playback time actually advances.
+
+**Only TikTok starts on its own, and only muted.** That is genuinely TikTok's
+default state, and it is never granted the `autoplay` permission, so it can never
+gain sound. Every other player sits idle until clicked.
+
+30 players still carry `allow="autoplay"`. That is harmless: the permission only
+governs playing *without* a user gesture, and none of them do. A click inside a
+frame is a gesture, so click-to-play does not need it.
+
+## Removed for not loading or not behaving
 
 - **Brightcove.** Its player returns `VIDEO_CLOUD_ERR_VIDEO_NOT_FOUND` for every
-  public demo account and video id found. Unfixable without our own Brightcove
-  account.
-- **Twitch.** The channel renders "Twitch is offline". Live status is not something
-  a stimulus page can depend on. It can come back pointed at a 24/7 channel if the
-  live-video comparison is wanted.
+  public demo account and video id found. Unfixable without our own account.
+- **Twitch.** Renders "Twitch is offline". Live status is not something a stimulus
+  page can depend on. Can come back pointed at a 24/7 channel if wanted.
+- **Odysee.** Renders "No Content Found" even with a freshly resolved, valid claim
+  id pulled from their own API. Its embed does not work for third-party content.
+- **Dailymotion.** Autoplays **with sound** and cannot be stopped. `autoplay=0`
+  and `autoplay=false` are ignored on both `geo.dailymotion.com/player.html` and
+  the legacy `/embed/video/` path, because that setting lives on their player
+  server-side, not in the URL. Withholding the `autoplay` permission removes the
+  sound but substitutes a "click to unmute" overlay, which is not its default
+  state either. **There is no way to show Dailymotion in a default paused state**,
+  so it cannot take part in a default-state comparison. YouTube and Vimeo both
+  idle correctly and cover video.
 
 Two others were **wrongly** flagged as broken by an early heuristic and are still
 in: **Apple Music** (78 elements, real player, its content just needs a
