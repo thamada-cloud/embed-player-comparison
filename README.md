@@ -11,8 +11,12 @@ Open `index.html` in a browser. No build step, no dependencies.
 - **One player at a time.** Previous and next, arrow keys, or the jump list.
 - **Content toggle.** Live radio or podcast. A platform with no live radio product
   shows its podcast player and says so on the card.
-- **Scope filter.** Defaults to Core, which is 7 cards and the right length for a
-  real session. The other groups are for internal review.
+- **Scope filter.** Multi-select chips, each stamped with how many players it
+  holds, plus an **All** button. Defaults to Core, which is 7 cards and the right
+  length for a real session. The other groups are for internal review, and the
+  counts make clear that they are there. The jump dropdown is grouped by scope for
+  the same reason: only the switched-on groups are listed, so the labels have to
+  say what is and is not showing.
 - **Width selector.** Phone, tablet, full. Embed responsiveness varies sharply
   between platforms and is one of the things participants react to.
 - **Theme toggle.** Applies each platform's own dark or light parameter where one

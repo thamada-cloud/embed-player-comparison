@@ -92,6 +92,24 @@ header {
 .btn:disabled { opacity: .4; cursor: default; }
 .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 
+/* Scope is multi-select, so it must NOT look like the pick-one segmented
+   controls beside it. Separate chips with a check mark and a live count. */
+.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.chips button {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+  background: var(--bg); color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.chips button:hover { color: var(--text); border-color: var(--text-dim); }
+.chips button[aria-pressed="true"] {
+  background: var(--accent); color: var(--accent-fg);
+  border-color: var(--accent); font-weight: 600;
+}
+.chips button .tick { font-size: 10px; opacity: .55; }
+.chips button[aria-pressed="true"] .tick { opacity: 1; }
+.chips button .n { font-variant-numeric: tabular-nums; opacity: .65; font-weight: 400; }
+
 select.jump {
   font: inherit; font-size: 13px; padding: 5px 10px;
   border: 1px solid var(--border); border-radius: 999px;
@@ -188,12 +206,13 @@ footer {
 
   <div class="ctrl">
     <label>Scope</label>
-    <div class="seg" id="groupSeg">
-      <button data-group="parity" aria-pressed="true">Core</button>
-      <button data-group="hosts" aria-pressed="false">Hosts</button>
-      <button data-group="other" aria-pressed="false">Other</button>
-      <button data-group="infra" aria-pressed="false">Infra</button>
-      <button data-group="blocked" aria-pressed="false">Blocked</button>
+    <div class="chips" id="groupSeg">
+      <button data-group="parity" aria-pressed="true"><span class="tick">✓</span>Core <span class="n"></span></button>
+      <button data-group="hosts" aria-pressed="false"><span class="tick">✓</span>Hosts <span class="n"></span></button>
+      <button data-group="other" aria-pressed="false"><span class="tick">✓</span>Other <span class="n"></span></button>
+      <button data-group="infra" aria-pressed="false"><span class="tick">✓</span>Infra <span class="n"></span></button>
+      <button data-group="blocked" aria-pressed="false"><span class="tick">✓</span>Blocked <span class="n"></span></button>
+      <button id="allBtn" title="Turn on every group">All 50</button>
     </div>
   </div>
 
@@ -756,16 +775,29 @@ function render() {
     : 'Podcast, ' + PODCAST_LABEL;
   const scopeLine = [...state.groups].map((g) => GROUPS[g].label).join(' + ');
   $('#contentNote').innerHTML =
-    esc(contentLine) + '<br><span style="opacity:.75">Scope: ' + esc(scopeLine || 'nothing selected') + '</span>';
+    esc(contentLine) + '<br><span style="opacity:.75">Showing ' + n + ' of ' +
+    PLAYERS.length + ' players. Scope: ' + esc(scopeLine || 'nothing selected') + '</span>';
   $('#modeDesc').textContent = state.mode === 'live' ? 'live radio' : 'podcast';
 }
 
 function buildJump() {
-  $('#jump').innerHTML = visible().map((pi, n) => {
-    const p = PLAYERS[pi];
-    const mark = p.status === 'blocked' ? ' · blocked' : (p.status === 'caveat' ? ' · caveat' : '');
-    return '<option value="' + n + '">' + esc(p.name) + mark + '</option>';
-  }).join('');
+  /* Grouped by scope, so it is obvious which groups are switched on and that
+     more players exist behind the ones that are off. */
+  const v = visible();
+  const order = ['parity', 'hosts', 'other', 'infra', 'blocked'];
+  let html = '';
+  order.forEach((g) => {
+    const items = v.map((pi, n) => ({ p: PLAYERS[pi], n })).filter((x) => x.p.group === g);
+    if (!items.length) return;
+    html += '<optgroup label="' + esc(GROUPS[g].label) + ' (' + items.length + ')">';
+    html += items.map((x) => {
+      const mark = x.p.status === 'blocked' ? ' · blocked'
+                 : (x.p.status === 'caveat' ? ' · caveat' : '');
+      return '<option value="' + x.n + '">' + esc(x.p.name) + mark + '</option>';
+    }).join('');
+    html += '</optgroup>';
+  });
+  $('#jump').innerHTML = html;
 }
 
 function go(n) {
@@ -829,11 +861,33 @@ $('#groupSeg').addEventListener('click', (e) => {
   render();
 });
 
+$('#allBtn').addEventListener('click', () => {
+  Object.keys(GROUPS).forEach((g) => state.groups.add(g));
+  document.querySelectorAll('#groupSeg button[data-group]').forEach((b) => {
+    b.setAttribute('aria-pressed', 'true');
+  });
+  state.i = 0;
+  buildJump();
+  render();
+});
+
 document.addEventListener('keydown', (e) => {
   if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
   if (e.key === 'ArrowRight') { e.preventDefault(); go(state.i + 1); }
   if (e.key === 'ArrowLeft')  { e.preventDefault(); go(state.i - 1); }
 });
+
+/* Stamp each scope chip with how many players it holds. Without this the page
+   looks like it only has 7 players and the rest are undiscoverable. */
+(function stampCounts() {
+  const tally = {};
+  PLAYERS.forEach((p) => { tally[p.group] = (tally[p.group] || 0) + 1; });
+  document.querySelectorAll('#groupSeg button[data-group]').forEach((b) => {
+    b.querySelector('.n').textContent = tally[b.dataset.group] || 0;
+  });
+  const all = document.getElementById('allBtn');
+  all.textContent = 'All ' + PLAYERS.length;
+})();
 
 document.documentElement.setAttribute('data-theme', state.theme);
 buildJump();
