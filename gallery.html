@@ -52,7 +52,6 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
   color: var(--text-dim);
 }
 .loaded-count { font-size: 11.5px; color: var(--text-dim); }
-.empty { padding: 60px 20px; text-align: center; color: var(--text-dim); font-size: 14px; }
 .pagelink { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .pagelink:hover { border-bottom-color: var(--text); }
 </style>
@@ -61,18 +60,6 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
 
 <header>
   <div class="brandmark">Embed Player Gallery <span id="modeDesc"></span></div>
-
-  <div class="ctrl">
-    <label>Scope</label>
-    <div class="chips" id="groupSeg">
-      <button data-group="parity" aria-pressed="true"><span class="tick">✓</span>Core <span class="n"></span></button>
-      <button data-group="hosts" aria-pressed="false"><span class="tick">✓</span>Hosts <span class="n"></span></button>
-      <button data-group="other" aria-pressed="false"><span class="tick">✓</span>Other <span class="n"></span></button>
-      <button data-group="infra" aria-pressed="false"><span class="tick">✓</span>Infra <span class="n"></span></button>
-      <button data-group="blocked" aria-pressed="false"><span class="tick">✓</span>Blocked <span class="n"></span></button>
-      <button id="allBtn" title="Turn on every group">All</button>
-    </div>
-  </div>
 
   <div class="ctrl">
     <label>Content</label>
@@ -121,15 +108,19 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
 /* ============================================================================
    GALLERY
 
-   All players stacked on one scrolling page. The registry and every shared
-   helper come from players.js, so this page and index.html cannot disagree
-   about how a given player is embedded.
+   Every player, always, on one scrolling page. No filter: you scroll and you see
+   the lot. The registry and every shared helper come from players.js, so this
+   page and index.html cannot disagree about how a player is embedded.
 
-   The one real engineering problem here is weight. With every group on, this is
-   36 live player frames, several of them full single-page apps (iHeart, TuneIn,
-   Castbox, TikTok). Mounting them all at load would be brutal, so frames mount
-   lazily as they approach the viewport and each card reserves its exact height
-   up front so nothing shifts under the scroll.
+   The one real engineering problem here is weight. This is 36 live player
+   frames, several of them full single-page apps (iHeart, TuneIn, Castbox,
+   TikTok). Mounting them all at load would be brutal, so frames mount lazily as
+   they approach the viewport, and each card reserves its exact height up front
+   so nothing shifts under the scroll.
+
+   The section headings stay. They are not a filter, they carry the one thing you
+   need to read a card correctly: whether it is showing the same content as the
+   others or something different.
    ==========================================================================*/
 
 const ORDER = ['parity', 'hosts', 'other', 'infra', 'blocked'];
@@ -137,16 +128,11 @@ const ORDER = ['parity', 'hosts', 'other', 'infra', 'blocked'];
 const state = {
   mode: 'podcast',
   theme: 'light',
-  cols: 1,
-  groups: new Set(['parity'])
+  cols: 1
 };
 
 const $ = (s) => document.querySelector(s);
 let observer = null;
-
-function visiblePlayers() {
-  return PLAYERS.filter((p) => state.groups.has(p.group));
-}
 
 /* Exact height a frame will occupy, so the placeholder reserves it and mounting
    causes no layout shift. Aspect frames are 16:9 of their measured column. */
@@ -235,7 +221,7 @@ function mount(wrap) {
 
 function updateLoaded() {
   const n = document.querySelectorAll('.frame-wrap[data-mounted="1"]').length;
-  const total = visiblePlayers().filter((p) => !resolveEntry(p, state.mode).blocked).length;
+  const total = PLAYERS.filter((p) => !resolveEntry(p, state.mode).blocked).length;
   $('#loaded').textContent = n + ' of ' + total + ' loaded';
 }
 
@@ -250,13 +236,6 @@ function build() {
 
   const host = $('#sections');
   host.innerHTML = '';
-  const shown = visiblePlayers();
-
-  if (!shown.length) {
-    host.innerHTML = '<p class="empty">No groups selected.</p>';
-    $('#toc').innerHTML = '';
-    return;
-  }
 
   /* Measure a column once so aspect placeholders reserve the right height. */
   const probe = document.createElement('div');
@@ -269,7 +248,7 @@ function build() {
 
   const toc = [];
   ORDER.forEach((g) => {
-    const items = shown.filter((p) => p.group === g);
+    const items = PLAYERS.filter((p) => p.group === g);
     if (!items.length) return;
 
     const sec = document.createElement('section');
@@ -296,9 +275,9 @@ function build() {
   });
 
   $('#toc').innerHTML = '<b>Jump to</b>' + toc.join('');
-  $('#modeDesc').textContent = state.mode === 'live'
-    ? 'live radio, ' + LIVE_LABEL
-    : 'podcast, ' + PODCAST_LABEL;
+  $('#modeDesc').textContent = 'all ' + PLAYERS.length + ' players, ' +
+    (state.mode === 'live' ? 'live radio, ' + LIVE_LABEL
+                           : 'podcast, ' + PODCAST_LABEL);
   updateLoaded();
 }
 
@@ -328,26 +307,6 @@ $('#themeSeg').addEventListener('click', (e) => {
   build();
 });
 
-$('#groupSeg').addEventListener('click', (e) => {
-  const b = e.target.closest('button[data-group]'); if (!b) return;
-  const g = b.dataset.group;
-  if (state.groups.has(g)) {
-    if (state.groups.size === 1) return;   /* never leave an empty page */
-    state.groups.delete(g);
-  } else {
-    state.groups.add(g);
-  }
-  b.setAttribute('aria-pressed', String(state.groups.has(g)));
-  build();
-});
-
-$('#allBtn').addEventListener('click', () => {
-  Object.keys(GROUPS).forEach((g) => state.groups.add(g));
-  $('#groupSeg').querySelectorAll('button[data-group]').forEach((b) =>
-    b.setAttribute('aria-pressed', 'true'));
-  build();
-});
-
 /* Rebuilding destroys every iframe, which is the only reliable way to stop
    audio in a cross-origin frame. Frames then re-mount as they come back into
    view, so the page is not left empty. */
@@ -356,14 +315,6 @@ $('#silence').addEventListener('click', () => {
   build();
   window.scrollTo(0, y);
 });
-
-(function stampCounts() {
-  const t = groupCounts();
-  $('#groupSeg').querySelectorAll('button[data-group]').forEach((b) => {
-    b.querySelector('.n').textContent = t[b.dataset.group] || 0;
-  });
-  $('#allBtn').textContent = 'All ' + PLAYERS.length;
-})();
 
 document.documentElement.setAttribute('data-theme', state.theme);
 build();

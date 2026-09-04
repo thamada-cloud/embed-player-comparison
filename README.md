@@ -6,7 +6,7 @@ one shared registry. No build step, no dependencies.
 | Page | For |
 | --- | --- |
 | `index.html` | **One at a time.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
-| `gallery.html` | **All on one page.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
+| `gallery.html` | **All 50 on one page, no filter.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
 
 ## Files
 
@@ -46,21 +46,28 @@ echoes one contender's brand colour biases the comparison.
 
 ## The gallery page
 
-Everything stacked on one scrolling page, grouped by scope, with a jump-to nav.
+Every player, always. There is no filter to discover or configure: open it and
+scroll. Sections and the jump-to nav are for navigation, not filtering.
 
-- **Scope, content and theme** work the same as the other page.
+The section headings stay because they are not a filter. They carry the one thing
+needed to read a card correctly, whether it shows the same content as the others
+or something different. A Megaphone card playing a different show means something
+very different from an iHeart card playing the target episode, and without the
+heading that distinction is invisible.
+
+- **Content and theme** work the same as the other page.
 - **Columns** switches between 1, 2 and 3. One column is a centred stack.
   Multi-column uses CSS columns rather than grid, because player heights range
   from 100px to 740px and grid rows size to the tallest card, leaving large dead
   gaps. Reading order in multi-column is down, then across.
-- **Silence all** rebuilds the page, destroying every iframe. With up to 36 live
+- **Silence all** rebuilds the page, destroying every iframe. With 36 live
   players there is no way to detect or stop playback inside a cross-origin frame,
   so unmounting is the only reliable kill switch. Scroll position is preserved and
   frames re-mount as they come back into view.
 - **The loaded count** shows how many frames are live, so it is clear why the page
   gets heavy as you scroll.
 
-Frames mount lazily. With every group on this page is 36 live player frames,
+Frames mount lazily. This page is 36 live player frames,
 several of them full single-page apps, so mounting them all at load would be
 brutal. Each card reserves its frame's exact height before mounting, which is
 what keeps the page from shifting under the scroll. Verified at 1, 2 and 3
@@ -228,8 +235,9 @@ iHeart cards.
 **0 blanks**. All 36 embeddable players paint real content. All 14 blocked cards
 mount no iframe and show their reason.
 
-**Gallery page.** All 36 frames mount on a full scroll and all 36 paint, at 1, 2
-and 3 columns. **0 cards drift more than 4px** as frames mount. Silence all takes
+**Gallery page.** All 50 cards render on load with no interaction. All 36 frames
+mount on a full scroll and all 36 paint, at 1, 2 and 3 columns. **0 cards drift
+more than 4px** as frames mount. Silence all takes
 the page to 0 iframes and preserves scroll position.
 
 **Both pages.** Every control exercised while capturing page and console errors.
