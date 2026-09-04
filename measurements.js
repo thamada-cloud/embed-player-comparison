@@ -111,7 +111,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 23,
-    "kb": 33.9
+    "kb": 12.6
    },
    "narrow": {
     "scrollW": 375,
@@ -121,11 +121,11 @@ const MEASUREMENTS = {
    },
    "pixels": {
     "light": 233.3,
-    "dark": 233.4
+    "dark": 233.3
    },
    "themeResponds": false,
    "lightLuma": 233.3,
-   "darkLuma": 233.4,
+   "darkLuma": 233.3,
    "measured": true
   },
   "tunein": {
@@ -186,7 +186,7 @@ const MEASUREMENTS = {
      "platformPush": true,
      "textLen": 1622,
      "textSample": "Hear what you want, where and when you want it, download the TuneIn app today. LISTEN FREE IN APP Share with Facebook Tw",
-     "settleSeconds": 4.4
+     "settleSeconds": 4.3
     },
     "dark": {
      "frame": {
@@ -239,7 +239,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 45,
-    "kb": 51.1
+    "kb": 4.0
    },
    "narrow": {
     "scrollW": 375,
@@ -370,7 +370,7 @@ const MEASUREMENTS = {
    "group": "parity",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 175,
+   "declaredHeight": 165,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -379,7 +379,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 175
+      "h": 165
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgba(0, 0, 0, 0.88)",
@@ -417,7 +417,7 @@ const MEASUREMENTS = {
     "dark": {
      "frame": {
       "w": 640,
-      "h": 175
+      "h": 165
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgba(255, 255, 255, 0.92)",
@@ -460,16 +460,16 @@ const MEASUREMENTS = {
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 175,
-    "clientH": 175
+    "scrollH": 165,
+    "clientH": 165
    },
    "pixels": {
-    "light": 83.1,
-    "dark": 83.1
+    "light": 72.4,
+    "dark": 72.4
    },
    "themeResponds": false,
-   "lightLuma": 83.1,
-   "darkLuma": 83.1,
+   "lightLuma": 72.4,
+   "darkLuma": 72.4,
    "measured": true
   },
   "spotify": {
@@ -577,7 +577,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 34,
-    "kb": null
+    "kb": 416.4
    },
    "narrow": {
     "scrollW": 375,
@@ -684,8 +684,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 36,
-    "kb": 56249.6
+    "requests": 37,
+    "kb": 55028.4
    },
    "narrow": {
     "scrollW": 375,
@@ -694,11 +694,11 @@ const MEASUREMENTS = {
     "clientH": 300
    },
    "pixels": {
-    "light": 48.2,
+    "light": 48.1,
     "dark": 48.1
    },
    "themeResponds": false,
-   "lightLuma": 48.2,
+   "lightLuma": 48.1,
    "darkLuma": 48.1,
    "measured": true
   },
@@ -819,7 +819,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 32,
-    "kb": 16.3
+    "kb": null
    },
    "narrow": {
     "scrollW": 375,
@@ -842,7 +842,7 @@ const MEASUREMENTS = {
    "group": "hosts",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 200,
+   "declaredHeight": 374,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -851,7 +851,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 218
+      "h": 374
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(0, 0, 0)",
@@ -862,7 +862,7 @@ const MEASUREMENTS = {
       "area": 1600,
       "via": "class",
       "cx": 0.4,
-      "cy": 0.2,
+      "cy": 0.1,
       "radius": "50%",
       "accessibleName": null,
       "tag": "div"
@@ -871,9 +871,9 @@ const MEASUREMENTS = {
      "artwork": {
       "w": 200,
       "h": 200,
-      "areaShare": 0.3,
+      "areaShare": 0.2,
       "cx": 0.2,
-      "cy": 0.5,
+      "cy": 0.3,
       "radius": "0px",
       "isImg": true
      },
@@ -891,7 +891,7 @@ const MEASUREMENTS = {
     "dark": {
      "frame": {
       "w": 640,
-      "h": 218
+      "h": 374
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(0, 0, 0)",
@@ -902,7 +902,7 @@ const MEASUREMENTS = {
       "area": 1600,
       "via": "class",
       "cx": 0.4,
-      "cy": 0.2,
+      "cy": 0.1,
       "radius": "50%",
       "accessibleName": null,
       "tag": "div"
@@ -911,9 +911,9 @@ const MEASUREMENTS = {
      "artwork": {
       "w": 200,
       "h": 200,
-      "areaShare": 0.3,
+      "areaShare": 0.2,
       "cx": 0.2,
-      "cy": 0.5,
+      "cy": 0.3,
       "radius": "0px",
       "isImg": true
      },
@@ -931,21 +931,21 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 13,
-    "kb": 506.9
+    "kb": 507.5
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 218,
-    "clientH": 200
+    "scrollH": 374,
+    "clientH": 374
    },
    "pixels": {
-    "light": 83.9,
-    "dark": 83.7
+    "light": 163.3,
+    "dark": 163.4
    },
    "themeResponds": false,
-   "lightLuma": 83.9,
-   "darkLuma": 83.7,
+   "lightLuma": 163.3,
+   "darkLuma": 163.4,
    "measured": true
   },
   "acast": {
@@ -1029,7 +1029,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 11,
-    "kb": 173.9
+    "kb": 179.7
    },
    "narrow": {
     "scrollW": 375,
@@ -1052,7 +1052,7 @@ const MEASUREMENTS = {
    "group": "hosts",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 200,
+   "declaredHeight": 100,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -1061,7 +1061,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 200
+      "h": 100
      },
      "bg": "rgb(255, 255, 255)",
      "color": "rgb(51, 51, 51)",
@@ -1072,7 +1072,7 @@ const MEASUREMENTS = {
       "area": 3248,
       "via": "aria-label",
       "cx": 0.2,
-      "cy": 0.1,
+      "cy": 0.3,
       "radius": "0px",
       "accessibleName": "Play Episode",
       "tag": "a"
@@ -1083,7 +1083,7 @@ const MEASUREMENTS = {
       "h": 90,
       "areaShare": 0.1,
       "cx": 0.1,
-      "cy": 0.2,
+      "cy": 0.5,
       "radius": "0px",
       "isImg": true
      },
@@ -1101,7 +1101,7 @@ const MEASUREMENTS = {
     "dark": {
      "frame": {
       "w": 640,
-      "h": 200
+      "h": 100
      },
      "bg": "rgb(255, 255, 255)",
      "color": "rgb(51, 51, 51)",
@@ -1112,7 +1112,7 @@ const MEASUREMENTS = {
       "area": 3248,
       "via": "aria-label",
       "cx": 0.2,
-      "cy": 0.1,
+      "cy": 0.3,
       "radius": "0px",
       "accessibleName": "Play Episode",
       "tag": "a"
@@ -1123,7 +1123,7 @@ const MEASUREMENTS = {
       "h": 90,
       "areaShare": 0.1,
       "cx": 0.1,
-      "cy": 0.2,
+      "cy": 0.5,
       "radius": "0px",
       "isImg": true
      },
@@ -1146,16 +1146,16 @@ const MEASUREMENTS = {
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 200,
-    "clientH": 200
+    "scrollH": 100,
+    "clientH": 100
    },
    "pixels": {
-    "light": 242.3,
-    "dark": 242.3
+    "light": 229.6,
+    "dark": 229.6
    },
    "themeResponds": false,
-   "lightLuma": 242.3,
-   "darkLuma": 242.3,
+   "lightLuma": 229.6,
+   "darkLuma": 229.6,
    "measured": true
   },
   "captivate": {
@@ -1265,7 +1265,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 20,
-    "kb": 0.1
+    "kb": null
    },
    "narrow": {
     "scrollW": 375,
@@ -1516,7 +1516,7 @@ const MEASUREMENTS = {
    "group": "hosts",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 200,
+   "declaredHeight": 300,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -1536,7 +1536,7 @@ const MEASUREMENTS = {
       "area": 5476,
       "via": "aria-label",
       "cx": 0.1,
-      "cy": 0.4,
+      "cy": 0.7,
       "radius": "6px",
       "accessibleName": "play audio",
       "tag": "button"
@@ -1547,7 +1547,7 @@ const MEASUREMENTS = {
       "h": 56,
       "areaShare": 0,
       "cx": 0.9,
-      "cy": 0.4,
+      "cy": 0.7,
       "radius": "0px",
       "isImg": true
      },
@@ -1574,7 +1574,7 @@ const MEASUREMENTS = {
       "area": 5476,
       "via": "aria-label",
       "cx": 0.1,
-      "cy": 0.4,
+      "cy": 0.7,
       "radius": "6px",
       "accessibleName": "play audio",
       "tag": "button"
@@ -1585,7 +1585,7 @@ const MEASUREMENTS = {
       "h": 56,
       "areaShare": 0,
       "cx": 0.9,
-      "cy": 0.4,
+      "cy": 0.7,
       "radius": "0px",
       "isImg": true
      },
@@ -1601,21 +1601,21 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 47,
-    "kb": 0.2
+    "kb": null
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
     "scrollH": 300,
-    "clientH": 200
+    "clientH": 300
    },
    "pixels": {
-    "light": 120.1,
-    "dark": 120.1
+    "light": 111.7,
+    "dark": 111.7
    },
    "themeResponds": false,
-   "lightLuma": 120.1,
-   "darkLuma": 120.1,
+   "lightLuma": 111.7,
+   "darkLuma": 111.7,
    "measured": true
   },
   "spreaker": {
@@ -2004,7 +2004,7 @@ const MEASUREMENTS = {
    "group": "hosts",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 200,
+   "declaredHeight": 172,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -2013,7 +2013,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 200
+      "h": 172
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(51, 51, 51)",
@@ -2024,7 +2024,7 @@ const MEASUREMENTS = {
       "area": 683,
       "via": "aria-label",
       "cx": 0.9,
-      "cy": 0.7,
+      "cy": 0.8,
       "radius": "16px",
       "accessibleName": "Play Speed 1x",
       "tag": "a"
@@ -2035,7 +2035,7 @@ const MEASUREMENTS = {
       "h": 160,
       "areaShare": 0.2,
       "cx": 0.1,
-      "cy": 0.4,
+      "cy": 0.5,
       "radius": "5px",
       "isImg": true
      },
@@ -2058,7 +2058,7 @@ const MEASUREMENTS = {
     "dark": {
      "frame": {
       "w": 640,
-      "h": 200
+      "h": 172
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(51, 51, 51)",
@@ -2069,7 +2069,7 @@ const MEASUREMENTS = {
       "area": 683,
       "via": "aria-label",
       "cx": 0.9,
-      "cy": 0.7,
+      "cy": 0.8,
       "radius": "16px",
       "accessibleName": "Play Speed 1x",
       "tag": "a"
@@ -2080,7 +2080,7 @@ const MEASUREMENTS = {
       "h": 160,
       "areaShare": 0.2,
       "cx": 0.1,
-      "cy": 0.4,
+      "cy": 0.5,
       "radius": "5px",
       "isImg": true
      },
@@ -2108,16 +2108,16 @@ const MEASUREMENTS = {
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 200,
-    "clientH": 200
+    "scrollH": 172,
+    "clientH": 172
    },
    "pixels": {
-    "light": 213.5,
-    "dark": 213.5
+    "light": 206.9,
+    "dark": 206.9
    },
    "themeResponds": false,
-   "lightLuma": 213.5,
-   "darkLuma": 213.5,
+   "lightLuma": 206.9,
+   "darkLuma": 206.9,
    "measured": true
   },
   "castbox": {
@@ -2126,7 +2126,7 @@ const MEASUREMENTS = {
    "group": "hosts",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 500,
+   "declaredHeight": 210,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -2135,7 +2135,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 500
+      "h": 210
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(33, 37, 41)",
@@ -2146,7 +2146,7 @@ const MEASUREMENTS = {
       "area": 3600,
       "via": "class",
       "cx": 0.1,
-      "cy": 0.3,
+      "cy": 0.7,
       "radius": "0px",
       "accessibleName": null,
       "tag": "div"
@@ -2157,7 +2157,7 @@ const MEASUREMENTS = {
       "h": 60,
       "areaShare": 0,
       "cx": 0.1,
-      "cy": 0.1,
+      "cy": 0.2,
       "radius": "0px",
       "isImg": true
      },
@@ -2175,7 +2175,7 @@ const MEASUREMENTS = {
     "dark": {
      "frame": {
       "w": 640,
-      "h": 500
+      "h": 210
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(33, 37, 41)",
@@ -2186,7 +2186,7 @@ const MEASUREMENTS = {
       "area": 3600,
       "via": "class",
       "cx": 0.1,
-      "cy": 0.3,
+      "cy": 0.7,
       "radius": "0px",
       "accessibleName": null,
       "tag": "div"
@@ -2197,7 +2197,7 @@ const MEASUREMENTS = {
       "h": 60,
       "areaShare": 0,
       "cx": 0.1,
-      "cy": 0.1,
+      "cy": 0.2,
       "radius": "0px",
       "isImg": true
      },
@@ -2215,21 +2215,21 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 27,
-    "kb": 338.7
+    "kb": 558.9
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 500,
-    "clientH": 500
+    "scrollH": 210,
+    "clientH": 210
    },
    "pixels": {
-    "light": 249.9,
-    "dark": 249.9
+    "light": 242.9,
+    "dark": 242.9
    },
    "themeResponds": false,
-   "lightLuma": 249.9,
-   "darkLuma": 249.9,
+   "lightLuma": 242.9,
+   "darkLuma": 242.9,
    "measured": true
   },
   "applemusic": {
@@ -2307,7 +2307,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 36,
-    "kb": 543.4
+    "kb": 7.4
    },
    "narrow": {
     "scrollW": 375,
@@ -2428,7 +2428,7 @@ const MEASUREMENTS = {
    "group": "other",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 290,
+   "declaredHeight": 215,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -2437,7 +2437,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 290
+      "h": 215
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(0, 0, 0)",
@@ -2448,7 +2448,7 @@ const MEASUREMENTS = {
       "area": 1600,
       "via": "aria-label",
       "cx": 0.3,
-      "cy": 0.5,
+      "cy": 0.7,
       "radius": "30px",
       "accessibleName": "Play audio",
       "tag": "a"
@@ -2459,7 +2459,7 @@ const MEASUREMENTS = {
       "h": 139.7,
       "areaShare": 0.1,
       "cx": 0.1,
-      "cy": 0.3,
+      "cy": 0.4,
       "radius": "0px",
       "isImg": true
      },
@@ -2477,12 +2477,12 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 98,
      "textSample": "Sam Yellowhorse Kesler/NPR Share Planet Money Love in the time of Palantir Listen 25:47 \u00a9 2026 NPR",
-     "settleSeconds": 4.4
+     "settleSeconds": 4.3
     },
     "dark": {
      "frame": {
       "w": 640,
-      "h": 290
+      "h": 215
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(0, 0, 0)",
@@ -2493,7 +2493,7 @@ const MEASUREMENTS = {
       "area": 1600,
       "via": "aria-label",
       "cx": 0.3,
-      "cy": 0.5,
+      "cy": 0.7,
       "radius": "30px",
       "accessibleName": "Play audio",
       "tag": "a"
@@ -2504,7 +2504,7 @@ const MEASUREMENTS = {
       "h": 139.7,
       "areaShare": 0.1,
       "cx": 0.1,
-      "cy": 0.3,
+      "cy": 0.4,
       "radius": "0px",
       "isImg": true
      },
@@ -2527,21 +2527,21 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 38,
-    "kb": 367.4
+    "kb": 371.3
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 290,
-    "clientH": 290
+    "scrollH": 215,
+    "clientH": 215
    },
    "pixels": {
-    "light": 220.3,
-    "dark": 219.5
+    "light": 208.2,
+    "dark": 207.2
    },
    "themeResponds": false,
-   "lightLuma": 220.3,
-   "darkLuma": 219.5,
+   "lightLuma": 208.2,
+   "darkLuma": 207.2,
    "measured": true
   },
   "mixcloud": {
@@ -2650,8 +2650,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 58,
-    "kb": 2333.8
+    "requests": 59,
+    "kb": 1288.5
    },
    "narrow": {
     "scrollW": 375,
@@ -2674,7 +2674,7 @@ const MEASUREMENTS = {
    "group": "other",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 252,
+   "declaredHeight": 266,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -2724,7 +2724,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 136,
      "textSample": "Future Purple Reign This song is only available for premium subscribers. Start your free trial. Play Purple Reign 0:00 0",
-     "settleSeconds": 4.3
+     "settleSeconds": 5.6
     },
     "dark": {
      "frame": {
@@ -2775,21 +2775,21 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 54,
-    "kb": null
+    "kb": 62.4
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
     "scrollH": 266,
-    "clientH": 252
+    "clientH": 266
    },
    "pixels": {
-    "light": 14.2,
-    "dark": 14.2
+    "light": 14.1,
+    "dark": 14.1
    },
    "themeResponds": false,
-   "lightLuma": 14.2,
-   "darkLuma": 14.2,
+   "lightLuma": 14.1,
+   "darkLuma": 14.1,
    "measured": true
   },
   "bandcamp": {
@@ -2843,7 +2843,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 74,
      "textSample": "Carrie & Lowell buy share Sufjan Stevens 1. Death with Dignity 00:00 03:59",
-     "settleSeconds": 6.2
+     "settleSeconds": 6.1
     },
     "dark": {
      "frame": {
@@ -2884,12 +2884,12 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 74,
      "textSample": "Carrie & Lowell buy share Sufjan Stevens 1. Death with Dignity 00:00 03:59",
-     "settleSeconds": 6.2
+     "settleSeconds": 6.1
     }
    },
    "network": {
-    "requests": 20,
-    "kb": null
+    "requests": 19,
+    "kb": 572.5
    },
    "narrow": {
     "scrollW": 375,
@@ -3058,7 +3058,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 163,
      "textSample": "Top Gear Guy Finds His Mrs. Right #englishsubtitle #fullfilm #verticaldrama\ud83d\udca5\ud83c\udfac\u26a1\ufe0f | Drama Royals 0:04 1:08:25 Speed 2x C",
-     "settleSeconds": 4.4
+     "settleSeconds": 4.3
     },
     "dark": {
      "frame": {
@@ -3100,8 +3100,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 102,
-    "kb": 449.4
+    "requests": 101,
+    "kb": 135.8
    },
    "narrow": {
     "scrollW": 375,
@@ -3110,12 +3110,12 @@ const MEASUREMENTS = {
     "clientH": 360
    },
    "pixels": {
-    "light": 36.2,
-    "dark": 36.2
+    "light": 36.3,
+    "dark": 36.1
    },
    "themeResponds": false,
-   "lightLuma": 36.2,
-   "darkLuma": 36.2,
+   "lightLuma": 36.3,
+   "darkLuma": 36.1,
    "measured": true
   },
   "tiktok": {
@@ -3198,8 +3198,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 55,
-    "kb": 3164.7
+    "requests": 54,
+    "kb": 360.0
    },
    "narrow": {
     "scrollW": 375,
@@ -3208,100 +3208,12 @@ const MEASUREMENTS = {
     "clientH": 740
    },
    "pixels": {
-    "light": 210.2,
-    "dark": 210.0
+    "light": 210.4,
+    "dark": 210.3
    },
    "themeResponds": false,
-   "lightLuma": 210.2,
-   "darkLuma": 210.0,
-   "measured": true
-  },
-  "twitch": {
-   "id": "twitch",
-   "name": "Twitch",
-   "group": "other",
-   "status": "caveat",
-   "blocked": false,
-   "declaredHeight": null,
-   "aspect": true,
-   "themedParam": false,
-   "shownMode": "live",
-   "fellBack": true,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(14, 14, 16)",
-     "color": "rgb(239, 239, 241)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 640,
-      "h": 360,
-      "areaShare": 1,
-      "cx": 0.5,
-      "cy": 0.5,
-      "radius": "0px",
-      "isImg": false
-     },
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 4,
-     "outboundLinks": 2,
-     "platformPush": false,
-     "textLen": 71,
-     "textSample": "Twitch is offline. Learn more about them on their channel! Visit Twitch",
-     "settleSeconds": 4.4
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(14, 14, 16)",
-     "color": "rgb(239, 239, 241)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 640,
-      "h": 360,
-      "areaShare": 1,
-      "cx": 0.5,
-      "cy": 0.5,
-      "radius": "0px",
-      "isImg": false
-     },
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 4,
-     "outboundLinks": 2,
-     "platformPush": false,
-     "textLen": 71,
-     "textSample": "Twitch is offline. Learn more about them on their channel! Visit Twitch",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 127,
-    "kb": 731.0
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 360,
-    "clientH": 360
-   },
-   "pixels": {
-    "light": 187.7,
-    "dark": 187.7
-   },
-   "themeResponds": false,
-   "lightLuma": 187.7,
-   "darkLuma": 187.7,
+   "lightLuma": 210.4,
+   "darkLuma": 210.3,
    "measured": true
   },
   "soundcloud": {
@@ -3310,7 +3222,7 @@ const MEASUREMENTS = {
    "group": "other",
    "status": "ok",
    "blocked": false,
-   "declaredHeight": 300,
+   "declaredHeight": 166,
    "aspect": false,
    "themedParam": false,
    "shownMode": "podcast",
@@ -3319,7 +3231,7 @@ const MEASUREMENTS = {
     "light": {
      "frame": {
       "w": 640,
-      "h": 300
+      "h": 166
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(51, 51, 51)",
@@ -3329,8 +3241,8 @@ const MEASUREMENTS = {
       "h": 43,
       "area": 1849,
       "via": "aria-label",
-      "cx": 0.1,
-      "cy": 0.1,
+      "cx": 0.3,
+      "cy": 0.2,
       "radius": "0px",
       "accessibleName": "Play",
       "tag": "button"
@@ -3338,36 +3250,36 @@ const MEASUREMENTS = {
      "waveform": {
       "kind": "canvas",
       "count": null,
-      "w": 620,
-      "h": 44
+      "w": 453,
+      "h": 65
      },
      "artwork": {
-      "w": 640,
-      "h": 300,
-      "areaShare": 1,
-      "cx": 0.5,
+      "w": 144,
+      "h": 144,
+      "areaShare": 0.2,
+      "cx": 0.1,
       "cy": 0.5,
-      "radius": "4px",
+      "radius": "0px",
       "isImg": false
      },
      "progress": {
       "kind": "unlabelled bar",
-      "w": 620,
+      "w": 453,
       "h": 10,
       "interactive": false
      },
      "timecodes": [],
-     "controlCount": 8,
-     "outboundLinks": 4,
+     "controlCount": 9,
+     "outboundLinks": 5,
      "platformPush": false,
-     "textLen": 135,
-     "textSample": "The Chainsmokers Closer (feat. Halsey) PREVIEW Share \u2117 2016 Disruptor Records/Columbia Records SoundCloud privacy policy",
-     "settleSeconds": 4.5
+     "textLen": 116,
+     "textSample": "Follow The Chainsmokers Closer (feat. Halsey) Share PREVIEW 5.9M plays 5.9M SoundCloud privacy policy Privacy policy",
+     "settleSeconds": 4.4
     },
     "dark": {
      "frame": {
       "w": 640,
-      "h": 300
+      "h": 166
      },
      "bg": "rgba(0, 0, 0, 0)",
      "color": "rgb(51, 51, 51)",
@@ -3377,8 +3289,8 @@ const MEASUREMENTS = {
       "h": 43,
       "area": 1849,
       "via": "aria-label",
-      "cx": 0.1,
-      "cy": 0.1,
+      "cx": 0.3,
+      "cy": 0.2,
       "radius": "0px",
       "accessibleName": "Play",
       "tag": "button"
@@ -3386,50 +3298,50 @@ const MEASUREMENTS = {
      "waveform": {
       "kind": "canvas",
       "count": null,
-      "w": 620,
-      "h": 44
+      "w": 453,
+      "h": 65
      },
      "artwork": {
-      "w": 640,
-      "h": 300,
-      "areaShare": 1,
-      "cx": 0.5,
+      "w": 144,
+      "h": 144,
+      "areaShare": 0.2,
+      "cx": 0.1,
       "cy": 0.5,
-      "radius": "4px",
+      "radius": "0px",
       "isImg": false
      },
      "progress": {
       "kind": "unlabelled bar",
-      "w": 620,
+      "w": 453,
       "h": 10,
       "interactive": false
      },
      "timecodes": [],
-     "controlCount": 8,
-     "outboundLinks": 4,
+     "controlCount": 9,
+     "outboundLinks": 5,
      "platformPush": false,
-     "textLen": 135,
-     "textSample": "The Chainsmokers Closer (feat. Halsey) PREVIEW Share \u2117 2016 Disruptor Records/Columbia Records SoundCloud privacy policy",
+     "textLen": 116,
+     "textSample": "Follow The Chainsmokers Closer (feat. Halsey) Share PREVIEW 5.9M plays 5.9M SoundCloud privacy policy Privacy policy",
      "settleSeconds": 4.3
     }
    },
    "network": {
-    "requests": 92,
-    "kb": 43.4
+    "requests": 87,
+    "kb": 8.2
    },
    "narrow": {
     "scrollW": 375,
     "clientW": 375,
-    "scrollH": 300,
-    "clientH": 300
+    "scrollH": 166,
+    "clientH": 166
    },
    "pixels": {
-    "light": 194.6,
-    "dark": 194.6
+    "light": 221.0,
+    "dark": 221.0
    },
    "themeResponds": false,
-   "lightLuma": 194.6,
-   "darkLuma": 194.6,
+   "lightLuma": 221.0,
+   "darkLuma": 221.0,
    "measured": true
   },
   "zeno": {
@@ -3522,8 +3434,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 148,
-    "kb": 4545.9
+    "requests": 146,
+    "kb": 55.4
    },
    "narrow": {
     "scrollW": 375,
@@ -3654,7 +3566,7 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 19,
+    "requests": 18,
     "kb": null
    },
    "narrow": {
@@ -3670,78 +3582,6 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 129.7,
    "darkLuma": 129.7,
-   "measured": true
-  },
-  "brightcove": {
-   "id": "brightcove",
-   "name": "Brightcove",
-   "group": "infra",
-   "status": "ok",
-   "blocked": false,
-   "declaredHeight": null,
-   "aspect": true,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(21, 27, 23)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": null,
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 2,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 205,
-     "textSample": "This is a modal window. The Video Cloud video was not found. Error Code: VIDEO_CLOUD_ERR_VIDEO_NOT_FOUND Session ID: 202",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 360
-     },
-     "bg": "rgb(21, 27, 23)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": null,
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 2,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 204,
-     "textSample": "This is a modal window. The Video Cloud video was not found. Error Code: VIDEO_CLOUD_ERR_VIDEO_NOT_FOUND Session ID: 202",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 14,
-    "kb": null
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 360,
-    "clientH": 360
-   },
-   "pixels": {
-    "light": 25.6,
-    "dark": 25.6
-   },
-   "themeResponds": false,
-   "lightLuma": 25.6,
-   "darkLuma": 25.6,
    "measured": true
   },
   "streamable": {
@@ -3902,8 +3742,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 111,
-    "kb": 23.7
+    "requests": 112,
+    "kb": 1404.7
    },
    "narrow": {
     "scrollW": 375,

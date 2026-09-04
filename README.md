@@ -47,7 +47,7 @@ echoes one contender's brand colour biases the comparison.
 
 ## The gallery page
 
-Every player, always. No filter to discover or configure: open it and scroll.
+Every player, always. No filter, no headings, no jump bar: open it and scroll.
 
 **A card is a service name and the player. Nothing else.** No status chips, no
 caveat bars, no notes. Everything that explains a player lives on `index.html`,
@@ -55,7 +55,6 @@ which is the page for reading a player rather than looking at it. Blocked entrie
 are the one exception, since with no embed to show, the one-line reason is all the
 card can carry.
 
-Section headings and the jump-to nav are navigation, not filtering.
 
 - **Content and theme** work the same as the other page.
 - **No per-card chrome.** If you need to know why a card shows different content,
@@ -146,6 +145,55 @@ negatives on some hosts.
 | Streema | No embed product |
 | Radio Garden | No iframe player. Their content API is public if you want to build your own. |
 | Radio France | X-Frame-Options DENY |
+
+## Frame sizing and corners, and who causes what
+
+Two things worth recording, because both looked like our doing and only one was.
+
+**The corners are ours.** Measured across every player: **not one rounds its own
+outer frame.** Four round an inner card (Acast 8px, Transistor 8px, Captivate 6px,
+SoundCloud 4px) and that shows through on its own. The gallery therefore uses
+**square** corners, so a frame shows the player's true shape rather than a shape
+we invented. Restoring rounding is one line in `gallery.html`.
+
+**The dead space under some players was mostly ours.** Comparing each declared
+frame height against the bottom of the player's own last painted pixel found:
+
+| Player | Was | Now | Cause |
+| --- | --- | --- | --- |
+| Castbox | 500 | 210 | ours, 300px of empty frame |
+| NPR | 290 | 215 | ours, 83px |
+| Blubrry | 200 | 172 | ours, 36px |
+| Libsyn | 200 | 100 | ours, 110px |
+| Apple Podcasts | 175 | 165 | 15px was the player's own internal whitespace |
+| Megaphone | 200 | 374 | ours, was clipping the player |
+| Audioboom | 200 | 300 | ours, was clipping |
+| Audiomack | 252 | 266 | ours, was clipping |
+| SoundCloud | 300 visual | 166 compact | the visual variant needs 605px |
+| TuneIn podcast | 350 fixed | 350, scrolls | a 1352px episode list, now scrolls internally |
+
+After those corrections the only remaining gap under any player is Audiomack's
+own 14px.
+
+**Do not chase these two.** Tidal reports 304px of content below the fold at every
+frame height, and YouTube and Spotify report overhangs of 228px and 38px. Those
+are hidden or absolutely positioned panels, not clipping. All three render
+complete at their documented heights.
+
+## Removed for not loading
+
+- **Brightcove.** Its player returns `VIDEO_CLOUD_ERR_VIDEO_NOT_FOUND` for every
+  public demo account and video id found. Unfixable without our own Brightcove
+  account.
+- **Twitch.** The channel renders "Twitch is offline". Live status is not something
+  a stimulus page can depend on. It can come back pointed at a 24/7 channel if the
+  live-video comparison is wanted.
+
+Two others were **wrongly** flagged as broken by an early heuristic and are still
+in: **Apple Music** (78 elements, real player, its content just needs a
+subscription) and **Streamable** (a real video element). A `textLen` test cannot
+judge a video player or a shadow-DOM player. `diagnose.py` now judges on error
+signals and near-empty renders instead.
 
 ## Zeno.fm and the live radio arm
 

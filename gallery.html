@@ -11,21 +11,7 @@
 main { background: var(--stage); padding: 20px 20px 80px; }
 .wrap { max-width: 1400px; margin: 0 auto; }
 
-.toc {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px 16px; margin: 0 0 22px;
-  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline;
-}
-.toc b { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); }
-.toc a { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
-.toc a:hover { border-bottom-color: var(--text); }
-
-section { margin: 0 0 34px; }
-section > h2 {
-  font-size: 13px; margin: 0 0 4px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .06em;
-}
-section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); max-width: 88ch; }
+section { margin: 0; }
 
 /* One column is a plain centred stack. Multi-column uses CSS columns rather
    than grid, because player heights vary enormously (TuneIn's program list is
@@ -49,16 +35,20 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
   font-size: 12px; font-weight: 700; letter-spacing: .02em;
   color: var(--text); margin: 0 0 6px;
 }
-/* A box-shadow ring, NOT a border. A 1px border adds 2px outside the reserved
-   min-height, so every frame grew 2px on mount and the page crept downward by
-   2px per card, up to 51px by the bottom. A ring paints identically and costs
-   zero layout. */
+/* Square corners on purpose. Measurement showed NO player rounds its own outer
+   frame, so any rounding here is ours, and it misrepresents the shape of the
+   thing being evaluated. Four players round an inner card (Acast 8px, Transistor
+   8px, Captivate 6px, SoundCloud 4px) and that shows through on its own.
+
+   The 1px edge is a box-shadow ring, not a border. A border adds 2px outside the
+   reserved min-height, so every frame grew on mount and the page crept downward
+   by 2px per card. A ring paints identically at zero layout cost. */
 .frame-wrap {
   box-shadow: 0 0 0 1px var(--border);
-  border-radius: var(--radius); overflow: hidden;
+  overflow: hidden;
 }
 .blocked-body {
-  border: 1px dashed var(--border); border-radius: var(--radius);
+  border: 1px dashed var(--border);
   padding: 14px 16px; font-size: 12.5px; color: var(--text-dim);
   background: transparent; text-align: left;
 }
@@ -122,7 +112,6 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
 
 <main>
   <div class="wrap">
-    <div class="toc" id="toc"></div>
     <div id="sections"></div>
   </div>
 </main>
@@ -142,9 +131,8 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
    they approach the viewport, and each card reserves its exact height up front
    so nothing shifts under the scroll.
 
-   The section headings stay. They are not a filter, they carry the one thing you
-   need to read a card correctly: whether it is showing the same content as the
-   others or something different.
+   No headings, no jump bar: one uninterrupted list of every player. Group order
+   is still used to sequence them, it just is not labelled.
    ==========================================================================*/
 
 const ORDER = ['parity', 'hosts', 'other', 'infra', 'blocked'];
@@ -243,15 +231,12 @@ function build() {
   const colWidth = probe.firstChild.getBoundingClientRect().width || 720;
   host.removeChild(probe);
 
-  const toc = [];
   ORDER.forEach((g) => {
     const items = PLAYERS.filter((p) => p.group === g);
     if (!items.length) return;
 
     const sec = document.createElement('section');
     sec.id = 'g-' + g;
-    sec.innerHTML = '<h2>' + escHtml(GROUPS[g].label) + ' &middot; ' + items.length + '</h2>' +
-                    '<p class="note">' + escHtml(GROUPS[g].note) + '</p>';
     const grid = document.createElement('div');
     grid.className = 'grid';
     grid.dataset.cols = state.cols;
@@ -268,10 +253,8 @@ function build() {
 
     sec.appendChild(grid);
     host.appendChild(sec);
-    toc.push('<a href="#g-' + g + '">' + escHtml(GROUPS[g].label) + ' (' + items.length + ')</a>');
   });
 
-  $('#toc').innerHTML = '<b>Jump to</b>' + toc.join('');
   updateLoaded();
 }
 

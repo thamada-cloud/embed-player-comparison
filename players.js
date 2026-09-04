@@ -55,12 +55,12 @@ const PLAYERS = [
     allow: 'autoplay', scrolling: 'no',
     modes: {
       live:    { src: 'https://tunein.com/embed/player/s340698/', h: 100 },
-      podcast: { src: 'https://tunein.com/embed/player/p295446/', h: 350 }
+      podcast: { src: 'https://tunein.com/embed/player/p295446/', h: 350, scrolling: 'auto' }
     },
     facts: {
       'Content': 'Z100 live (station s340698) and the Stuff You Should Know program (p295446)',
       'Sign-in': 'Not required to play',
-      'Height': 'Station player is a fixed 100px, program player 350px. Neither resizes.',
+      'Height': 'Station player is a fixed 100px and must not scroll. The programme player is a 350px window onto a 1352px episode list, so it scrolls internally.',
       'Watch out': 'Two decoys share the Z100 name, s343865 and s26824. Both are different stations.'
     }
   },
@@ -85,7 +85,7 @@ const PLAYERS = [
   {
     id: 'applepodcasts', name: 'Apple Podcasts', status: 'ok', group: 'parity',
     allow: 'autoplay *; encrypted-media *; fullscreen *; clipboard-write',
-    modes: { podcast: { src: 'https://embed.podcasts.apple.com/us/episode/1000787615438', h: 175 } },
+    modes: { podcast: { src: 'https://embed.podcasts.apple.com/us/episode/1000787615438', h: 165 } },
     facts: {
       'Content': 'The exact target episode',
       'Sign-in': 'Not required to play the full episode',
@@ -131,7 +131,7 @@ const PLAYERS = [
   /* ===================== PODCAST HOSTING PLAYERS ===================== */
   { id: 'megaphone', name: 'Megaphone', status: 'ok', group: 'hosts',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://player.megaphone.fm/GLT4653461142', h: 200,
+    modes: { podcast: { src: 'https://player.megaphone.fm/GLT4653461142', h: 374,
       caveat: 'Different show. Megaphone only serves podcasts it hosts, and it does not host this one.' } },
     facts: { 'Content': 'Unrelated show on a Megaphone-hosted feed',
              'ID source': 'The ADID is the mp3 token in the feed enclosure, traffic.megaphone.fm/{ADID}.mp3',
@@ -143,7 +143,7 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated show', 'Levels': 'Show-level and episode-level embeds both work', 'Use': 'Form comparison only' } },
   { id: 'libsyn', name: 'Libsyn', status: 'ok', group: 'hosts',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://html5-player.libsyn.com/embed/episode/id/38143160/', h: 200,
+    modes: { podcast: { src: 'https://html5-player.libsyn.com/embed/episode/id/38143160/', h: 100,
       caveat: 'Different show. Libsyn only serves shows it hosts.' } },
     facts: { 'Content': 'Unrelated show', 'Use': 'Form comparison only' } },
   { id: 'captivate', name: 'Captivate', status: 'ok', group: 'hosts',
@@ -165,7 +165,7 @@ const PLAYERS = [
              'Use': 'Form comparison only' } },
   { id: 'audioboom', name: 'Audioboom', status: 'ok', group: 'hosts',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://embeds.audioboom.com/posts/8851135/embed/v4', h: 200,
+    modes: { podcast: { src: 'https://embeds.audioboom.com/posts/8851135/embed/v4', h: 300,
       caveat: 'Different show. Audioboom only serves shows it hosts.' } },
     facts: { 'Content': 'Unrelated show', 'Use': 'Form comparison only' } },
   { id: 'spreaker', name: 'Spreaker', status: 'ok', group: 'hosts',
@@ -187,14 +187,14 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated show', 'ID source': 'Episode id is the Buzzsprout-{id} value in the feed guid', 'Use': 'Form comparison only' } },
   { id: 'blubrry', name: 'Blubrry', status: 'ok', group: 'hosts',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://player.blubrry.com/id/155082134', h: 200,
+    modes: { podcast: { src: 'https://player.blubrry.com/id/155082134', h: 172,
       caveat: 'Different show. Blubrry only serves shows it hosts.' } },
     facts: { 'Content': 'Unrelated show',
              'Watch out': 'Use player.blubrry.com. The blubrry.com/player/{id} path returns 403 with X-Frame-Options SAMEORIGIN.',
              'Use': 'Form comparison only' } },
   { id: 'castbox', name: 'Castbox', status: 'ok', group: 'hosts',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://castbox.fm/app/castbox/player/id2500926?v=8.22.11&autoplay=0&hide_list=1', h: 500,
+    modes: { podcast: { src: 'https://castbox.fm/app/castbox/player/id2500926?v=8.22.11&autoplay=0&hide_list=1', h: 210,
       caveat: 'Different show, and channel-level rather than a single episode. Castbox is an aggregator, so it does carry this show, but the embed id could not be confirmed.' } },
     facts: { 'Content': 'Unrelated show, channel-level player',
              'Open item': 'Castbox does carry Stuff You Should Know. Its embed id was not resolvable from any public endpoint, so this card uses a known-good channel instead.',
@@ -214,10 +214,12 @@ const PLAYERS = [
     allow: 'autoplay; encrypted-media',
     modes: { podcast: { src: 'https://embed.tidal.com/tracks/22560696', h: 120,
       caveat: 'Unrelated music track, and anonymous listeners get 30 seconds only. Same paywall problem as Apple Music.' } },
-    facts: { 'Content': 'Unrelated music track', 'Sign-in': 'Required for full playback', 'Use': 'Visual comparison only' } },
+    facts: { 'Content': 'Unrelated music track', 'Sign-in': 'Required for full playback',
+             'Height': 'The documented 120px is correct and renders a complete player. Measurement reports 304px of content below the fold at every frame height, which is a hidden panel, not clipping. Do not chase it.',
+             'Use': 'Visual comparison only' } },
   { id: 'npr', name: 'NPR', status: 'ok', group: 'other',
     allow: 'autoplay; encrypted-media',
-    modes: { podcast: { src: 'https://www.npr.org/player/embed/nx-s1-5953112/nx-s1-mx-5953112-1', h: 290,
+    modes: { podcast: { src: 'https://www.npr.org/player/embed/nx-s1-5953112/nx-s1-mx-5953112-1', h: 215,
       caveat: 'Unrelated NPR story audio. NPR embeds only its own content.' } },
     facts: { 'Content': 'Unrelated NPR story',
              'Pattern': 'npr.org/player/embed/{storyId}/{audioId}. The story page prints its own embed URL in the HTML, which is how to harvest IDs.',
@@ -229,7 +231,7 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated radio show replay', 'Sign-in': 'Not required, plays in full with ads', 'Use': 'Form comparison only' } },
   { id: 'audiomack', name: 'Audiomack', status: 'ok', group: 'other',
     allow: 'autoplay; encrypted-media', scrolling: 'no',
-    modes: { podcast: { src: 'https://audiomack.com/embed/future/song/purple-reign-prod-by-metro-boomin', h: 252,
+    modes: { podcast: { src: 'https://audiomack.com/embed/future/song/purple-reign-prod-by-metro-boomin', h: 266,
       caveat: 'Unrelated music track.' } },
     facts: { 'Content': 'Unrelated music track',
              'Note': 'Sends frame-ancestors *, the most permissive policy in the whole roster',
@@ -262,27 +264,14 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated video', 'Sign-in': 'Not required to play',
              'Watch out': 'Their oEmbed returns a blockquote plus a script, not an iframe. The iframe route is /embed/v2/{id}.',
              'Use': 'Form comparison only' } },
-  { id: 'twitch', name: 'Twitch', status: 'caveat', group: 'other',
-    allowfullscreen: true, needsParent: true,
-    modes: { live: { src: 'https://player.twitch.tv/?channel=twitch&parent={host}', aspect: true,
-      caveat: 'Unrelated live channel, and this card only works on a real domain. Twitch reflects the parent parameter into frame-ancestors, so it is blank when the page is opened from a local file.' } },
-    facts: { 'Content': 'Unrelated live channel',
-             'Parent rule': 'parent= must name the exact hostname. On a deployed domain you get HTTPS only, no wildcard subdomains, no port. On localhost, parent=localhost grants any port and either scheme.',
-             'Why it is here': 'The only live video platform in the roster besides YouTube.',
-             'Offline case': 'Twitch channels go on and off air. When the channel is dark the player shows an OFFLINE panel with a recent rerun, which is a real state but a weak stimulus. Check it before a session and swap the channel if needed.',
-             'Verified': 'Renders on thamada-cloud.github.io. It will be blank from a local file, which is expected, not a bug.' } },
-
-  /* SoundCloud and Zeno.fm were added after the first build. SoundCloud closes a
-     real gap in the audio brand set. Zeno.fm roughly triples the live radio arm,
-     which is otherwise just iHeart and TuneIn. */
   { id: 'soundcloud', name: 'SoundCloud', status: 'ok', group: 'other',
     allow: 'autoplay; encrypted-media; fullscreen',
-    modes: { podcast: { src: 'https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F274720380', h: 300,
+    modes: { podcast: { src: 'https://w.soundcloud.com/player/?visual=false&url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F274720380', h: 166,
       caveat: 'Unrelated music track. SoundCloud does not carry this show.' } },
     facts: { 'Content': 'Unrelated music track',
              'Sign-in': 'Not required to play',
              'ID source': 'Free oEmbed at soundcloud.com/oembed?format=json&url={permalink} returns the numeric track id and the full iframe',
-             'Heights': 'Ships at 166, 300 or 450. The visual variant needs 300 or more.',
+             'Heights': 'Compact is 166px. The visual variant needs 605px, which measured as clipped at anything less, so this card uses compact.',
              'Use': 'Form comparison only' } },
 
   { id: 'zeno', name: 'Zeno.fm', status: 'ok', group: 'other',
@@ -303,14 +292,6 @@ const PLAYERS = [
       caveat: 'Unrelated video. Wistia is a white-label host, so there is no consumer brand to react to.' } },
     facts: { 'Content': 'Unrelated video',
              'Why it is here': 'A widely used white-label video player. Look at the chrome, not the brand.',
-             'Use': 'Chrome reference only. Not a participant card.' } },
-  { id: 'brightcove', name: 'Brightcove', status: 'ok', group: 'infra',
-    allow: 'autoplay; fullscreen; encrypted-media; picture-in-picture', allowfullscreen: true,
-    modes: { podcast: { src: 'https://players.brightcove.net/1752604059001/default_default/index.html?videoId=6140448705001', aspect: true,
-      caveat: 'Unrelated video on the Brightcove demo account.' } },
-    facts: { 'Content': 'Unrelated video',
-             'Pattern': 'players.brightcove.net/{accountId}/{playerId}/index.html?videoId={id}. Every part is account-specific.',
-             'Why it is here': 'The enterprise broadcast video player many media companies license.',
              'Use': 'Chrome reference only. Not a participant card.' } },
   { id: 'streamable', name: 'Streamable', status: 'ok', group: 'infra',
     allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true,
@@ -430,7 +411,11 @@ function applyFrameAttrs(f, p, entry, theme) {
   if (p.allow) f.setAttribute('allow', p.allow);
   if (p.allowfullscreen) f.setAttribute('allowfullscreen', '');
   if (p.sandbox) f.setAttribute('sandbox', p.sandbox);
-  if (p.scrolling) f.setAttribute('scrolling', p.scrolling);
+  /* Per-mode override: TuneIn's station player is a fixed 100px and must not
+     scroll, but its programme player is a 1352px episode list inside a 350px
+     frame and has to. */
+  const scrolling = entry.scrolling || p.scrolling;
+  if (scrolling) f.setAttribute('scrolling', scrolling);
   if (!entry.aspect) f.height = entry.h;
   return f;
 }
