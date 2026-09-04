@@ -501,7 +501,8 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated live channel',
              'Parent rule': 'parent= must name the exact hostname. On a deployed domain you get HTTPS only, no wildcard subdomains, no port. On localhost, parent=localhost grants any port and either scheme.',
              'Why it is here': 'The only live video platform in the roster besides YouTube.',
-             'Use': 'Verify after deploy, never from a local file.' } },
+             'Offline case': 'Twitch channels go on and off air. When the channel is dark the player shows an OFFLINE panel with a recent rerun, which is a real state but a weak stimulus. Check it before a session and swap the channel if needed.',
+             'Verified': 'Renders on thamada-cloud.github.io. It will be blank from a local file, which is expected, not a bug.' } },
 
   /* ===================== CANNOT BE EMBEDDED ===================== */
   { id: 'amazonmusic', name: 'Amazon Music', status: 'blocked', group: 'blocked',

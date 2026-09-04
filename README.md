@@ -147,3 +147,11 @@ Also confirmed: navigating destroys the previous iframe so audio cannot bleed
 between cards, the width selector constrains the card without horizontal overflow
 at any setting, the scope filter cannot be emptied, and the theme toggle swaps the
 Deezer and Spreaker URL variants.
+
+## Live URL
+
+https://thamada-cloud.github.io/embed-player-comparison/
+
+Re-verified on the live URL signed out, which is the state a participant is in.
+86 checks, 0 blanks. Twitch renders there, confirming its `parent=` frame policy
+resolves against the github.io host.
