@@ -135,8 +135,6 @@ section { margin: 0; }
    is still used to sequence them, it just is not labelled.
    ==========================================================================*/
 
-const ORDER = ['parity', 'hosts', 'other', 'infra', 'blocked'];
-
 const state = {
   mode: 'podcast',
   theme: 'light',
@@ -231,29 +229,27 @@ function build() {
   const colWidth = probe.firstChild.getBoundingClientRect().width || 720;
   host.removeChild(probe);
 
-  ORDER.forEach((g) => {
-    const items = PLAYERS.filter((p) => p.group === g);
-    if (!items.length) return;
+  /* One list, in registry order. Grouping used to drive the sequence, which made
+     "put Tidal below Deezer" impossible without mislabelling Tidal's group. Now
+     the order in players.js is the order on the page, and group stays a piece of
+     metadata rather than a layout rule. */
+  const sec = document.createElement('section');
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  grid.dataset.cols = state.cols;
 
-    const sec = document.createElement('section');
-    sec.id = 'g-' + g;
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-    grid.dataset.cols = state.cols;
-
-    items.forEach((p) => {
-      const c = cardFor(p);
-      const wrap = c.querySelector('.frame-wrap');
-      if (wrap) {
-        const r = resolveEntry(p, state.mode);
-        wrap.style.minHeight = reservedHeight(r.entry, colWidth) + 'px';
-      }
-      grid.appendChild(c);
-    });
-
-    sec.appendChild(grid);
-    host.appendChild(sec);
+  PLAYERS.forEach((p) => {
+    const c = cardFor(p);
+    const wrap = c.querySelector('.frame-wrap');
+    if (wrap) {
+      const r = resolveEntry(p, state.mode);
+      wrap.style.minHeight = reservedHeight(r.entry, colWidth) + 'px';
+    }
+    grid.appendChild(c);
   });
+
+  sec.appendChild(grid);
+  host.appendChild(sec);
 
   updateLoaded();
 }

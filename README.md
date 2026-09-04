@@ -11,7 +11,7 @@ one shared registry. No build step, no dependencies.
 
 ## Files
 
-- `players.js` holds the 50-player registry and every shared helper. **All three
+- `players.js` holds the player registry and every shared helper. **All three
   pages read it, so adding a player appears everywhere.** This is the only file
   to edit when changing the roster.
 - `measure.py` measures every player and writes `measurements.js`. `analysis.html`
@@ -101,27 +101,26 @@ Verified per-platform IDs for that episode.
 
 ## Scope groups
 
-**Core, 7 players.** Same station and same episode in every player. This is the
+**Core.** Same station and same episode in every player. This is the
 only valid comparison set for a content question.
 iHeartRadio, TuneIn, YouTube, Apple Podcasts, Spotify, Deezer, Omny Studio.
 
-**Hosts, 13 players.** Podcast hosting players. Each only serves shows it hosts,
+**Hosts.** Podcast hosting players. Each only serves shows it hosts,
 so the content differs. These are what publishers actually embed, which makes them
 the most relevant chrome comparison even though the content cannot match.
-Megaphone, Acast, Libsyn, Captivate, Transistor, Simplecast, Audioboom, Spreaker,
-Podbean, Buzzsprout, Blubrry, Castbox, iVoox.
+Megaphone, Acast, Captivate, Transistor, Simplecast, Audioboom, Spreaker,
+Podbean, Buzzsprout, Blubrry, Castbox.
 
-**Other, 12 players.** Other audio and video embeds, different content, form
+**Other.** Other audio and video embeds, different content, form
 comparison only.
-Apple Music, Tidal, NPR, Mixcloud, Audiomack, Bandcamp, SoundCloud, Zeno.fm,
-Vimeo, Dailymotion, TikTok, Twitch.
+Tidal, NPR, Mixcloud, Audiomack, Bandcamp, SoundCloud, Zeno.fm, Vimeo, TikTok.
 
-**Infra, 4 players.** White-label and enterprise player infrastructure. Useful for
+**Infra.** White-label and enterprise player infrastructure. Useful for
 deciding what our own player chrome should look like, not consumer brands anyone
 has an opinion about. Keep them out of a participant session.
-Wistia, Brightcove, Streamable, Odysee.
+Wistia, Streamable.
 
-**Blocked, 14 entries.** Cannot be embedded at all. Kept visible with the reason.
+**Blocked.** Cannot be embedded at all. Kept visible with the reason.
 
 ## Cannot be embedded
 
@@ -164,7 +163,6 @@ frame height against the bottom of the player's own last painted pixel found:
 | Castbox | 500 | 210 | ours, 300px of empty frame |
 | NPR | 290 | 215 | ours, 83px |
 | Blubrry | 200 | 172 | ours, 36px |
-| Libsyn | 200 | 100 | ours, 110px |
 | Apple Podcasts | 175 | 165 | 15px was the player's own internal whitespace |
 | Megaphone | 200 | 374 | ours, was clipping the player |
 | Audioboom | 200 | 300 | ours, was clipping |
@@ -194,6 +192,17 @@ gain sound. Every other player sits idle until clicked.
 governs playing *without* a user gesture, and none of them do. A click inside a
 frame is a gesture, so click-to-play does not need it.
 
+## Ordering
+
+**Page order is registry order.** Both pages render `PLAYERS` top to bottom exactly
+as written in `players.js`. To move a player, move its object.
+
+It did not always work that way. Rendering used to iterate the scope groups and
+filter by them, which meant position on the page was a side effect of a player's
+group. Putting Tidal below Deezer was then impossible without relabelling Tidal as
+"Core", which would have been false: it plays an unrelated music track. Group is
+now metadata only, still shown in the analysis matrix, and never a layout rule.
+
 ## Removed for not loading or not behaving
 
 - **Brightcove.** Its player returns `VIDEO_CLOUD_ERR_VIDEO_NOT_FOUND` for every
@@ -202,6 +211,9 @@ frame is a gesture, so click-to-play does not need it.
   page can depend on. Can come back pointed at a 24/7 channel if wanted.
 - **Odysee.** Renders "No Content Found" even with a freshly resolved, valid claim
   id pulled from their own API. Its embed does not work for third-party content.
+- **Libsyn, Apple Music, iVoox.** Removed by request, not for any fault. Apple
+  Music worked but needed a subscription to play anything; Libsyn and iVoox both
+  rendered fine.
 - **Dailymotion.** Autoplays **with sound** and cannot be stopped. `autoplay=0`
   and `autoplay=false` are ignored on both `geo.dailymotion.com/player.html` and
   the legacy `/embed/video/` path, because that setting lives on their player
@@ -211,11 +223,11 @@ frame is a gesture, so click-to-play does not need it.
   so it cannot take part in a default-state comparison. YouTube and Vimeo both
   idle correctly and cover video.
 
-Two others were **wrongly** flagged as broken by an early heuristic and are still
-in: **Apple Music** (78 elements, real player, its content just needs a
-subscription) and **Streamable** (a real video element). A `textLen` test cannot
-judge a video player or a shadow-DOM player. `diagnose.py` now judges on error
-signals and near-empty renders instead.
+**Streamable** was **wrongly** flagged as broken by an early heuristic and is still
+in: it renders a real video element. A `textLen` test cannot judge a video player
+or a shadow-DOM player. `diagnose.py` now judges on error signals and near-empty
+renders instead. (Apple Music was cleared the same way, then later removed by
+request.)
 
 ## Zeno.fm and the live radio arm
 
@@ -238,9 +250,9 @@ mounts an `audio` element, never by status code.
 
 ## Known limits
 
-- **Apple Music and Tidal need a subscription and a signed-in browser.** Keep both
-  out of any listening-preference question. A signed-out participant measures the
-  paywall, not the player.
+- **Tidal needs a subscription and a signed-in browser.** Keep it out of any
+  listening-preference question: a signed-out participant measures the paywall,
+  not the player.
 - **YouTube shows a different episode.** The channel runs behind the audio feed and
   does not have the target episode. Its live card is Times Radio, a real broadcast
   station simulcasting 24/7, because no iHeart station simulcasts live on YouTube.

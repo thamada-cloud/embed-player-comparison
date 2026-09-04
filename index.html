@@ -205,23 +205,13 @@ function render() {
 }
 
 function buildJump() {
-  /* Grouped by scope, so it is obvious which groups are switched on and that
-     more players exist behind the ones that are off. */
-  const v = visible();
-  const order = ['parity', 'hosts', 'other', 'infra', 'blocked'];
-  let html = '';
-  order.forEach((g) => {
-    const items = v.map((pi, n) => ({ p: PLAYERS[pi], n })).filter((x) => x.p.group === g);
-    if (!items.length) return;
-    html += '<optgroup label="' + esc(GROUPS[g].label) + ' (' + items.length + ')">';
-    html += items.map((x) => {
-      const mark = x.p.status === 'blocked' ? ' · blocked'
-                 : (x.p.status === 'caveat' ? ' · caveat' : '');
-      return '<option value="' + x.n + '">' + esc(x.p.name) + mark + '</option>';
-    }).join('');
-    html += '</optgroup>';
-  });
-  $('#jump').innerHTML = html;
+  /* Flat, in registry order, matching the gallery. */
+  $('#jump').innerHTML = visible().map((pi, n) => {
+    const p = PLAYERS[pi];
+    const mark = p.status === 'blocked' ? ' \u00b7 blocked'
+               : (p.status === 'caveat' ? ' \u00b7 caveat' : '');
+    return '<option value="' + n + '">' + esc(p.name) + mark + '</option>';
+  }).join('');
 }
 
 function go(n) {

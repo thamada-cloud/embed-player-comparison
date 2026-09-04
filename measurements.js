@@ -111,7 +111,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 23,
-    "kb": 0.2
+    "kb": 9.4
    },
    "narrow": {
     "scrollW": 375,
@@ -120,12 +120,12 @@ const MEASUREMENTS = {
     "clientH": 200
    },
    "pixels": {
-    "light": 233.2,
-    "dark": 233.4
+    "light": 233.1,
+    "dark": 233.2
    },
    "themeResponds": false,
-   "lightLuma": 233.2,
-   "darkLuma": 233.4,
+   "lightLuma": 233.1,
+   "darkLuma": 233.2,
    "measured": true
   },
   "tunein": {
@@ -238,8 +238,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 48,
-    "kb": 0.2
+    "requests": 45,
+    "kb": null
    },
    "narrow": {
     "scrollW": 375,
@@ -577,7 +577,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 34,
-    "kb": 1415.1
+    "kb": 0.3
    },
    "narrow": {
     "scrollW": 375,
@@ -685,7 +685,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 37,
-    "kb": 55028.4
+    "kb": 55027.1
    },
    "narrow": {
     "scrollW": 375,
@@ -700,6 +700,104 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 48.2,
    "darkLuma": 48.1,
+   "measured": true
+  },
+  "tidal": {
+   "id": "tidal",
+   "name": "Tidal",
+   "group": "other",
+   "status": "caveat",
+   "blocked": false,
+   "declaredHeight": 120,
+   "aspect": false,
+   "themedParam": false,
+   "shownMode": "podcast",
+   "fellBack": false,
+   "schemes": {
+    "light": {
+     "frame": {
+      "w": 640,
+      "h": 120
+     },
+     "bg": "rgba(0, 0, 0, 0)",
+     "color": "rgb(0, 0, 0)",
+     "radius": "0px",
+     "play": null,
+     "waveform": null,
+     "artwork": {
+      "w": 88,
+      "h": 88,
+      "areaShare": 0.1,
+      "cx": 0.1,
+      "cy": 0.5,
+      "radius": "1px",
+      "isImg": true
+     },
+     "progress": {
+      "kind": "unlabelled bar",
+      "w": 398,
+      "h": 4,
+      "interactive": false
+     },
+     "timecodes": [],
+     "controlCount": 4,
+     "outboundLinks": 3,
+     "platformPush": false,
+     "textLen": 32,
+     "textSample": "Along for the Ride Dream Theater",
+     "settleSeconds": 4.3
+    },
+    "dark": {
+     "frame": {
+      "w": 640,
+      "h": 120
+     },
+     "bg": "rgba(0, 0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
+     "radius": "0px",
+     "play": null,
+     "waveform": null,
+     "artwork": {
+      "w": 88,
+      "h": 88,
+      "areaShare": 0.1,
+      "cx": 0.1,
+      "cy": 0.5,
+      "radius": "1px",
+      "isImg": true
+     },
+     "progress": {
+      "kind": "unlabelled bar",
+      "w": 398,
+      "h": 4,
+      "interactive": false
+     },
+     "timecodes": [],
+     "controlCount": 4,
+     "outboundLinks": 3,
+     "platformPush": false,
+     "textLen": 32,
+     "textSample": "Along for the Ride Dream Theater",
+     "settleSeconds": 4.3
+    }
+   },
+   "network": {
+    "requests": 26,
+    "kb": 0.4
+   },
+   "narrow": {
+    "scrollW": 375,
+    "clientW": 375,
+    "scrollH": 120,
+    "clientH": 120
+   },
+   "pixels": {
+    "light": 225.1,
+    "dark": 10.3
+   },
+   "themeResponds": true,
+   "lightLuma": 225.1,
+   "darkLuma": 10.3,
    "measured": true
   },
   "omny": {
@@ -940,12 +1038,12 @@ const MEASUREMENTS = {
     "clientH": 374
    },
    "pixels": {
-    "light": 163.2,
-    "dark": 163.3
+    "light": 163.4,
+    "dark": 163.4
    },
    "themeResponds": false,
-   "lightLuma": 163.2,
-   "darkLuma": 163.3,
+   "lightLuma": 163.4,
+   "darkLuma": 163.4,
    "measured": true
   },
   "acast": {
@@ -1029,7 +1127,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 11,
-    "kb": 64.3
+    "kb": 173.9
    },
    "narrow": {
     "scrollW": 375,
@@ -1044,118 +1142,6 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 56.4,
    "darkLuma": 56.4,
-   "measured": true
-  },
-  "libsyn": {
-   "id": "libsyn",
-   "name": "Libsyn",
-   "group": "hosts",
-   "status": "ok",
-   "blocked": false,
-   "declaredHeight": 100,
-   "aspect": false,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 100
-     },
-     "bg": "rgb(255, 255, 255)",
-     "color": "rgb(51, 51, 51)",
-     "radius": "0px",
-     "play": {
-      "w": 80,
-      "h": 40.6,
-      "area": 3248,
-      "via": "aria-label",
-      "cx": 0.2,
-      "cy": 0.3,
-      "radius": "0px",
-      "accessibleName": "Play Episode",
-      "tag": "a"
-     },
-     "waveform": null,
-     "artwork": {
-      "w": 90,
-      "h": 90,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.5,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [
-      "00:00:00"
-     ],
-     "controlCount": 7,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 136,
-     "textSample": "REAL MONEY REAL BUSINESS PODCAST RMRB 1149 - Building a YouTube Business Making $18K per Month in the Entertainment Nich",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 100
-     },
-     "bg": "rgb(255, 255, 255)",
-     "color": "rgb(51, 51, 51)",
-     "radius": "0px",
-     "play": {
-      "w": 80,
-      "h": 40.6,
-      "area": 3248,
-      "via": "aria-label",
-      "cx": 0.2,
-      "cy": 0.3,
-      "radius": "0px",
-      "accessibleName": "Play Episode",
-      "tag": "a"
-     },
-     "waveform": null,
-     "artwork": {
-      "w": 90,
-      "h": 90,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.5,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [
-      "00:00:00"
-     ],
-     "controlCount": 7,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 136,
-     "textSample": "REAL MONEY REAL BUSINESS PODCAST RMRB 1149 - Building a YouTube Business Making $18K per Month in the Entertainment Nich",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 24,
-    "kb": 1.4
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 100,
-    "clientH": 100
-   },
-   "pixels": {
-    "light": 229.6,
-    "dark": 229.6
-   },
-   "themeResponds": false,
-   "lightLuma": 229.6,
-   "darkLuma": 229.6,
    "measured": true
   },
   "captivate": {
@@ -1265,7 +1251,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 20,
-    "kb": null
+    "kb": 0.1
    },
    "narrow": {
     "scrollW": 375,
@@ -1493,7 +1479,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 8,
-    "kb": 15.6
+    "kb": 1.1
    },
    "narrow": {
     "scrollW": 375,
@@ -1601,7 +1587,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 47,
-    "kb": null
+    "kb": 18.8
    },
    "narrow": {
     "scrollW": 375,
@@ -1725,7 +1711,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 6,
-    "kb": 15.3
+    "kb": 68.4
    },
    "narrow": {
     "scrollW": 375,
@@ -2103,7 +2089,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 5,
-    "kb": 5.0
+    "kb": 15.3
    },
    "narrow": {
     "scrollW": 375,
@@ -2215,7 +2201,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 27,
-    "kb": 549.6
+    "kb": 304.3
    },
    "narrow": {
     "scrollW": 375,
@@ -2230,196 +2216,6 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 242.9,
    "darkLuma": 242.9,
-   "measured": true
-  },
-  "applemusic": {
-   "id": "applemusic",
-   "name": "Apple Music",
-   "group": "other",
-   "status": "caveat",
-   "blocked": false,
-   "declaredHeight": 450,
-   "aspect": false,
-   "themedParam": false,
-   "shownMode": "live",
-   "fellBack": true,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 450
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": {
-      "w": 30.9,
-      "h": 20,
-      "area": 617,
-      "via": "class",
-      "cx": 0.2,
-      "cy": 0.9,
-      "radius": "0px",
-      "accessibleName": "Play",
-      "tag": "span"
-     },
-     "waveform": null,
-     "artwork": null,
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 15,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 0,
-     "textSample": "",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 450
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": {
-      "w": 30.9,
-      "h": 20,
-      "area": 617,
-      "via": "class",
-      "cx": 0.2,
-      "cy": 0.9,
-      "radius": "0px",
-      "accessibleName": "Play",
-      "tag": "span"
-     },
-     "waveform": null,
-     "artwork": null,
-     "progress": null,
-     "timecodes": [],
-     "controlCount": 15,
-     "outboundLinks": 0,
-     "platformPush": false,
-     "textLen": 0,
-     "textSample": "",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 36,
-    "kb": 11.5
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 450,
-    "clientH": 450
-   },
-   "pixels": {
-    "light": 232.3,
-    "dark": 232.3
-   },
-   "themeResponds": false,
-   "lightLuma": 232.3,
-   "darkLuma": 232.3,
-   "measured": true
-  },
-  "tidal": {
-   "id": "tidal",
-   "name": "Tidal",
-   "group": "other",
-   "status": "caveat",
-   "blocked": false,
-   "declaredHeight": 120,
-   "aspect": false,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 120
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 88,
-      "h": 88,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.5,
-      "radius": "1px",
-      "isImg": true
-     },
-     "progress": {
-      "kind": "unlabelled bar",
-      "w": 398,
-      "h": 4,
-      "interactive": false
-     },
-     "timecodes": [],
-     "controlCount": 4,
-     "outboundLinks": 3,
-     "platformPush": false,
-     "textLen": 32,
-     "textSample": "Along for the Ride Dream Theater",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 120
-     },
-     "bg": "rgba(0, 0, 0, 0)",
-     "color": "rgb(255, 255, 255)",
-     "radius": "0px",
-     "play": null,
-     "waveform": null,
-     "artwork": {
-      "w": 88,
-      "h": 88,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.5,
-      "radius": "1px",
-      "isImg": true
-     },
-     "progress": {
-      "kind": "unlabelled bar",
-      "w": 398,
-      "h": 4,
-      "interactive": false
-     },
-     "timecodes": [],
-     "controlCount": 4,
-     "outboundLinks": 3,
-     "platformPush": false,
-     "textLen": 32,
-     "textSample": "Along for the Ride Dream Theater",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 26,
-    "kb": 0.4
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 120,
-    "clientH": 120
-   },
-   "pixels": {
-    "light": 225.1,
-    "dark": 10.3
-   },
-   "themeResponds": true,
-   "lightLuma": 225.1,
-   "darkLuma": 10.3,
    "measured": true
   },
   "npr": {
@@ -2477,7 +2273,7 @@ const MEASUREMENTS = {
      "platformPush": false,
      "textLen": 98,
      "textSample": "Sam Yellowhorse Kesler/NPR Share Planet Money Love in the time of Palantir Listen 25:47 \u00a9 2026 NPR",
-     "settleSeconds": 4.3
+     "settleSeconds": 4.4
     },
     "dark": {
      "frame": {
@@ -2527,7 +2323,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 38,
-    "kb": 356.5
+    "kb": 335.5
    },
    "narrow": {
     "scrollW": 375,
@@ -2650,8 +2446,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 55,
-    "kb": 1334.0
+    "requests": 59,
+    "kb": 2075.7
    },
    "narrow": {
     "scrollW": 375,
@@ -3091,7 +2887,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 55,
-    "kb": 3347.9
+    "kb": 166.9
    },
    "narrow": {
     "scrollW": 375,
@@ -3100,12 +2896,12 @@ const MEASUREMENTS = {
     "clientH": 740
    },
    "pixels": {
-    "light": 210.3,
-    "dark": 208.8
+    "light": 210.4,
+    "dark": 210.2
    },
    "themeResponds": false,
-   "lightLuma": 210.3,
-   "darkLuma": 208.8,
+   "lightLuma": 210.4,
+   "darkLuma": 210.2,
    "measured": true
   },
   "soundcloud": {
@@ -3219,7 +3015,7 @@ const MEASUREMENTS = {
    },
    "network": {
     "requests": 87,
-    "kb": 8.2
+    "kb": 88.6
    },
    "narrow": {
     "scrollW": 375,
@@ -3228,11 +3024,11 @@ const MEASUREMENTS = {
     "clientH": 166
    },
    "pixels": {
-    "light": 221.0,
+    "light": 221.1,
     "dark": 221.1
    },
    "themeResponds": false,
-   "lightLuma": 221.0,
+   "lightLuma": 221.1,
    "darkLuma": 221.1,
    "measured": true
   },
@@ -3326,8 +3122,8 @@ const MEASUREMENTS = {
     }
    },
    "network": {
-    "requests": 156,
-    "kb": 4545.7
+    "requests": 144,
+    "kb": 4591.6
    },
    "narrow": {
     "scrollW": 375,
@@ -3562,120 +3358,6 @@ const MEASUREMENTS = {
    "themeResponds": false,
    "lightLuma": 145.6,
    "darkLuma": 145.6,
-   "measured": true
-  },
-  "ivoox": {
-   "id": "ivoox",
-   "name": "iVoox",
-   "group": "hosts",
-   "status": "ok",
-   "blocked": false,
-   "declaredHeight": 200,
-   "aspect": false,
-   "themedParam": false,
-   "shownMode": "podcast",
-   "fellBack": false,
-   "schemes": {
-    "light": {
-     "frame": {
-      "w": 640,
-      "h": 200
-     },
-     "bg": "rgb(249, 249, 249)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": {
-      "w": 136,
-      "h": 47,
-      "area": 6392,
-      "via": "class",
-      "cx": 0.1,
-      "cy": 0.8,
-      "radius": "0px",
-      "accessibleName": "PLAY",
-      "tag": "a"
-     },
-     "waveform": null,
-     "artwork": {
-      "w": 135,
-      "h": 135,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.3,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [
-      "0:00:00",
-      "02:07:57"
-     ],
-     "controlCount": 7,
-     "outboundLinks": 5,
-     "platformPush": true,
-     "textLen": 105,
-     "textSample": "By cope 03 SEP 2026 | EL PARTIDAZO DE COPE 21 Download Subscribe Share Download APP 0:00:00 02:07:57 PLAY",
-     "settleSeconds": 4.3
-    },
-    "dark": {
-     "frame": {
-      "w": 640,
-      "h": 200
-     },
-     "bg": "rgb(249, 249, 249)",
-     "color": "rgb(0, 0, 0)",
-     "radius": "0px",
-     "play": {
-      "w": 136,
-      "h": 47,
-      "area": 6392,
-      "via": "class",
-      "cx": 0.1,
-      "cy": 0.8,
-      "radius": "0px",
-      "accessibleName": "PLAY",
-      "tag": "a"
-     },
-     "waveform": null,
-     "artwork": {
-      "w": 135,
-      "h": 135,
-      "areaShare": 0.1,
-      "cx": 0.1,
-      "cy": 0.3,
-      "radius": "0px",
-      "isImg": true
-     },
-     "progress": null,
-     "timecodes": [
-      "0:00:00",
-      "02:07:57"
-     ],
-     "controlCount": 7,
-     "outboundLinks": 5,
-     "platformPush": true,
-     "textLen": 105,
-     "textSample": "By cope 03 SEP 2026 | EL PARTIDAZO DE COPE 21 Download Subscribe Share Download APP 0:00:00 02:07:57 PLAY",
-     "settleSeconds": 4.3
-    }
-   },
-   "network": {
-    "requests": 13,
-    "kb": 45.2
-   },
-   "narrow": {
-    "scrollW": 375,
-    "clientW": 375,
-    "scrollH": 210,
-    "clientH": 200
-   },
-   "pixels": {
-    "light": 206.5,
-    "dark": 206.5
-   },
-   "themeResponds": false,
-   "lightLuma": 206.5,
-   "darkLuma": 206.5,
    "measured": true
   },
   "amazonmusic": {
