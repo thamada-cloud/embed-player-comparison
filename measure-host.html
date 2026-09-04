@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>measure host</title>
+<style>html,body{margin:0;background:#fff}#probe iframe{display:block;border:0}</style></head>
+<body>
+<!-- Minimal host for measure.py. One frame at a time, so the network figures
+     recorded for a player belong to that player and nothing else. -->
+<div id="probe"></div>
+<script>
+window.mountOne = function (src, w, h, attrs) {
+  const probe = document.getElementById('probe');
+  probe.innerHTML = '';
+  const f = document.createElement('iframe');
+  f.src = src;
+  f.width = w;
+  f.height = h;
+  f.setAttribute('frameborder', '0');
+  Object.keys(attrs || {}).forEach((k) => {
+    if (attrs[k] === true) f.setAttribute(k, '');
+    else if (attrs[k]) f.setAttribute(k, attrs[k]);
+  });
+  probe.appendChild(f);
+  return true;
+};
+</script>
+</body>
+</html>

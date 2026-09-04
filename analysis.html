@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Embed Player Analysis</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+main { background: var(--stage); padding: 24px 20px 90px; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+section { margin: 0 0 40px; }
+h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -.01em; }
+h2 .num {
+  display: inline-block; min-width: 22px; color: var(--text-dim);
+  font-size: 13px; font-weight: 600;
+}
+.lede { margin: 0 0 16px; font-size: 13.5px; color: var(--text-dim); max-width: 82ch; }
+.lede b { color: var(--text); font-weight: 600; }
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.why {
+  border-left: 3px solid var(--border); padding: 2px 0 2px 12px;
+  margin: 0 0 16px; font-size: 13px; color: var(--text-dim); max-width: 82ch;
+}
+.why b { color: var(--text); font-weight: 600; }
+
+/* ---------- tables ---------- */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-dim); font-weight: 700; position: sticky; top: 0;
+  background: var(--surface); cursor: pointer; user-select: none;
+}
+th:hover { color: var(--text); }
+th[aria-sort] { color: var(--text); }
+th[aria-sort="ascending"]::after { content: " \2191"; }
+th[aria-sort="descending"]::after { content: " \2193"; }
+td.name { font-weight: 600; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:hover { background: var(--bg); }
+tr.dim td { color: var(--text-dim); }
+.grp {
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-dim); border: 1px solid var(--border);
+  border-radius: 999px; padding: 1px 6px; margin-left: 6px;
+}
+.yes { color: #14814f; font-weight: 600; }
+.no { color: var(--text-dim); }
+.unk { color: #a15c00; font-weight: 600; }
+html[data-theme="dark"] .yes { color: #6ddba0; }
+html[data-theme="dark"] .unk { color: #f0b24a; }
+
+/* ---------- play buttons drawn to scale ---------- */
+.swatches { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+.sw { text-align: center; width: 152px; }
+.sw .box {
+  height: 96px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.sw .btn-shape { background: var(--accent); display: block; }
+.sw .lab { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.sw .sz { font-size: 10.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.scalenote { font-size: 11.5px; color: var(--text-dim); margin: 12px 0 0; }
+
+/* ---------- placement maps ---------- */
+.maps { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 14px; }
+.map .frame {
+  position: relative; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--bg); height: 62px; overflow: hidden;
+}
+.map .dot {
+  position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); transform: translate(-50%, -50%);
+}
+.map .art {
+  position: absolute; border: 1px dashed var(--border); border-radius: 2px;
+  transform: translate(-50%, -50%);
+}
+.map .lab { font-size: 10.5px; margin-top: 4px; font-weight: 600; }
+.map .sub { font-size: 10px; color: var(--text-dim); }
+
+/* ---------- bar rows ---------- */
+.bars { display: grid; gap: 4px; }
+.bar { display: grid; grid-template-columns: 130px 1fr 74px; gap: 10px; align-items: center; font-size: 12px; }
+.bar .track { background: var(--bg); border-radius: 3px; height: 14px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); border-radius: 3px; }
+.bar .v { text-align: right; color: var(--text-dim); font-variant-numeric: tabular-nums; font-size: 11.5px; }
+.bar .k { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- buckets ---------- */
+.buckets { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.bucket { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.bucket h3 { margin: 0 0 2px; font-size: 12.5px; }
+.bucket .cnt { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+.bucket p { margin: 4px 0 8px; font-size: 11.5px; color: var(--text-dim); }
+.bucket ul { margin: 0; padding-left: 16px; font-size: 12px; }
+.bucket li { margin: 1px 0; }
+
+.takeaways { display: grid; gap: 12px; }
+.takeaway { border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; }
+.takeaway h3 { margin: 0 0 3px; font-size: 13.5px; }
+.takeaway p { margin: 0; font-size: 13px; color: var(--text-dim); max-width: 82ch; }
+.pagelink { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.pagelink:hover { border-bottom-color: var(--text); }
+.meta { font-size: 11.5px; color: var(--text-dim); }
+code { font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brandmark">Embed Player Analysis <span id="meta" class="meta"></span></div>
+  <div class="ctrl">
+    <label>Theme</label>
+    <div class="seg" id="themeSeg">
+      <button data-theme="light" aria-pressed="true">Light</button>
+      <button data-theme="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+  <div class="ctrl"><a class="pagelink" href="gallery.html">All on one page &rarr;</a></div>
+  <div class="ctrl"><a class="pagelink" href="index.html">One at a time &rarr;</a></div>
+</header>
+
+<main><div class="wrap" id="out"></div></main>
+
+<script src="players.js"></script>
+<script src="measurements.js"></script>
+<script>
+/* ============================================================================
+   ANALYSIS
+
+   Renders the measurements in measurements.js, which were taken offline by
+   measure.py. They have to be: every player is a cross-origin iframe, so this
+   page cannot read inside one. Playwright can, because it drives the browser
+   rather than living in the page.
+
+   Everything below is computed from that data at render time, so the prose and
+   the numbers cannot drift apart. Where a value could not be determined it is
+   shown as "not determined" rather than guessed.
+   ==========================================================================*/
+
+const M = MEASUREMENTS;
+const P = Object.values(M.players);
+const LIVE = P.filter((p) => !p.blocked && p.measured);        /* has a reading */
+const BLOCKED = P.filter((p) => p.blocked);
+const FAILED = P.filter((p) => !p.blocked && !p.measured);
+
+/* Prefer the light reading; fall back to dark if only that one landed. */
+const read = (p) => (p.schemes && (p.schemes.light || p.schemes.dark)) || null;
+const esc = (s) => escHtml(s == null ? '' : s);
+const n1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
+
+function med(xs) {
+  const a = xs.filter((x) => x != null).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : Math.round((a[m - 1] + a[m]) / 2 * 10) / 10;
+}
+
+/* Turn a normalised centre into words, which is what "placement" means to a
+   reader. */
+function zone(cx, cy) {
+  if (cx == null || cy == null) return null;
+  const h = cx < 0.33 ? 'left' : cx > 0.67 ? 'right' : 'centre';
+  const v = cy < 0.33 ? 'top' : cy > 0.67 ? 'bottom' : 'middle';
+  return (h === 'centre' && v === 'middle') ? 'dead centre' : v + ' ' + h;
+}
+
+/* Theme support is three states, not a yes/no. A player can adapt to the
+   viewer's OS setting, or offer a light/dark URL variant, or do neither. */
+function themeKind(p) {
+  if (p.themeResponds === true) return 'auto';
+  if (p.themedParam) return 'param';
+  if (p.themeResponds === null) return 'unknown';
+  return 'fixed';
+}
+
+function artKind(a, frameW) {
+  if (!a) return 'none';
+  if (a.areaShare != null && a.areaShare >= 0.55) return 'full bleed';
+  if (a.areaShare != null && a.areaShare >= 0.18) return 'large panel';
+  if (a.cx != null && a.cx < 0.3) return 'thumbnail, left';
+  if (a.cx != null && a.cx > 0.7) return 'thumbnail, right';
+  return 'thumbnail';
+}
+
+const el = (h) => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstChild; };
+const out = document.getElementById('out');
+const add = (h) => out.appendChild(el(h));
+
+/* ---------------------------------------------------------------- method ---*/
+document.getElementById('meta').textContent =
+  `measured ${M.measuredAt} at ${M.frameWidth}px`;
+
+add(`<section>
+  <h2>How these numbers were produced</h2>
+  <p class="lede">Every player here is a <b>cross-origin iframe</b>, so this page cannot
+  read inside one. The measurements were taken offline by <code>measure.py</code>, which
+  drives a real Chrome through Playwright and so can read into the frames. Re-run that
+  script to refresh them.</p>
+  <div class="panel">
+    <div class="bars" id="methodBars"></div>
+    <p class="scalenote" id="methodNote"></p>
+  </div>
+</section>`);
+
+(function method() {
+  const rows = [
+    ['Players measured', LIVE.length],
+    ['Cannot be embedded', BLOCKED.length],
+    ['Measurement failed', FAILED.length]
+  ];
+  const max = Math.max(...rows.map((r) => r[1]), 1);
+  document.getElementById('methodBars').innerHTML = rows.map(([k, v]) =>
+    `<div class="bar"><span class="k">${esc(k)}</span>
+      <span class="track"><span class="fill" style="width:${(v / max) * 100}%"></span></span>
+      <span class="v">${v}</span></div>`).join('');
+  const settle = med(LIVE.map((p) => read(p) && read(p).settleSeconds));
+  document.getElementById('methodNote').innerHTML =
+    `Each player was mounted alone in a fresh page at ${M.frameWidth}px wide, so its network
+     figures belong to it and nothing else, then measured twice, once under
+     <code>prefers-color-scheme: light</code> and once under <code>dark</code>. A reading was
+     accepted only after it stopped changing across three consecutive polls, because several
+     players sit in a shallow pre-render state long enough to be measured wrong. Median settle
+     time was ${settle == null ? 'not determined' : settle + 's'}.` +
+    (FAILED.length ? ` <b>${FAILED.length} player(s) produced no reading and are excluded from
+     every figure below:</b> ${FAILED.map((p) => esc(p.name)).join(', ')}.` : '');
+})();
+
+/* ------------------------------------------------------- play button size ---*/
+add(`<section>
+  <h2>1. Play button size</h2>
+  <p class="why"><b>Why it matters.</b> The play button is the only control most listeners
+  ever touch. Below roughly 44px it stops being a comfortable touch target, which is the
+  size Apple and Google both publish as a minimum.</p>
+  <p class="lede" id="playLede"></p>
+  <div class="panel">
+    <div class="swatches" id="playSwatches"></div>
+    <p class="scalenote">Drawn at the measured size, one to one. Shape follows each
+      player's own corner radius.</p>
+  </div>
+</section>`);
+
+(function playSize() {
+  const withPlay = LIVE.filter((p) => read(p) && read(p).play)
+    .map((p) => ({ p, b: read(p).play }))
+    .sort((a, b) => b.b.area - a.b.area);
+  const none = LIVE.filter((p) => !(read(p) && read(p).play));
+  const areas = withPlay.map((x) => Math.round(Math.sqrt(x.b.area)));
+  const small = withPlay.filter((x) => Math.min(x.b.w, x.b.h) < 44);
+
+  document.getElementById('playLede').innerHTML =
+    `Found on <b>${withPlay.length} of ${LIVE.length}</b> players. Sizes run from
+     <b>${withPlay[withPlay.length - 1].b.w}×${withPlay[withPlay.length - 1].b.h}px</b>
+     (${esc(withPlay[withPlay.length - 1].p.name)}) up to
+     <b>${withPlay[0].b.w}×${withPlay[0].b.h}px</b> (${esc(withPlay[0].p.name)}), a
+     <b>${Math.round(withPlay[0].b.area / withPlay[withPlay.length - 1].b.area)}×</b>
+     difference in area. Median edge is about ${med(areas)}px.
+     <b>${small.length} fall below the 44px touch-target minimum</b> on at least one axis:
+     ${small.map((x) => esc(x.p.name)).join(', ') || 'none'}.` +
+    (none.length ? ` No play control could be identified on ${none.length}:
+     ${none.map((p) => esc(p.name)).join(', ')}. Those are excluded here.` : '');
+
+  document.getElementById('playSwatches').innerHTML = withPlay.map(({ p, b }) => {
+    const r = /^[\d.]+px$/.test(b.radius || '') ? b.radius : '4px';
+    return `<div class="sw">
+      <div class="box"><span class="btn-shape"
+        style="width:${b.w}px;height:${b.h}px;border-radius:${r}"></span></div>
+      <div class="lab">${esc(p.name)}</div>
+      <div class="sz">${b.w}×${b.h}</div>
+    </div>`;
+  }).join('');
+})();
+
+/* -------------------------------------------------- play button placement ---*/
+add(`<section>
+  <h2>2. Play button placement</h2>
+  <p class="why"><b>Why it matters.</b> Where the control sits decides whether a listener
+  finds it without looking. It also decides what happens on a phone: a control pinned to the
+  right edge is the first thing to get clipped.</p>
+  <p class="lede" id="placeLede"></p>
+  <div class="panel">
+    <div class="maps" id="placeMaps"></div>
+    <p class="scalenote">Each box is one player's frame. The filled dot is the play control,
+      the dashed outline is the artwork.</p>
+  </div>
+</section>`);
+
+(function placement() {
+  const items = LIVE.filter((p) => read(p) && read(p).play && read(p).play.cx != null)
+    .map((p) => ({ p, b: read(p).play, a: read(p).artwork }));
+  const tally = {};
+  items.forEach((x) => { const z = zone(x.b.cx, x.b.cy); tally[z] = (tally[z] || 0) + 1; });
+  const ranked = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  document.getElementById('placeLede').innerHTML =
+    `The dominant convention is <b>${esc(ranked[0][0])}</b>, used by
+     ${ranked[0][1]} of ${items.length} players. Full spread:
+     ${ranked.map(([z, n]) => `${esc(z)} (${n})`).join(', ')}.`;
+
+  document.getElementById('placeMaps').innerHTML = items.map(({ p, b, a }) => {
+    const art = a && a.cx != null
+      ? `<span class="art" style="left:${a.cx * 100}%;top:${a.cy * 100}%;
+           width:${Math.max(6, Math.min(96, (a.w / M.frameWidth) * 100))}%;
+           height:${Math.max(6, Math.min(96, (a.h / (read(p).frame.h || 200)) * 100))}%"></span>` : '';
+    return `<div class="map">
+      <div class="frame">${art}
+        <span class="dot" style="left:${b.cx * 100}%;top:${b.cy * 100}%"></span></div>
+      <div class="lab">${esc(p.name)}</div>
+      <div class="sub">${esc(zone(b.cx, b.cy))}</div>
+    </div>`;
+  }).join('');
+})();
+
+/* ------------------------------------------------------------- waveform ----*/
+add(`<section>
+  <h2>3. Waveform</h2>
+  <p class="why"><b>Why it matters.</b> A waveform signals "this is audio you can scrub"
+  and fills horizontal space that would otherwise look empty. It also costs vertical room
+  and can read as decoration rather than a control.</p>
+  <p class="lede" id="waveLede"></p>
+  <div class="panel"><div class="buckets" id="waveBuckets"></div></div>
+</section>`);
+
+(function waveform() {
+  const has = LIVE.filter((p) => read(p) && read(p).waveform);
+  const not = LIVE.filter((p) => read(p) && !read(p).waveform);
+  document.getElementById('waveLede').innerHTML =
+    `Only <b>${has.length} of ${LIVE.length}</b> players draw a waveform. It is the
+     exception, not the norm, so it reads as a deliberate signature rather than a
+     convention to match.`;
+  document.getElementById('waveBuckets').innerHTML = `
+    <div class="bucket"><div class="cnt">${has.length}</div><h3>With a waveform</h3>
+      <p>Rendered as bars, canvas or SVG.</p>
+      <ul>${has.map((p) => `<li>${esc(p.name)} <span class="meta">(${esc(read(p).waveform.kind)}${
+        read(p).waveform.count ? ', ' + read(p).waveform.count + ' bars' : ''})</span></li>`).join('')}</ul></div>
+    <div class="bucket"><div class="cnt">${not.length}</div><h3>No waveform</h3>
+      <p>A plain progress track, or no seek affordance at all.</p>
+      <ul>${not.slice(0, 14).map((p) => `<li>${esc(p.name)}</li>`).join('')}
+      ${not.length > 14 ? `<li class="meta">and ${not.length - 14} more</li>` : ''}</ul></div>`;
+})();
+
+/* -------------------------------------------------------------- artwork ----*/
+add(`<section>
+  <h2>4. Artwork and thumbnail treatment</h2>
+  <p class="why"><b>Why it matters.</b> Artwork is what makes an embed feel like content
+  rather than a widget, but a full-bleed cover takes the whole frame and stops the embed
+  from sitting quietly inside an article.</p>
+  <p class="lede" id="artLede"></p>
+  <div class="panel"><div class="bars" id="artBars"></div>
+    <p class="scalenote">Share of the frame area the artwork occupies.</p></div>
+</section>`);
+
+(function artwork() {
+  const items = LIVE.map((p) => ({ p, a: read(p) && read(p).artwork }))
+    .filter((x) => x.a)
+    .sort((a, b) => (b.a.areaShare || 0) - (a.a.areaShare || 0));
+  const none = LIVE.filter((p) => !(read(p) && read(p).artwork));
+  const kinds = {};
+  items.forEach((x) => { const k = artKind(x.a); kinds[k] = (kinds[k] || 0) + 1; });
+  document.getElementById('artLede').innerHTML =
+    `<b>${items.length} of ${LIVE.length}</b> show artwork. Treatments break down as
+     ${Object.entries(kinds).sort((a, b) => b[1] - a[1])
+       .map(([k, n]) => `${esc(k)} (${n})`).join(', ')}.` +
+    (none.length ? ` No artwork at all on ${none.length}:
+      ${none.map((p) => esc(p.name)).join(', ')}.` : '');
+  document.getElementById('artBars').innerHTML = items.map(({ p, a }) => {
+    const pctv = a.areaShare == null ? 0 : Math.min(1, a.areaShare);
+    return `<div class="bar"><span class="k">${esc(p.name)}</span>
+      <span class="track"><span class="fill" style="width:${pctv * 100}%"></span></span>
+      <span class="v">${Math.round(pctv * 100)}% · ${esc(artKind(a))}</span></div>`;
+  }).join('');
+})();
+
+/* ----------------------------------------------------------------- theme ---*/
+add(`<section>
+  <h2>5. Light and dark theme support</h2>
+  <p class="why"><b>Why it matters.</b> An embed that ignores dark mode will glare inside a
+  dark article. There are three real behaviours here, not two: adapt to the viewer's own
+  setting, offer a light or dark URL variant the publisher picks, or neither.</p>
+  <p class="lede" id="themeLede"></p>
+  <div class="panel"><div class="buckets" id="themeBuckets"></div>
+    <p class="scalenote">Measured by rendering each frame twice, under
+      <code>prefers-color-scheme: light</code> and <code>dark</code>, and comparing the mean
+      brightness of the actual pixels. Computed styles are useless here: every player's body
+      background resolves to transparent.</p></div>
+</section>`);
+
+(function theme() {
+  const g = { auto: [], param: [], fixed: [], unknown: [] };
+  LIVE.forEach((p) => g[themeKind(p)].push(p));
+  document.getElementById('themeLede').innerHTML =
+    `<b>${g.auto.length} of ${LIVE.length}</b> adapt to the viewer's OS setting on their own.
+     ${g.param.length} expose a light or dark URL variant instead, which the publisher has to
+     choose. <b>${g.fixed.length} do neither</b> and will look the same in a dark article as
+     a light one.`;
+  const box = (k, title, blurb) => `<div class="bucket">
+    <div class="cnt">${g[k].length}</div><h3>${title}</h3><p>${blurb}</p>
+    <ul>${g[k].map((p) => `<li>${esc(p.name)}${
+      p.lightLuma != null && p.darkLuma != null
+        ? ` <span class="meta">(${p.lightLuma} → ${p.darkLuma})</span>` : ''}</li>`).join('') ||
+      '<li class="meta">none</li>'}</ul></div>`;
+  document.getElementById('themeBuckets').innerHTML =
+    box('auto', 'Adapts automatically', 'Follows prefers-color-scheme with no work from us.') +
+    box('param', 'Light or dark URL variant', 'We pick the theme; it will not follow the viewer.') +
+    box('fixed', 'Fixed appearance', 'Same in a dark article as a light one.') +
+    (g.unknown.length ? box('unknown', 'Not determined', 'Could not be measured reliably.') : '');
+})();
+
+/* ----------------------------------------------- footprint and page weight --*/
+add(`<section>
+  <h2>6. Vertical footprint <span class="num">(added)</span></h2>
+  <p class="why"><b>Why I added it.</b> Height is the single biggest thing an embed costs a
+  publisher. It is the difference between a player that tucks into an article and one that
+  takes over the screen, and it varies more than any other dimension here.</p>
+  <p class="lede" id="footLede"></p>
+  <div class="panel"><div class="bars" id="footBars"></div></div>
+</section>`);
+
+(function footprint() {
+  const items = LIVE.map((p) => ({ p, h: (read(p) && read(p).frame.h) || p.declaredHeight }))
+    .filter((x) => x.h).sort((a, b) => b.h - a.h);
+  const max = items[0].h;
+  document.getElementById('footLede').innerHTML =
+    `From <b>${items[items.length - 1].h}px</b> (${esc(items[items.length - 1].p.name)}) to
+     <b>${max}px</b> (${esc(items[0].p.name)}), a <b>${Math.round(max / items[items.length - 1].h)}×</b>
+     range. Median is ${med(items.map((x) => x.h))}px.`;
+  document.getElementById('footBars').innerHTML = items.map(({ p, h }) =>
+    `<div class="bar"><span class="k">${esc(p.name)}</span>
+      <span class="track"><span class="fill" style="width:${(h / max) * 100}%"></span></span>
+      <span class="v">${h}px</span></div>`).join('');
+})();
+
+add(`<section>
+  <h2>7. Page weight <span class="num">(added)</span></h2>
+  <p class="why"><b>Why I added it.</b> An embed is somebody else's JavaScript running on our
+  page. Every one of these fires its own network requests, and that cost lands on our load
+  time and our analytics, not theirs.</p>
+  <p class="lede" id="netLede"></p>
+  <div class="panel"><div class="bars" id="netBars"></div>
+    <p class="scalenote">Requests made by one player mounted alone. Transfer size is a floor,
+      not a total: some responses do not expose their length.</p></div>
+</section>`);
+
+(function weight() {
+  const items = LIVE.filter((p) => p.network).map((p) => ({ p, n: p.network }))
+    .sort((a, b) => b.n.requests - a.n.requests);
+  const max = items[0].n.requests;
+  document.getElementById('netLede').innerHTML =
+    `<b>${esc(items[0].p.name)}</b> is the heaviest at <b>${max} requests</b>;
+     <b>${esc(items[items.length - 1].p.name)}</b> the lightest at
+     ${items[items.length - 1].n.requests}. Median is ${med(items.map((x) => x.n.requests))}
+     requests per player. Mounting all ${LIVE.length} at once would fire roughly
+     <b>${items.reduce((t, x) => t + x.n.requests, 0)} requests</b>, which is why the gallery
+     mounts them lazily.`;
+  document.getElementById('netBars').innerHTML = items.map(({ p, n }) =>
+    `<div class="bar"><span class="k">${esc(p.name)}</span>
+      <span class="track"><span class="fill" style="width:${(n.requests / max) * 100}%"></span></span>
+      <span class="v">${n.requests} req${n.kb ? ' · ' + Math.round(n.kb) + 'KB' : ''}</span></div>`).join('');
+})();
+
+/* ------------------------------------------------- who keeps the listener ---*/
+add(`<section>
+  <h2>8. Does it try to take the listener away <span class="num">(added)</span></h2>
+  <p class="why"><b>Why I added it, and why I think it is the most strategic dimension here.</b>
+  Every other dimension is craft. This one is business. An embed that pushes "open in app" is
+  using our page to acquire our listener. One that just plays is doing the job we embedded it
+  to do. If the point of this exercise is deciding what our own embed should be, this is the
+  column to read first.</p>
+  <p class="lede" id="pushLede"></p>
+  <div class="panel"><div class="scroll"><table id="pushTable"></table></div></div>
+</section>`);
+
+(function push() {
+  const items = LIVE.map((p) => ({ p, r: read(p) }))
+    .sort((a, b) => (b.r.outboundLinks || 0) - (a.r.outboundLinks || 0));
+  const pushy = items.filter((x) => x.r.platformPush);
+  document.getElementById('pushLede').innerHTML =
+    `<b>${pushy.length} of ${LIVE.length}</b> carry explicit platform-push copy such as
+     "open in", "listen on" or "save on": ${pushy.map((x) => esc(x.p.name)).join(', ') || 'none'}.
+     Outbound links range from ${items[items.length - 1].r.outboundLinks} to
+     ${items[0].r.outboundLinks} per frame.`;
+  document.getElementById('pushTable').innerHTML =
+    `<thead><tr><th>Player</th><th class="num">Outbound links</th><th>Push copy</th>
+      <th class="num">Controls</th></tr></thead><tbody>` +
+    items.map(({ p, r }) => `<tr><td class="name">${esc(p.name)}</td>
+      <td class="num">${r.outboundLinks}</td>
+      <td>${r.platformPush ? '<span class="unk">yes</span>' : '<span class="no">no</span>'}</td>
+      <td class="num">${r.controlCount}</td></tr>`).join('') + '</tbody>';
+})();
+
+/* --------------------------------------------------- controls and metadata --*/
+add(`<section>
+  <h2>9. Seek, timecodes and metadata <span class="num">(added)</span></h2>
+  <p class="why"><b>Why I added it.</b> For a 48 minute podcast, being able to scrub and
+  seeing how long it is are the difference between a player people use and one they bounce
+  off. A play button alone is not enough.</p>
+  <p class="lede" id="ctrlLede"></p>
+  <div class="panel"><div class="buckets" id="ctrlBuckets"></div></div>
+</section>`);
+
+(function controls() {
+  const seek = LIVE.filter((p) => read(p).progress && read(p).progress.interactive);
+  const bar = LIVE.filter((p) => read(p).progress && !read(p).progress.interactive);
+  const nothing = LIVE.filter((p) => !read(p).progress);
+  const timed = LIVE.filter((p) => (read(p).timecodes || []).length);
+  document.getElementById('ctrlLede').innerHTML =
+    `<b>${seek.length} of ${LIVE.length}</b> expose a real, focusable seek control.
+     ${bar.length} draw a progress bar with no accessible control behind it, and
+     ${nothing.length} show no progress affordance at all. <b>${timed.length}</b> display a
+     timecode, so a listener can tell how long the thing is before committing.`;
+  const b = (cnt, title, blurb, list) => `<div class="bucket"><div class="cnt">${cnt}</div>
+    <h3>${title}</h3><p>${blurb}</p><ul>${list.slice(0, 12).map((p) => `<li>${esc(p.name)}</li>`).join('')
+      || '<li class="meta">none</li>'}${list.length > 12
+      ? `<li class="meta">and ${list.length - 12} more</li>` : ''}</ul></div>`;
+  document.getElementById('ctrlBuckets').innerHTML =
+    b(seek.length, 'Real seek control', 'A slider or range input. Keyboard reachable.', seek) +
+    b(bar.length, 'Progress bar only', 'Looks scrubbable, exposes nothing to assistive tech.', bar) +
+    b(nothing.length, 'No progress shown', 'Play and stop, nothing else.', nothing) +
+    b(timed.length, 'Shows a timecode', 'Duration or elapsed time visible in the frame.', timed);
+})();
+
+/* ------------------------------------------------------------ a11y + narrow -*/
+add(`<section>
+  <h2>10. Accessible name and phone width <span class="num">(added)</span></h2>
+  <p class="why"><b>Why I added it.</b> Two cheap quality signals. A play control with no
+  accessible name is invisible to a screen reader. And a player that overflows at 375px will
+  break on a phone, which is where most listening starts.</p>
+  <p class="lede" id="a11yLede"></p>
+  <div class="panel"><div class="scroll"><table id="a11yTable"></table></div></div>
+</section>`);
+
+(function a11y() {
+  const items = LIVE.map((p) => {
+    const r = read(p);
+    const nm = r.play && r.play.accessibleName;
+    const nw = p.narrow;
+    const overflow = nw && nw.clientW ? nw.scrollW > nw.clientW + 2 : null;
+    return { p, named: r.play ? !!nm : null, nm, overflow, nw };
+  });
+  const unnamed = items.filter((x) => x.named === false);
+  const over = items.filter((x) => x.overflow === true);
+  document.getElementById('a11yLede').innerHTML =
+    `<b>${unnamed.length}</b> players have a play control with <b>no accessible name</b>, so a
+     screen reader announces nothing useful: ${unnamed.map((x) => esc(x.p.name)).join(', ') || 'none'}.
+     <b>${over.length}</b> overflow horizontally at ${M.narrowWidth}px:
+     ${over.map((x) => esc(x.p.name)).join(', ') || 'none'}.`;
+  document.getElementById('a11yTable').innerHTML =
+    `<thead><tr><th>Player</th><th>Play control name</th><th>At ${M.narrowWidth}px</th></tr></thead><tbody>` +
+    items.map(({ p, named, nm, overflow }) => `<tr><td class="name">${esc(p.name)}</td>
+      <td>${named === null ? '<span class="no">no control found</span>'
+            : named ? '<span class="yes">' + esc(nm) + '</span>'
+            : '<span class="unk">unnamed</span>'}</td>
+      <td>${overflow === null ? '<span class="no">not determined</span>'
+            : overflow ? '<span class="unk">overflows</span>' : '<span class="yes">fits</span>'}</td>
+      </tr>`).join('') + '</tbody>';
+})();
+
+/* ----------------------------------------------------------- full matrix ---*/
+add(`<section>
+  <h2>11. Full matrix</h2>
+  <p class="lede">Every dimension, every player. Click a column heading to sort.</p>
+  <div class="panel"><div class="scroll"><table id="matrix"></table></div></div>
+</section>`);
+
+(function matrix() {
+  const COLS = [
+    ['Player', (x) => x.p.name, 'name'],
+    ['Group', (x) => GROUPS[x.p.group] ? GROUPS[x.p.group].label : x.p.group, 'txt'],
+    ['Height', (x) => x.r && x.r.frame ? Math.round(x.r.frame.h) : x.p.declaredHeight, 'num'],
+    ['Play w', (x) => x.r && x.r.play ? x.r.play.w : null, 'num'],
+    ['Play h', (x) => x.r && x.r.play ? x.r.play.h : null, 'num'],
+    ['Placement', (x) => x.r && x.r.play ? zone(x.r.play.cx, x.r.play.cy) : null, 'txt'],
+    ['Waveform', (x) => x.r && x.r.waveform ? x.r.waveform.kind : null, 'txt'],
+    ['Artwork', (x) => x.r && x.r.artwork ? artKind(x.r.artwork) : 'none', 'txt'],
+    ['Art %', (x) => x.r && x.r.artwork && x.r.artwork.areaShare != null
+        ? Math.round(x.r.artwork.areaShare * 100) : null, 'num'],
+    ['Theme', (x) => x.p.blocked ? null : themeKind(x.p), 'txt'],
+    ['Seek', (x) => x.r && x.r.progress ? (x.r.progress.interactive ? 'control' : 'bar only') : null, 'txt'],
+    ['Timecode', (x) => x.r && (x.r.timecodes || []).length ? 'yes' : null, 'txt'],
+    ['Controls', (x) => x.r ? x.r.controlCount : null, 'num'],
+    ['Outbound', (x) => x.r ? x.r.outboundLinks : null, 'num'],
+    ['Push copy', (x) => x.r ? (x.r.platformPush ? 'yes' : 'no') : null, 'txt'],
+    ['Requests', (x) => x.p.network ? x.p.network.requests : null, 'num']
+  ];
+  const rows = P.map((p) => ({ p, r: read(p) }));
+  let sortIdx = 0, dir = 1;
+
+  function draw() {
+    const sorted = rows.slice().sort((a, b) => {
+      const [, get, kind] = COLS[sortIdx];
+      const va = get(a), vb = get(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;              /* unknowns always sink */
+      if (vb == null) return -1;
+      return kind === 'num' ? (va - vb) * dir : String(va).localeCompare(String(vb)) * dir;
+    });
+    document.getElementById('matrix').innerHTML =
+      '<thead><tr>' + COLS.map(([h, , kind], i) =>
+        `<th data-i="${i}" class="${kind === 'num' ? 'num' : ''}"${
+          i === sortIdx ? ` aria-sort="${dir === 1 ? 'ascending' : 'descending'}"` : ''
+        }>${esc(h)}</th>`).join('') + '</tr></thead><tbody>' +
+      sorted.map((x) => `<tr class="${x.p.blocked || !x.r ? 'dim' : ''}">` +
+        COLS.map(([, get, kind], i) => {
+          const v = get(x);
+          const cls = kind === 'num' ? 'num' : (i === 0 ? 'name' : '');
+          if (v == null) return `<td class="${cls}"><span class="no">${
+            x.p.blocked ? 'n/a' : 'not measured'}</span></td>`;
+          return `<td class="${cls}">${esc(v)}${
+            i === 0 && x.p.blocked ? '<span class="grp">blocked</span>' : ''}</td>`;
+        }).join('') + '</tr>').join('') + '</tbody>';
+    document.querySelectorAll('#matrix th').forEach((th) => {
+      th.addEventListener('click', () => {
+        const i = +th.dataset.i;
+        if (i === sortIdx) dir = -dir; else { sortIdx = i; dir = COLS[i][2] === 'num' ? -1 : 1; }
+        draw();
+      });
+    });
+  }
+  draw();
+})();
+
+/* ------------------------------------------------------------ takeaways ----*/
+add(`<section>
+  <h2>What I would take from this</h2>
+  <div class="takeaways" id="takeaways"></div>
+</section>`);
+
+(function takeaways() {
+  const withPlay = LIVE.filter((p) => read(p).play);
+  const small = withPlay.filter((p) => Math.min(read(p).play.w, read(p).play.h) < 44);
+  const heights = LIVE.map((p) => (read(p).frame && read(p).frame.h) || p.declaredHeight).filter(Boolean);
+  const fixed = LIVE.filter((p) => themeKind(p) === 'fixed');
+  const pushy = LIVE.filter((p) => read(p).platformPush);
+  const seek = LIVE.filter((p) => read(p).progress && read(p).progress.interactive);
+  const zones = {};
+  withPlay.forEach((p) => { const z = zone(read(p).play.cx, read(p).play.cy); zones[z] = (zones[z] || 0) + 1; });
+  const topZone = Object.entries(zones).sort((a, b) => b[1] - a[1])[0];
+
+  const T = [
+    ['There is no convention on play button size, so we can set our own',
+     `Sizes span a ${Math.round(Math.max(...withPlay.map((p) => read(p).play.area)) /
+        Math.min(...withPlay.map((p) => read(p).play.area)))}-fold range in area, and
+      ${small.length} of ${withPlay.length} players sit under the 44px touch minimum on at
+      least one axis. Nobody owns "the right size", so picking a comfortably large target is
+      a free win rather than a departure from the norm.`],
+    ['Placement is the one thing that is settled',
+     `${topZone[1]} of ${withPlay.length} players put the control ${topZone[0]}. This is the
+      convention worth matching, because it is the one listeners will have learned everywhere
+      else.`],
+    ['Height is where the real cost sits',
+     `Footprints run from ${Math.min(...heights)}px to ${Math.max(...heights)}px, a
+      ${Math.round(Math.max(...heights) / Math.min(...heights))}-fold range, which dwarfs the
+      variation in every other visual dimension. If an embed has one number to defend to a
+      publisher, it is this one.`],
+    ['Dark mode is mostly unsolved, which makes it cheap to win',
+     `${fixed.length} of ${LIVE.length} players look identical in a dark article and a light
+      one. Adapting to prefers-color-scheme would put us in a small minority.`],
+    ['Seek is not table stakes yet, and it should be',
+     `Only ${seek.length} of ${LIVE.length} expose a real, keyboard-reachable seek control.
+      For 45 minute episodes that is the difference between a player people use and one they
+      abandon.`],
+    ['The dimension worth arguing about is whose listener it is',
+     `${pushy.length} players carry explicit "open in app" style copy. Every one of those is
+      using the publisher's page to acquire the listener. Deciding whether our embed does that,
+      and how hard, matters more than any pixel on this page.`]
+  ];
+  document.getElementById('takeaways').innerHTML = T.map(([h, p]) =>
+    `<div class="takeaway"><h3>${esc(h)}</h3><p>${p}</p></div>`).join('');
+})();
+
+/* ---------------------------------------------------------------- theme ----*/
+document.getElementById('themeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.documentElement.setAttribute('data-theme', b.dataset.theme);
+  document.querySelectorAll('#themeSeg button').forEach((x) =>
+    x.setAttribute('aria-pressed', String(x === b)));
+});
+document.documentElement.setAttribute('data-theme', 'light');
+
+</script>
+</body>
+</html>

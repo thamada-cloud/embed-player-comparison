@@ -7,12 +7,17 @@ one shared registry. No build step, no dependencies.
 | --- | --- |
 | `index.html` | **One at a time, all 50.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
 | `gallery.html` | **All 50 on one page, no filter.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
+| `analysis.html` | **Measured comparison.** Every player scored across 11 dimensions, with the numbers, the visual comparisons and what I would conclude. |
 
 ## Files
 
-- `players.js` holds the 50-player registry and every shared helper. **Both pages
-  read it, so adding a player appears on both.** This is the only file to edit
-  when changing the roster.
+- `players.js` holds the 50-player registry and every shared helper. **All three
+  pages read it, so adding a player appears everywhere.** This is the only file
+  to edit when changing the roster.
+- `measure.py` measures every player and writes `measurements.js`. `analysis.html`
+  renders that data. See **Measuring** below.
+- `export-players.js` flattens `players.js` into `.players.json` for the harness,
+  so the measurements can never drift from the real registry.
 - `shared.css` holds the chrome and card styles both pages use, so a player looks
   identical on either page.
 - `index.html` and `gallery.html` hold only their own layout and behaviour.
@@ -227,6 +232,46 @@ Before trusting a new entry, verify it two ways. A 200 response proves nothing:
 Vimeo, Bandcamp and Simplecast all return 200 for content that cannot play. Use
 the platform's oEmbed endpoint where one exists, then confirm the frame actually
 paints.
+
+## Measuring
+
+`analysis.html` renders baked data, not live readings, and it has to.
+
+Every player is a **cross-origin iframe**, so no published page can read inside
+one. Playwright can, because it drives the browser rather than living in the page.
+So the numbers are measured offline and written to `measurements.js`.
+
+```bash
+node export-players.js          # players.js -> .players.json
+python3 -m http.server 8899     # measure.py needs the host page served
+python3 measure.py              # all players, roughly 25 minutes
+python3 measure.py spotify      # or just one, for iterating
+```
+
+Serve on **localhost**, not `127.0.0.1`. Twitch reflects `parent=` into
+`frame-ancestors` and special-cases `localhost` for any port; on a mismatched host
+it refuses the frame and measures as empty.
+
+### What is measured, and the traps in measuring it
+
+- **Play button.** Candidates are scored, not taken first-match, and shadow roots
+  are walked because Apple Music, Tidal and TikTok build controls inside them.
+  Two bugs worth remembering: excluding any class containing `player` threw away
+  the real controls (Megaphone's is `player__controls__play-btn`), and a strict
+  "innermost element" rule discarded controls that wrap a tiny icon.
+- **Theme response** is read from **actual pixels**, by rendering each frame twice
+  under `prefers-color-scheme` and comparing mean brightness. Computed styles are
+  useless here: every player's body background resolves to transparent.
+- **Readings are accepted only after they stop changing** across three consecutive
+  polls plus a minimum dwell. Breaking on first sign of life measured players
+  half-rendered, and recorded iHeart's 166-bar waveform as absent.
+- **A frame that rendered nothing is not a measurement.** Empty frames are marked
+  not measured with a reason, rather than counted as a player with no features.
+- **Page weight** counts one player mounted alone, so the figures belong to it.
+  Transfer size is a floor: some responses do not expose their length.
+
+Anything that could not be determined is recorded as null and rendered as "not
+determined". Nothing is inferred to fill a gap.
 
 ## Verification
 
