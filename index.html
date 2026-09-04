@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Embed Player Comparison</title>
+<style>
+/* Subset of the iHeart Accomplice token set, inlined to keep this file self-contained.
+   Source: ~/.claude/skills/accomplice-design-system/reference/tokens.css */
+:root {
+  --brand-red: #C6002B;
+  --gray100: #F6F8F9; --gray150: #EDF1F3; --gray200: #E6EAED; --gray250: #DADFE3;
+  --gray300: #A9AFB2; --gray400: #717277; --gray450: #55565B; --gray500: #3F4447;
+  --gray550: #2D3134; --gray600: #27292D;
+
+  --bg: var(--gray100);
+  --surface: #FFFFFF;
+  --border: var(--gray250);
+  --text: var(--gray600);
+  --text-dim: var(--gray400);
+  /* Chrome accent is deliberately neutral graphite, NOT iHeart red. The page
+     must not echo any contender's brand colour in a preference test. */
+  --accent: var(--gray550);
+  --accent-fg: #FFFFFF;
+  --danger: #B00020;
+  --stage: var(--gray150);
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+  --radius: 10px;
+}
+html[data-theme="dark"] {
+  --bg: #16181A;
+  --surface: var(--gray600);
+  --border: var(--gray500);
+  --text: var(--gray150);
+  --text-dim: var(--gray300);
+  --stage: #1E2124;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  --accent: var(--gray150);
+  --accent-fg: #16181A;
+  --danger: #FF8A99;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- header ---------- */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  align-items: center;
+  position: sticky; top: 0; z-index: 10;
+}
+.brandmark {
+  font-weight: 700; font-size: 14px; letter-spacing: -.01em;
+  margin-right: auto; display: flex; align-items: baseline; gap: 8px;
+}
+.brandmark span { font-weight: 400; font-size: 12px; color: var(--text-dim); }
+
+.ctrl { display: flex; align-items: center; gap: 6px; }
+.ctrl > label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-dim); font-weight: 600;
+}
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: var(--bg); }
+.seg button {
+  appearance: none; border: 0; background: transparent; color: var(--text-dim);
+  font: inherit; font-size: 13px; padding: 5px 13px; cursor: pointer; white-space: nowrap;
+}
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.seg button:hover:not([aria-pressed="true"]) { color: var(--text); }
+
+.btn {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px;
+}
+.btn:hover { border-color: var(--text-dim); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+
+select.jump {
+  font: inherit; font-size: 13px; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg); color: var(--text); max-width: 240px;
+}
+
+/* ---------- stage ---------- */
+main {
+  flex: 1;
+  background: var(--stage);
+  padding: 32px 20px 20px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  transition: max-width .18s ease;
+  overflow: hidden;
+}
+.card-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.card-head h2 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+.chip {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+}
+.chip.ok      { background: rgba(20,140,80,.12);  color: #14814f; }
+.chip.caveat  { background: rgba(200,120,0,.14);  color: #a15c00; }
+.chip.blocked { background: rgba(176,0,32,.12);    color: var(--danger); }
+.chip.sub     { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); font-weight: 600; }
+html[data-theme="dark"] .chip.ok     { color: #6ddba0; }
+html[data-theme="dark"] .chip.caveat { color: #f0b24a; }
+html[data-theme="dark"] .chip.blocked{ color: var(--danger); }
+
+.frame-wrap { background: var(--bg); }
+.frame-wrap iframe { display: block; border: 0; width: 100%; }
+.frame-wrap.aspect { position: relative; }
+.frame-wrap.aspect iframe { aspect-ratio: 16 / 9; height: auto; }
+
+.fallback-bar {
+  font-size: 12.5px; padding: 8px 16px;
+  background: rgba(200,120,0,.10); color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.blocked-body { padding: 40px 24px; text-align: center; }
+.blocked-body p { margin: 0 auto; max-width: 46ch; color: var(--text-dim); font-size: 13.5px; }
+.blocked-body .why { color: var(--text); font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+
+/* ---------- moderator notes ---------- */
+.notes { border-top: 1px solid var(--border); font-size: 13px; }
+.notes > summary {
+  cursor: pointer; padding: 10px 16px; color: var(--text-dim);
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600;
+  list-style: none;
+}
+.notes > summary::-webkit-details-marker { display: none; }
+.notes > summary::before { content: "▸ "; }
+.notes[open] > summary::before { content: "▾ "; }
+.notes-body { padding: 0 16px 14px; display: grid; gap: 8px; }
+.notes-body dl { margin: 0; display: grid; grid-template-columns: 116px 1fr; gap: 4px 12px; }
+.notes-body dt { color: var(--text-dim); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.notes-body dd { margin: 0; font-size: 13px; }
+.notes-body code {
+  font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 5px; word-break: break-all;
+}
+
+/* ---------- footer nav ---------- */
+footer {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap; position: sticky; bottom: 0;
+}
+.counter { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; min-width: 74px; text-align: center; }
+.spacer { margin-left: auto; }
+.hint { font-size: 11.5px; color: var(--text-dim); }
+.content-note { font-size: 12px; color: var(--text-dim); margin: 0 0 18px; text-align: center; max-width: 68ch; }
+@media (max-width: 620px) {
+  .brandmark { margin-right: 0; width: 100%; }
+  main { padding: 18px 12px 12px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brandmark">Embed Player Comparison <span id="modeDesc"></span></div>
+
+  <div class="ctrl">
+    <label>Scope</label>
+    <div class="seg" id="groupSeg">
+      <button data-group="parity" aria-pressed="true">Core</button>
+      <button data-group="hosts" aria-pressed="false">Hosts</button>
+      <button data-group="other" aria-pressed="false">Other</button>
+      <button data-group="blocked" aria-pressed="false">Blocked</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Content</label>
+    <div class="seg" id="modeSeg">
+      <button data-mode="live" aria-pressed="false">Live Radio</button>
+      <button data-mode="podcast" aria-pressed="true">Podcast</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Width</label>
+    <div class="seg" id="widthSeg">
+      <button data-w="375" aria-pressed="false">Phone</button>
+      <button data-w="600" aria-pressed="false">Tablet</button>
+      <button data-w="900" aria-pressed="true">Full</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Theme</label>
+    <div class="seg" id="themeSeg">
+      <button data-theme="light" aria-pressed="true">Light</button>
+      <button data-theme="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <p class="content-note" id="contentNote"></p>
+  <div class="card" id="card"></div>
+</main>
+
+<footer>
+  <button class="btn" id="prev">&larr; Previous</button>
+  <span class="counter" id="counter"></span>
+  <button class="btn primary" id="next">Next &rarr;</button>
+  <select class="jump" id="jump" aria-label="Jump to player"></select>
+  <span class="spacer"></span>
+  <button class="btn" id="shuffle" title="Randomize order to counterbalance across participants">Shuffle order</button>
+  <span class="hint">Arrow keys navigate</span>
+</footer>
+
+<script>
+/* ============================================================================
+   PLAYER REGISTRY
+   Every entry was verified by direct HTTP probe: 200 response, no
+   X-Frame-Options, no CSP frame-ancestors restriction. To add a player, add an
+   object here. Nothing else needs to change.
+
+   status  'ok'      renders the iframe
+           'caveat'  renders the iframe plus a visible moderator warning
+           'blocked' renders no iframe, shows the reason instead
+   modes   one entry per content type. A player with no 'live' entry falls back
+           to its 'podcast' entry and says so on the card.
+   h       fixed pixel height, or aspect:true for a 16:9 video frame
+   group   'parity' shows the same show/station as the others
+           'other'  different content, so compare form only
+   ==========================================================================*/
+
+const PODCAST_LABEL = 'Stuff You Should Know, the episode "Social Identity Theory: Your Group Rules, Others Drool"';
+const LIVE_LABEL    = 'Z100 New York (WHTZ-FM)';
+
+/* Group metadata. `parity` is the only group on by default, which keeps a real
+   session to 7 cards. The others are for internal review. */
+const GROUPS = {
+  parity:  { label: 'Core',    note: 'Same station and same episode in every player. This is the valid comparison set.' },
+  hosts:   { label: 'Hosts',   note: 'Podcast hosting players. Different content, because each one only serves shows it hosts. These are what publishers actually embed, so compare the player chrome.' },
+  other:   { label: 'Other',   note: 'Other audio and video embeds. Different content. Form comparison only.' },
+  blocked: { label: 'Blocked', note: 'Cannot be embedded at all. Kept visible with the reason so the team stops re-asking.' }
+};
+
+const PLAYERS = [
+  /* ===================== CORE, same content ===================== */
+  {
+    id: 'iheart', name: 'iHeartRadio', status: 'ok', group: 'parity',
+    allow: 'autoplay',
+    modes: {
+      live:    { src: 'https://www.iheart.com/live/z100-1469/?embed=true', h: 200 },
+      podcast: { src: 'https://www.iheart.com/podcast/105-stuff-you-should-know-26940277/episode/social-identity-theory-your-group-343040435/?embed=true', h: 200 }
+    },
+    facts: {
+      'Content': 'Z100 live, and the exact target episode',
+      'Sign-in': 'Not required to play',
+      'Discovery': 'Public oEmbed at iheart.com/oembed/?url=...&format=json returns the canonical iframe, height and allow attributes',
+      'Watch out': 'The URL slug is cosmetic. The trailing numeric ID resolves the content, so a wrong slug silently returns a different episode. Source IDs from us.api.iheart.com.'
+    }
+  },
+  {
+    id: 'tunein', name: 'TuneIn', status: 'ok', group: 'parity',
+    allow: 'autoplay', scrolling: 'no',
+    modes: {
+      live:    { src: 'https://tunein.com/embed/player/s340698/', h: 100 },
+      podcast: { src: 'https://tunein.com/embed/player/p295446/', h: 350 }
+    },
+    facts: {
+      'Content': 'Z100 live (station s340698) and the Stuff You Should Know program (p295446)',
+      'Sign-in': 'Not required to play',
+      'Height': 'Station player is a fixed 100px, program player 350px. Neither resizes.',
+      'Watch out': 'Two decoys share the Z100 name, s343865 and s26824. Both are different stations.'
+    }
+  },
+  {
+    id: 'youtube', name: 'YouTube', status: 'ok', group: 'parity',
+    allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+    allowfullscreen: true,
+    modes: {
+      live:    { src: 'https://www.youtube.com/embed/live_stream?channel=UCF-VP3b3oH0XASqsLI5rnLw', aspect: true,
+                 caveat: 'Times Radio, a real broadcast station simulcasting 24/7. No iHeart station simulcasts live on YouTube, so this stands in for the format.' },
+      podcast: { src: 'https://www.youtube.com/embed/IXbs4Gv_BuY', aspect: true,
+                 caveat: 'A different episode of the same show. The target episode is not on the YouTube channel, which runs behind the audio feed.' }
+    },
+    facts: {
+      'Content': 'Same show, different episode. Live card is a real radio simulcast from another broadcaster.',
+      'Sign-in': 'Not required to play',
+      'Format': 'The only genuinely video entry, which is its main point of difference. Do not read that as a flaw.',
+      'Live behavior': 'The channel-based embed auto-follows whatever that channel is streaming, so it does not go stale. It shows an offline placeholder if the channel stops.',
+      'Fallback': 'If Times Radio is dark, swap channel UCWw6scNyopJ0yjMu1SyOEyw (talkSPORT).'
+    }
+  },
+  {
+    id: 'applepodcasts', name: 'Apple Podcasts', status: 'ok', group: 'parity',
+    allow: 'autoplay *; encrypted-media *; fullscreen *; clipboard-write',
+    modes: { podcast: { src: 'https://embed.podcasts.apple.com/us/episode/1000787615438', h: 175 } },
+    facts: {
+      'Content': 'The exact target episode',
+      'Sign-in': 'Not required to play the full episode',
+      'No live radio': 'Apple Podcasts carries no live radio, so the live view falls back to this player.',
+      'Watch out': 'Autoplay is not honored. The participant must press play.'
+    }
+  },
+  {
+    id: 'spotify', name: 'Spotify', status: 'ok', group: 'parity',
+    allow: 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture',
+    modes: { podcast: { src: 'https://open.spotify.com/embed/episode/6naVnsbI9VWEMSrqnJpIEI', h: 152 } },
+    facts: {
+      'Content': 'The exact target episode',
+      'Sign-in': 'Not required. Podcast episodes play in full anonymously, unlike music tracks which cut to a 30 second preview.',
+      'No live radio': 'Spotify has no live radio product at all, so the live view falls back to this player.',
+      'Height': 'Ships at 152px compact. A 352px card variant also exists.'
+    }
+  },
+  {
+    id: 'deezer', name: 'Deezer', status: 'ok', group: 'parity', themed: true,
+    allow: 'encrypted-media; clipboard-write',
+    modes: { podcast: { src: 'https://widget.deezer.com/widget/{theme}/episode/929240302', h: 300 } },
+    facts: {
+      'Content': 'The exact target episode (Deezer podcast 1845, episode 929240302)',
+      'Sign-in': 'Not required for podcasts. Music tracks are capped at 30 second previews.',
+      'No live radio': 'No live broadcast product, so the live view falls back to this player.',
+      'Theming': 'Follows the page theme toggle through its own light and dark URL variants.'
+    }
+  },
+  {
+    id: 'omny', name: 'Omny Studio', status: 'ok', group: 'parity',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://omny.fm/shows/stuff-you-should-know-1/social-identity-theory-your-group-rules-others-drool/embed', h: 200 } },
+    facts: {
+      'Content': 'The exact target episode',
+      'Sign-in': 'Not required to play',
+      'Why it is here': 'Omny is iHeart-owned and is the actual host serving iHeart podcast audio. Participants have never heard of it, so read this as an internal reference rather than a brand comparison.',
+      'Watch out': 'The show slug is stuff-you-should-know-1, not stuff-you-should-know. The unsuffixed slug 404s at episode level.',
+      'No live radio': 'Podcast hosting only.'
+    }
+  },
+
+  /* ===================== PODCAST HOSTING PLAYERS ===================== */
+  { id: 'megaphone', name: 'Megaphone', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://player.megaphone.fm/GLT4653461142', h: 200,
+      caveat: 'Different show. Megaphone only serves podcasts it hosts, and it does not host this one.' } },
+    facts: { 'Content': 'Unrelated show on a Megaphone-hosted feed',
+             'ID source': 'The ADID is the mp3 token in the feed enclosure, traffic.megaphone.fm/{ADID}.mp3',
+             'Use': 'Form comparison only' } },
+  { id: 'acast', name: 'Acast', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://embed.acast.com/ec380acc-fe13-46a0-991f-a1e508d126f8', h: 200,
+      caveat: 'Different show (Economist Podcasts). Acast only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Levels': 'Show-level and episode-level embeds both work', 'Use': 'Form comparison only' } },
+  { id: 'libsyn', name: 'Libsyn', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://html5-player.libsyn.com/embed/episode/id/38143160/', h: 200,
+      caveat: 'Different show. Libsyn only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Use': 'Form comparison only' } },
+  { id: 'captivate', name: 'Captivate', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://player.captivate.fm/episode/89833521-aae1-4b28-8ad3-fae843746ee7', h: 200,
+      caveat: 'Different show. Captivate only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Note': 'Server-renders its real title, which makes it the easiest of the small hosts to verify', 'Use': 'Form comparison only' } },
+  { id: 'transistor', name: 'Transistor', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://share.transistor.fm/e/2de9c335', h: 200,
+      caveat: 'Different show. Transistor only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Use': 'Form comparison only' } },
+  { id: 'simplecast', name: 'Simplecast', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://player.simplecast.com/4a64cc76-fe4a-4858-b34d-d6b61e6eccef?dark=true', h: 200,
+      caveat: 'Different show. Simplecast only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show',
+             'Watch out': 'The player id is NOT the RSS guid. Feed guids 404 against their API. Verify with api.simplecast.com/episodes/{id}, since the player HTML is a static shell that returns 200 regardless.',
+             'Use': 'Form comparison only' } },
+  { id: 'audioboom', name: 'Audioboom', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://embeds.audioboom.com/posts/8851135/embed/v4', h: 200,
+      caveat: 'Different show. Audioboom only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Use': 'Form comparison only' } },
+  { id: 'spreaker', name: 'Spreaker', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media', themed: true,
+    modes: { podcast: { src: 'https://widget.spreaker.com/player?episode_id=45323435&theme={theme}', h: 200,
+      caveat: 'Different show. Spreaker only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show',
+             'Watch out': 'Use widget.spreaker.com. The www.spreaker.com/widgets/player path sends X-Frame-Options SAMEORIGIN.',
+             'Use': 'Form comparison only' } },
+  { id: 'podbean', name: 'Podbean', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media', scrolling: 'no',
+    modes: { podcast: { src: 'https://www.podbean.com/player-v2/?i=ng2ci-1865db7-pb', h: 150,
+      caveat: 'Different show. Podbean only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'Size': 'Ships at 500 by 150', 'Use': 'Form comparison only' } },
+  { id: 'buzzsprout', name: 'Buzzsprout', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://www.buzzsprout.com/2170846/episodes/12628304?client_source=small_player&iframe=true', h: 200,
+      caveat: 'Different show. Buzzsprout only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show', 'ID source': 'Episode id is the Buzzsprout-{id} value in the feed guid', 'Use': 'Form comparison only' } },
+  { id: 'blubrry', name: 'Blubrry', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://player.blubrry.com/id/155082134', h: 200,
+      caveat: 'Different show. Blubrry only serves shows it hosts.' } },
+    facts: { 'Content': 'Unrelated show',
+             'Watch out': 'Use player.blubrry.com. The blubrry.com/player/{id} path returns 403 with X-Frame-Options SAMEORIGIN.',
+             'Use': 'Form comparison only' } },
+  { id: 'castbox', name: 'Castbox', status: 'ok', group: 'hosts',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://castbox.fm/app/castbox/player/id2500926?v=8.22.11&autoplay=0&hide_list=1', h: 500,
+      caveat: 'Different show, and channel-level rather than a single episode. Castbox is an aggregator, so it does carry this show, but the embed id could not be confirmed.' } },
+    facts: { 'Content': 'Unrelated show, channel-level player',
+             'Open item': 'Castbox does carry Stuff You Should Know. Its embed id was not resolvable from any public endpoint, so this card uses a known-good channel instead.',
+             'Use': 'Form comparison only' } },
+
+  /* ===================== OTHER AUDIO AND VIDEO ===================== */
+  { id: 'applemusic', name: 'Apple Music', status: 'caveat', group: 'other',
+    allow: 'autoplay *; encrypted-media *; fullscreen *',
+    sandbox: 'allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation',
+    modes: { live: { src: 'https://embed.music.apple.com/us/station/apple-music-1/ra.978194965', h: 450,
+      caveat: 'Playback needs an Apple Music subscription and a signed-in browser. A signed-out participant gets a preview or nothing.' } },
+    facts: { 'Content': 'Apple Music 1, a curated station rather than broadcast radio',
+             'Sign-in': 'Required for real playback. This is why it should stay out of any listening-preference question.',
+             'Recommendation': 'Visual comparison only. Any preference signal here measures the paywall, not the player.',
+             'Frame': 'Needs a long specific sandbox string or the embed will not initialize.' } },
+  { id: 'tidal', name: 'Tidal', status: 'caveat', group: 'other',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://embed.tidal.com/tracks/22560696', h: 120,
+      caveat: 'Unrelated music track, and anonymous listeners get 30 seconds only. Same paywall problem as Apple Music.' } },
+    facts: { 'Content': 'Unrelated music track', 'Sign-in': 'Required for full playback', 'Use': 'Visual comparison only' } },
+  { id: 'npr', name: 'NPR', status: 'ok', group: 'other',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://www.npr.org/player/embed/nx-s1-5953112/nx-s1-mx-5953112-1', h: 290,
+      caveat: 'Unrelated NPR story audio. NPR embeds only its own content.' } },
+    facts: { 'Content': 'Unrelated NPR story',
+             'Pattern': 'npr.org/player/embed/{storyId}/{audioId}. The story page prints its own embed URL in the HTML, which is how to harvest IDs.',
+             'Use': 'Form comparison only. A strong reference point for public-radio audio chrome.' } },
+  { id: 'mixcloud', name: 'Mixcloud', status: 'ok', group: 'other',
+    allow: 'encrypted-media; fullscreen; autoplay; web-share',
+    modes: { podcast: { src: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=https%3A%2F%2Fwww.mixcloud.com%2FNTSRadio%2Fbridget-small-2nd-september-2026%2F', h: 120,
+      caveat: 'Unrelated NTS Radio show replay. The closest thing to a radio programme in this group, but it is on-demand, not live.' } },
+    facts: { 'Content': 'Unrelated radio show replay', 'Sign-in': 'Not required, plays in full with ads', 'Use': 'Form comparison only' } },
+  { id: 'audiomack', name: 'Audiomack', status: 'ok', group: 'other',
+    allow: 'autoplay; encrypted-media', scrolling: 'no',
+    modes: { podcast: { src: 'https://audiomack.com/embed/future/song/purple-reign-prod-by-metro-boomin', h: 252,
+      caveat: 'Unrelated music track.' } },
+    facts: { 'Content': 'Unrelated music track',
+             'Note': 'Sends frame-ancestors *, the most permissive policy in the whole roster',
+             'Use': 'Form comparison only' } },
+  { id: 'bandcamp', name: 'Bandcamp', status: 'ok', group: 'other',
+    allow: 'autoplay; encrypted-media',
+    modes: { podcast: { src: 'https://bandcamp.com/EmbeddedPlayer/v=2/album=4070884389/size=large/tracklist=false/artwork=small/', h: 120,
+      caveat: 'Unrelated album.' } },
+    facts: { 'Content': 'Unrelated album',
+             'Watch out': 'Returns 200 even for bogus album ids, and some label-exclusive releases refuse specific hosts with an in-player message. Get ids from the album id comment in the artist page HTML.',
+             'Use': 'Form comparison only' } },
+  { id: 'vimeo', name: 'Vimeo', status: 'ok', group: 'other',
+    allow: 'autoplay; fullscreen; picture-in-picture; clipboard-write', allowfullscreen: true,
+    modes: { podcast: { src: 'https://player.vimeo.com/video/347119375', aspect: true,
+      caveat: 'Unrelated sample video. A second video comparison point next to YouTube.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Watch out': 'The player returns 200 for private and deleted videos. Confirm a video is really playable with the key-free vimeo.com/api/oembed.json?url= endpoint, which 404s when it is not.',
+             'Use': 'Form comparison only' } },
+  { id: 'dailymotion', name: 'Dailymotion', status: 'ok', group: 'other',
+    allow: 'autoplay; fullscreen; picture-in-picture; web-share', allowfullscreen: true,
+    modes: { podcast: { src: 'https://geo.dailymotion.com/player.html?video=xb3lqqu', aspect: true,
+      caveat: 'Unrelated trending video.' } },
+    facts: { 'Content': 'Unrelated video',
+             'Watch out': 'The old www.dailymotion.com/embed/video/{id} path 301s to geo.dailymotion.com/player.html. Use the geo host directly.',
+             'Use': 'Form comparison only' } },
+  { id: 'tiktok', name: 'TikTok', status: 'ok', group: 'other',
+    allow: 'fullscreen', allowfullscreen: true,
+    modes: { podcast: { src: 'https://www.tiktok.com/embed/v2/6718335390845095173', h: 740,
+      caveat: 'Unrelated video. Included because short-form video is a real distribution surface.' } },
+    facts: { 'Content': 'Unrelated video', 'Sign-in': 'Not required to play',
+             'Watch out': 'Their oEmbed returns a blockquote plus a script, not an iframe. The iframe route is /embed/v2/{id}.',
+             'Use': 'Form comparison only' } },
+  { id: 'twitch', name: 'Twitch', status: 'caveat', group: 'other',
+    allowfullscreen: true, needsParent: true,
+    modes: { live: { src: 'https://player.twitch.tv/?channel=twitch&parent={host}', aspect: true,
+      caveat: 'Unrelated live channel, and this card only works on a real domain. Twitch reflects the parent parameter into frame-ancestors, so it is blank when the page is opened from a local file.' } },
+    facts: { 'Content': 'Unrelated live channel',
+             'Parent rule': 'parent= must name the exact hostname. On a deployed domain you get HTTPS only, no wildcard subdomains, no port. On localhost, parent=localhost grants any port and either scheme.',
+             'Why it is here': 'The only live video platform in the roster besides YouTube.',
+             'Use': 'Verify after deploy, never from a local file.' } },
+
+  /* ===================== CANNOT BE EMBEDDED ===================== */
+  { id: 'amazonmusic', name: 'Amazon Music', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options SAMEORIGIN',
+    detail: 'Confirmed twice, including with browser iframe request headers. There is no embed product and no workaround.' },
+  { id: 'youtubemusic', name: 'YouTube Music', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options SAMEORIGIN',
+    detail: 'music.youtube.com cannot be framed. Use the YouTube card, which serves the same audio.' },
+  { id: 'pocketcasts', name: 'Pocket Casts', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options SAMEORIGIN',
+    detail: 'The WordPress Pocket Casts block is oEmbed rendering its own custom player, not an iframe of pca.st. No embeddable player exists.' },
+  { id: 'radionet', name: 'Radio.net', status: 'blocked', group: 'blocked',
+    why: 'CSP frame-ancestors allows only its own CMS domains',
+    detail: 'frame-ancestors is limited to radio.net itself plus cms.radiodevtools.net. Every public host is excluded.' },
+  { id: 'live365', name: 'Live365', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options DENY',
+    detail: 'Broadcasters get widget code from their own dashboard. No public frameable URL exists.' },
+  { id: 'pandora', name: 'Pandora', status: 'blocked', group: 'blocked',
+    why: 'No public embed exists',
+    detail: 'Station pages send X-Frame-Options SAMEORIGIN and pandora.com/oembed/ returns 404. Confirmed dead end.' },
+  { id: 'siriusxm', name: 'SiriusXM', status: 'blocked', group: 'blocked',
+    why: 'Subscriber-login app, no embed product',
+    detail: 'player.siriusxm.com is frameable but has no anonymous playback and no embed player.' },
+  { id: 'globalplayer', name: 'Global Player', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options SAMEORIGIN',
+    detail: 'Capital, Heart, LBC and Classic FM all sit behind globalplayer.com, which refuses framing.' },
+  { id: 'audacy', name: 'Audacy', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options SAMEORIGIN for third parties',
+    detail: 'Audacy does ship an iframe embed, but only through Creator Lab for content you own. Live station pages refuse framing.' },
+  { id: 'bbcsounds', name: 'BBC Sounds', status: 'blocked', group: 'blocked',
+    why: 'No embed product, and UK geo-restricted',
+    detail: 'Live pages are technically frameable but serve the full Sounds app, and a US panel gets nothing.' },
+  { id: 'substack', name: 'Substack', status: 'blocked', group: 'blocked',
+    why: 'No outbound podcast embed exists',
+    detail: 'Substack podcasts cannot be embedded on external sites. Only the subscribe widget goes outward.' },
+  { id: 'streema', name: 'Streema', status: 'blocked', group: 'blocked',
+    why: 'No embed product',
+    detail: 'The only iframes on a Streema station page are analytics and a support form.' },
+  { id: 'radiogarden', name: 'Radio Garden', status: 'blocked', group: 'blocked',
+    why: 'No iframe player',
+    detail: 'radio.garden/embed/ returns 404. The visit URL is frameable but serves the whole globe app, not a widget. Their content API is public if you want to build your own audio element.' },
+  { id: 'radiofrance', name: 'Radio France', status: 'blocked', group: 'blocked',
+    why: 'Sends X-Frame-Options DENY',
+    detail: 'No public embed player.' }
+];
+
+/* ============================================================================
+   VIEWER
+   ==========================================================================*/
+
+const state = {
+  mode: 'podcast',
+  width: 900,
+  theme: 'light',
+  i: 0,
+  groups: new Set(['parity']),
+  order: PLAYERS.map((_, n) => n)   /* indices into PLAYERS, shuffleable */
+};
+
+/* The visible roster is the shuffled order filtered to the active groups, so
+   a real session is 7 cards and an internal review can be all of them. */
+function visible() {
+  return state.order.filter((pi) => state.groups.has(PLAYERS[pi].group));
+}
+
+const $ = (s) => document.querySelector(s);
+const card = $('#card');
+
+function current() { const v = visible(); return PLAYERS[v[state.i]]; }
+
+/* Resolve which mode entry a player actually shows, and whether it fell back. */
+function resolve(p, mode) {
+  if (p.status === 'blocked') return { blocked: true };
+  const wanted = p.modes[mode];
+  if (wanted) return { entry: wanted, fellBack: false };
+  const other = mode === 'live' ? 'podcast' : 'live';
+  const alt = p.modes[other];
+  if (alt) return { entry: alt, fellBack: true, from: mode, to: other };
+  return { blocked: true };
+}
+
+function srcFor(p, entry) {
+  return entry.src
+    .replace('{theme}', p.themed ? state.theme : 'dark')
+    .replace('{host}', location.hostname || 'localhost');
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function render() {
+  const p = current();
+  const r = resolve(p, state.mode);
+
+  card.style.maxWidth = state.width + 'px';
+
+  /* Unmounting the old iframe rather than hiding it is the only reliable way
+     to stop cross-origin audio. Two players talking at once ruins a session. */
+  card.innerHTML = '';
+
+  const head = document.createElement('div');
+  head.className = 'card-head';
+  const groupChip = p.group === 'other'
+    ? '<span class="chip sub">Different content</span>'
+    : (p.group === 'parity' ? '<span class="chip sub">Same content</span>' : '');
+  head.innerHTML =
+    '<h2>' + esc(p.name) + '</h2>' +
+    '<span class="chip ' + p.status + '">' + p.status + '</span>' +
+    groupChip;
+  card.appendChild(head);
+
+  if (r.blocked) {
+    const body = document.createElement('div');
+    body.className = 'blocked-body';
+    body.innerHTML =
+      '<p class="why">Cannot be embedded. ' + esc(p.why || '') + '</p>' +
+      '<p>' + esc(p.detail || '') + '</p>';
+    card.appendChild(body);
+  } else {
+    const entry = r.entry;
+
+    if (r.fellBack) {
+      const bar = document.createElement('div');
+      bar.className = 'fallback-bar';
+      bar.textContent = 'No live radio on this platform. Showing its podcast player instead.';
+      card.appendChild(bar);
+    }
+    if (entry.caveat) {
+      const bar = document.createElement('div');
+      bar.className = 'fallback-bar';
+      bar.textContent = entry.caveat;
+      card.appendChild(bar);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'frame-wrap' + (entry.aspect ? ' aspect' : '');
+    const f = document.createElement('iframe');
+    f.src = srcFor(p, entry);
+    f.title = p.name + ' embed player';
+    f.loading = 'eager';
+    f.setAttribute('frameborder', '0');
+    if (p.allow) f.setAttribute('allow', p.allow);
+    if (p.allowfullscreen) f.setAttribute('allowfullscreen', '');
+    if (p.sandbox) f.setAttribute('sandbox', p.sandbox);
+    if (p.scrolling) f.setAttribute('scrolling', p.scrolling);
+    if (!entry.aspect) f.height = entry.h;
+    wrap.appendChild(f);
+    card.appendChild(wrap);
+  }
+
+  /* Moderator notes, collapsed so the participant does not read the caveats
+     before forming an opinion. Skipped when there is nothing to show, so a
+     blocked card does not open onto an empty panel. */
+  const facts = p.facts || {};
+  const rows = Object.keys(facts).map((k) =>
+    '<dt>' + esc(k) + '</dt><dd>' + esc(facts[k]) + '</dd>').join('');
+  const srcLine = r.blocked ? '' :
+    '<dt>Embed URL</dt><dd><code>' + esc(srcFor(p, r.entry)) + '</code></dd>';
+  const groupLine = GROUPS[p.group]
+    ? '<dt>Scope group</dt><dd>' + esc(GROUPS[p.group].label + '. ' + GROUPS[p.group].note) + '</dd>'
+    : '';
+  if (rows || srcLine || groupLine) {
+    const notes = document.createElement('details');
+    notes.className = 'notes';
+    notes.innerHTML =
+      '<summary>Moderator notes</summary>' +
+      '<div class="notes-body"><dl>' + rows + srcLine + groupLine + '</dl></div>';
+    card.appendChild(notes);
+  }
+
+  /* chrome */
+  const n = visible().length;
+  $('#counter').textContent = (state.i + 1) + ' of ' + n;
+  $('#prev').disabled = state.i === 0;
+  $('#next').disabled = state.i >= n - 1;
+  $('#jump').value = String(state.i);
+  const contentLine = state.mode === 'live'
+    ? 'Live radio, ' + LIVE_LABEL
+    : 'Podcast, ' + PODCAST_LABEL;
+  const scopeLine = [...state.groups].map((g) => GROUPS[g].label).join(' + ');
+  $('#contentNote').innerHTML =
+    esc(contentLine) + '<br><span style="opacity:.75">Scope: ' + esc(scopeLine || 'nothing selected') + '</span>';
+  $('#modeDesc').textContent = state.mode === 'live' ? 'live radio' : 'podcast';
+}
+
+function buildJump() {
+  $('#jump').innerHTML = visible().map((pi, n) => {
+    const p = PLAYERS[pi];
+    const mark = p.status === 'blocked' ? ' · blocked' : (p.status === 'caveat' ? ' · caveat' : '');
+    return '<option value="' + n + '">' + esc(p.name) + mark + '</option>';
+  }).join('');
+}
+
+function go(n) {
+  state.i = Math.max(0, Math.min(visible().length - 1, n));
+  render();
+}
+
+function setPressed(container, attr, value) {
+  container.querySelectorAll('button').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset[attr] === String(value)));
+  });
+}
+
+/* ---- wiring ---- */
+$('#modeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.mode = b.dataset.mode;
+  setPressed($('#modeSeg'), 'mode', state.mode);
+  render();
+});
+$('#widthSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.width = Number(b.dataset.w);
+  setPressed($('#widthSeg'), 'w', state.width);
+  render();
+});
+$('#themeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.theme = b.dataset.theme;
+  document.documentElement.setAttribute('data-theme', state.theme);
+  setPressed($('#themeSeg'), 'theme', state.theme);
+  render();
+});
+$('#prev').addEventListener('click', () => go(state.i - 1));
+$('#next').addEventListener('click', () => go(state.i + 1));
+$('#jump').addEventListener('change', (e) => go(Number(e.target.value)));
+$('#shuffle').addEventListener('click', () => {
+  for (let i = state.order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
+  }
+  state.i = 0;
+  buildJump();
+  render();
+});
+
+/* Scope toggles are multi-select. Refusing to empty the last group avoids an
+   empty stage the moderator has to debug mid-session. */
+$('#groupSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const g = b.dataset.group;
+  if (state.groups.has(g)) {
+    if (state.groups.size === 1) return;
+    state.groups.delete(g);
+  } else {
+    state.groups.add(g);
+  }
+  b.setAttribute('aria-pressed', String(state.groups.has(g)));
+  state.i = 0;
+  buildJump();
+  render();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); go(state.i + 1); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); go(state.i - 1); }
+});
+
+document.documentElement.setAttribute('data-theme', state.theme);
+buildJump();
+render();
+</script>
+</body>
+</html>
