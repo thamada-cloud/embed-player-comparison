@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Embed Player Gallery</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ---------- gallery layout, this page only ---------- */
+main { background: var(--stage); padding: 20px 20px 80px; }
+.wrap { max-width: 1400px; margin: 0 auto; }
+
+.toc {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px; margin: 0 0 22px;
+  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline;
+}
+.toc b { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); }
+.toc a { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.toc a:hover { border-bottom-color: var(--text); }
+
+section { margin: 0 0 34px; }
+section > h2 {
+  font-size: 13px; margin: 0 0 4px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); max-width: 88ch; }
+
+/* One column is a plain centred stack. Multi-column uses CSS columns rather
+   than grid, because player heights vary enormously (TuneIn's program list is
+   350px, iHeart is 200px) and grid rows size to the tallest card, leaving big
+   dead gaps. Columns pack tightly instead. */
+.grid[data-cols="1"] { max-width: 760px; }
+.grid[data-cols="1"] > .card { margin: 0 0 18px; }
+.grid[data-cols="2"], .grid[data-cols="3"] { column-gap: 18px; }
+.grid[data-cols="2"] { column-count: 2; }
+.grid[data-cols="3"] { column-count: 3; }
+.grid[data-cols="2"] > .card, .grid[data-cols="3"] > .card {
+  break-inside: avoid; -webkit-column-break-inside: avoid;
+  margin: 0 0 18px; display: inline-block; width: 100%;
+}
+@media (max-width: 1080px) { .grid[data-cols="3"] { column-count: 2; } }
+@media (max-width: 760px)  { .grid[data-cols="2"], .grid[data-cols="3"] { column-count: 1; } }
+
+/* Placeholder reserves the frame's exact height so mounting causes no layout
+   shift. Scroll position jumping around while 36 frames load would make the
+   page unusable. */
+.pending { display: grid; place-items: center; background: var(--bg); }
+.pending span {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-dim);
+}
+.loaded-count { font-size: 11.5px; color: var(--text-dim); }
+.empty { padding: 60px 20px; text-align: center; color: var(--text-dim); font-size: 14px; }
+.pagelink { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.pagelink:hover { border-bottom-color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brandmark">Embed Player Gallery <span id="modeDesc"></span></div>
+
+  <div class="ctrl">
+    <label>Scope</label>
+    <div class="chips" id="groupSeg">
+      <button data-group="parity" aria-pressed="true"><span class="tick">✓</span>Core <span class="n"></span></button>
+      <button data-group="hosts" aria-pressed="false"><span class="tick">✓</span>Hosts <span class="n"></span></button>
+      <button data-group="other" aria-pressed="false"><span class="tick">✓</span>Other <span class="n"></span></button>
+      <button data-group="infra" aria-pressed="false"><span class="tick">✓</span>Infra <span class="n"></span></button>
+      <button data-group="blocked" aria-pressed="false"><span class="tick">✓</span>Blocked <span class="n"></span></button>
+      <button id="allBtn" title="Turn on every group">All</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Content</label>
+    <div class="seg" id="modeSeg">
+      <button data-mode="live" aria-pressed="false">Live Radio</button>
+      <button data-mode="podcast" aria-pressed="true">Podcast</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Columns</label>
+    <div class="seg" id="colSeg">
+      <button data-cols="1" aria-pressed="true">1</button>
+      <button data-cols="2" aria-pressed="false">2</button>
+      <button data-cols="3" aria-pressed="false">3</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <label>Theme</label>
+    <div class="seg" id="themeSeg">
+      <button data-theme="light" aria-pressed="true">Light</button>
+      <button data-theme="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button class="btn" id="silence" title="Unmount every frame, which is the only reliable way to stop cross-origin audio">Silence all</button>
+    <span class="loaded-count" id="loaded"></span>
+  </div>
+
+  <div class="ctrl">
+    <a class="pagelink" href="index.html">One at a time &rarr;</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="toc" id="toc"></div>
+    <div id="sections"></div>
+  </div>
+</main>
+
+<script src="players.js"></script>
+<script>
+/* ============================================================================
+   GALLERY
+
+   All players stacked on one scrolling page. The registry and every shared
+   helper come from players.js, so this page and index.html cannot disagree
+   about how a given player is embedded.
+
+   The one real engineering problem here is weight. With every group on, this is
+   36 live player frames, several of them full single-page apps (iHeart, TuneIn,
+   Castbox, TikTok). Mounting them all at load would be brutal, so frames mount
+   lazily as they approach the viewport and each card reserves its exact height
+   up front so nothing shifts under the scroll.
+   ==========================================================================*/
+
+const ORDER = ['parity', 'hosts', 'other', 'infra', 'blocked'];
+
+const state = {
+  mode: 'podcast',
+  theme: 'light',
+  cols: 1,
+  groups: new Set(['parity'])
+};
+
+const $ = (s) => document.querySelector(s);
+let observer = null;
+
+function visiblePlayers() {
+  return PLAYERS.filter((p) => state.groups.has(p.group));
+}
+
+/* Exact height a frame will occupy, so the placeholder reserves it and mounting
+   causes no layout shift. Aspect frames are 16:9 of their measured column. */
+function reservedHeight(entry, colWidth) {
+  return entry.aspect ? Math.round(colWidth * 9 / 16) : entry.h;
+}
+
+function cardFor(p) {
+  const r = resolveEntry(p, state.mode);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.id = 'p-' + p.id;
+
+  const head = document.createElement('div');
+  head.className = 'card-head';
+  const groupChip = p.group === 'parity'
+    ? '<span class="chip sub">Same content</span>'
+    : (p.group === 'blocked' ? '' : '<span class="chip sub">Different content</span>');
+  head.innerHTML = '<h2>' + escHtml(p.name) + '</h2>' +
+    '<span class="chip ' + p.status + '">' + p.status + '</span>' + groupChip;
+  card.appendChild(head);
+
+  if (r.blocked) {
+    const body = document.createElement('div');
+    body.className = 'blocked-body';
+    body.innerHTML = '<p class="why">Cannot be embedded. ' + escHtml(p.why || '') + '</p>' +
+                     '<p>' + escHtml(p.detail || '') + '</p>';
+    card.appendChild(body);
+  } else {
+    if (r.fellBack) {
+      const bar = document.createElement('div');
+      bar.className = 'fallback-bar';
+      bar.textContent = fallbackText(r.to);
+      card.appendChild(bar);
+    }
+    if (r.entry.caveat) {
+      const bar = document.createElement('div');
+      bar.className = 'fallback-bar';
+      bar.textContent = r.entry.caveat;
+      card.appendChild(bar);
+    }
+
+    /* Placeholder now, real iframe when it nears the viewport. */
+    const wrap = document.createElement('div');
+    wrap.className = 'frame-wrap' + (r.entry.aspect ? ' aspect' : '');
+    const hold = document.createElement('div');
+    hold.className = 'pending';
+    hold.innerHTML = '<span>' + escHtml(p.name) + '</span>';
+    wrap.appendChild(hold);
+    card.appendChild(wrap);
+
+    wrap.dataset.playerId = p.id;
+    if (observer) observer.observe(wrap);
+  }
+
+  const facts = p.facts || {};
+  const rows = Object.keys(facts).map((k) =>
+    '<dt>' + escHtml(k) + '</dt><dd>' + escHtml(facts[k]) + '</dd>').join('');
+  const srcLine = r.blocked ? ''
+    : '<dt>Embed URL</dt><dd><code>' + escHtml(buildSrc(p, r.entry, state.theme)) + '</code></dd>';
+  if (rows || srcLine) {
+    const notes = document.createElement('details');
+    notes.className = 'notes';
+    notes.innerHTML = '<summary>Moderator notes</summary>' +
+      '<div class="notes-body"><dl>' + rows + srcLine + '</dl></div>';
+    card.appendChild(notes);
+  }
+  return card;
+}
+
+/* Swap a placeholder for the real frame. Height is already reserved, so this is
+   visually a straight substitution. */
+function mount(wrap) {
+  if (wrap.dataset.mounted === '1') return;
+  const p = PLAYERS.find((x) => x.id === wrap.dataset.playerId);
+  const r = resolveEntry(p, state.mode);
+  if (!p || r.blocked) return;
+  wrap.dataset.mounted = '1';
+  const f = applyFrameAttrs(document.createElement('iframe'), p, r.entry, state.theme);
+  f.loading = 'eager';
+  wrap.innerHTML = '';
+  wrap.appendChild(f);
+  updateLoaded();
+}
+
+function updateLoaded() {
+  const n = document.querySelectorAll('.frame-wrap[data-mounted="1"]').length;
+  const total = visiblePlayers().filter((p) => !resolveEntry(p, state.mode).blocked).length;
+  $('#loaded').textContent = n + ' of ' + total + ' loaded';
+}
+
+function build() {
+  /* A fresh observer each build, so stale placeholders are never watched. */
+  if (observer) observer.disconnect();
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) { mount(e.target); observer.unobserve(e.target); }
+    });
+  }, { rootMargin: '800px 0px' });   /* mount well before it is on screen */
+
+  const host = $('#sections');
+  host.innerHTML = '';
+  const shown = visiblePlayers();
+
+  if (!shown.length) {
+    host.innerHTML = '<p class="empty">No groups selected.</p>';
+    $('#toc').innerHTML = '';
+    return;
+  }
+
+  /* Measure a column once so aspect placeholders reserve the right height. */
+  const probe = document.createElement('div');
+  probe.className = 'grid';
+  probe.dataset.cols = state.cols;
+  probe.innerHTML = '<div></div>';
+  host.appendChild(probe);
+  const colWidth = probe.firstChild.getBoundingClientRect().width || 720;
+  host.removeChild(probe);
+
+  const toc = [];
+  ORDER.forEach((g) => {
+    const items = shown.filter((p) => p.group === g);
+    if (!items.length) return;
+
+    const sec = document.createElement('section');
+    sec.id = 'g-' + g;
+    sec.innerHTML = '<h2>' + escHtml(GROUPS[g].label) + ' &middot; ' + items.length + '</h2>' +
+                    '<p class="note">' + escHtml(GROUPS[g].note) + '</p>';
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.dataset.cols = state.cols;
+
+    items.forEach((p) => {
+      const c = cardFor(p);
+      const wrap = c.querySelector('.frame-wrap');
+      if (wrap) {
+        const r = resolveEntry(p, state.mode);
+        wrap.style.minHeight = reservedHeight(r.entry, colWidth) + 'px';
+      }
+      grid.appendChild(c);
+    });
+
+    sec.appendChild(grid);
+    host.appendChild(sec);
+    toc.push('<a href="#g-' + g + '">' + escHtml(GROUPS[g].label) + ' (' + items.length + ')</a>');
+  });
+
+  $('#toc').innerHTML = '<b>Jump to</b>' + toc.join('');
+  $('#modeDesc').textContent = state.mode === 'live'
+    ? 'live radio, ' + LIVE_LABEL
+    : 'podcast, ' + PODCAST_LABEL;
+  updateLoaded();
+}
+
+/* ---- wiring ---- */
+$('#modeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.mode = b.dataset.mode;
+  $('#modeSeg').querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-pressed', String(x.dataset.mode === state.mode)));
+  build();
+});
+
+$('#colSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.cols = Number(b.dataset.cols);
+  $('#colSeg').querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-pressed', String(Number(x.dataset.cols) === state.cols)));
+  build();
+});
+
+$('#themeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.theme = b.dataset.theme;
+  document.documentElement.setAttribute('data-theme', state.theme);
+  $('#themeSeg').querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-pressed', String(x.dataset.theme === state.theme)));
+  build();
+});
+
+$('#groupSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-group]'); if (!b) return;
+  const g = b.dataset.group;
+  if (state.groups.has(g)) {
+    if (state.groups.size === 1) return;   /* never leave an empty page */
+    state.groups.delete(g);
+  } else {
+    state.groups.add(g);
+  }
+  b.setAttribute('aria-pressed', String(state.groups.has(g)));
+  build();
+});
+
+$('#allBtn').addEventListener('click', () => {
+  Object.keys(GROUPS).forEach((g) => state.groups.add(g));
+  $('#groupSeg').querySelectorAll('button[data-group]').forEach((b) =>
+    b.setAttribute('aria-pressed', 'true'));
+  build();
+});
+
+/* Rebuilding destroys every iframe, which is the only reliable way to stop
+   audio in a cross-origin frame. Frames then re-mount as they come back into
+   view, so the page is not left empty. */
+$('#silence').addEventListener('click', () => {
+  const y = window.scrollY;
+  build();
+  window.scrollTo(0, y);
+});
+
+(function stampCounts() {
+  const t = groupCounts();
+  $('#groupSeg').querySelectorAll('button[data-group]').forEach((b) => {
+    b.querySelector('.n').textContent = t[b.dataset.group] || 0;
+  });
+  $('#allBtn').textContent = 'All ' + PLAYERS.length;
+})();
+
+document.documentElement.setAttribute('data-theme', state.theme);
+build();
+</script>
+</body>
+</html>
