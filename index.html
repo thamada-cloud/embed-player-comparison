@@ -142,14 +142,9 @@ function render() {
     const entry = r.entry;
 
     if (r.fellBack) {
-      /* Word this by the direction of the fallback. Live-only players such as
-         Zeno.fm, Apple Music and Twitch fall back the other way, and telling a
-         moderator the opposite of the truth mid-session is worse than silence. */
       const bar = document.createElement('div');
       bar.className = 'fallback-bar';
-      bar.textContent = r.to === 'podcast'
-        ? 'No live radio on this platform. Showing its podcast player instead.'
-        : 'No podcast on this platform. Showing its live radio player instead.';
+      bar.textContent = fallbackText(r.to);   /* worded by direction, see players.js */
       card.appendChild(bar);
     }
     if (entry.caveat) {

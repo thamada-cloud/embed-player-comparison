@@ -42,16 +42,19 @@ echoes one contender's brand colour biases the comparison.
 
 ## The gallery page
 
-Every player, always. There is no filter to discover or configure: open it and
-scroll. Sections and the jump-to nav are for navigation, not filtering.
+Every player, always. No filter to discover or configure: open it and scroll.
 
-The section headings stay because they are not a filter. They carry the one thing
-needed to read a card correctly, whether it shows the same content as the others
-or something different. A Megaphone card playing a different show means something
-very different from an iHeart card playing the target episode, and without the
-heading that distinction is invisible.
+**A card is a service name and the player. Nothing else.** No status chips, no
+caveat bars, no notes. Everything that explains a player lives on `index.html`,
+which is the page for reading a player rather than looking at it. Blocked entries
+are the one exception, since with no embed to show, the one-line reason is all the
+card can carry.
+
+Section headings and the jump-to nav are navigation, not filtering.
 
 - **Content and theme** work the same as the other page.
+- **No per-card chrome.** If you need to know why a card shows different content,
+  or what its caveats are, open the same player on `index.html`.
 - **Columns** switches between 1, 2 and 3. One column is a centred stack.
   Multi-column uses CSS columns rather than grid, because player heights range
   from 100px to 740px and grid rows size to the tallest card, leaving large dead
@@ -62,6 +65,11 @@ heading that distinction is invisible.
   frames re-mount as they come back into view.
 - **The loaded count** shows how many frames are live, so it is clear why the page
   gets heavy as you scroll.
+
+The frame outline is a `box-shadow` ring, not a `border`. This matters: a 1px
+border adds 2px outside the reserved min-height, so every frame grew 2px on mount
+and the page crept downward by 2px per card, reaching 51px of drift by the bottom.
+A ring paints identically at zero layout cost.
 
 Frames mount lazily. This page is 36 live player frames,
 several of them full single-page apps, so mounting them all at load would be

@@ -43,6 +43,26 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
 @media (max-width: 1080px) { .grid[data-cols="3"] { column-count: 2; } }
 @media (max-width: 760px)  { .grid[data-cols="2"], .grid[data-cols="3"] { column-count: 1; } }
 
+/* Card is a label plus the player, so it needs no internal borders. */
+.card { border: 0; box-shadow: none; background: transparent; overflow: visible; }
+.service {
+  font-size: 12px; font-weight: 700; letter-spacing: .02em;
+  color: var(--text); margin: 0 0 6px;
+}
+/* A box-shadow ring, NOT a border. A 1px border adds 2px outside the reserved
+   min-height, so every frame grew 2px on mount and the page crept downward by
+   2px per card, up to 51px by the bottom. A ring paints identically and costs
+   zero layout. */
+.frame-wrap {
+  box-shadow: 0 0 0 1px var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.blocked-body {
+  border: 1px dashed var(--border); border-radius: var(--radius);
+  padding: 14px 16px; font-size: 12.5px; color: var(--text-dim);
+  background: transparent; text-align: left;
+}
+
 /* Placeholder reserves the frame's exact height so mounting causes no layout
    shift. Scroll position jumping around while 36 frames load would make the
    page unusable. */
@@ -59,7 +79,7 @@ section > p.note { margin: 0 0 14px; font-size: 12.5px; color: var(--text-dim); 
 <body>
 
 <header>
-  <div class="brandmark">Embed Player Gallery <span id="modeDesc"></span></div>
+  <div class="brandmark">Embed Player Gallery</div>
 
   <div class="ctrl">
     <label>Content</label>
@@ -140,6 +160,9 @@ function reservedHeight(entry, colWidth) {
   return entry.aspect ? Math.round(colWidth * 9 / 16) : entry.h;
 }
 
+/* One card is a service name and the player. Nothing else: no status chips, no
+   caveat bars, no notes. Those all live on index.html, which is the page for
+   reading a player rather than looking at it. */
 function cardFor(p) {
   const r = resolveEntry(p, state.mode);
 
@@ -147,36 +170,19 @@ function cardFor(p) {
   card.className = 'card';
   card.id = 'p-' + p.id;
 
-  const head = document.createElement('div');
-  head.className = 'card-head';
-  const groupChip = p.group === 'parity'
-    ? '<span class="chip sub">Same content</span>'
-    : (p.group === 'blocked' ? '' : '<span class="chip sub">Different content</span>');
-  head.innerHTML = '<h2>' + escHtml(p.name) + '</h2>' +
-    '<span class="chip ' + p.status + '">' + p.status + '</span>' + groupChip;
-  card.appendChild(head);
+  const label = document.createElement('div');
+  label.className = 'service';
+  label.textContent = p.name;
+  card.appendChild(label);
 
   if (r.blocked) {
+    /* No embed exists, so the reason is the only content this card can carry.
+       Kept to one line. */
     const body = document.createElement('div');
     body.className = 'blocked-body';
-    body.innerHTML = '<p class="why">Cannot be embedded. ' + escHtml(p.why || '') + '</p>' +
-                     '<p>' + escHtml(p.detail || '') + '</p>';
+    body.textContent = 'Cannot be embedded. ' + (p.why || '');
     card.appendChild(body);
   } else {
-    if (r.fellBack) {
-      const bar = document.createElement('div');
-      bar.className = 'fallback-bar';
-      bar.textContent = fallbackText(r.to);
-      card.appendChild(bar);
-    }
-    if (r.entry.caveat) {
-      const bar = document.createElement('div');
-      bar.className = 'fallback-bar';
-      bar.textContent = r.entry.caveat;
-      card.appendChild(bar);
-    }
-
-    /* Placeholder now, real iframe when it nears the viewport. */
     const wrap = document.createElement('div');
     wrap.className = 'frame-wrap' + (r.entry.aspect ? ' aspect' : '');
     const hold = document.createElement('div');
@@ -187,19 +193,6 @@ function cardFor(p) {
 
     wrap.dataset.playerId = p.id;
     if (observer) observer.observe(wrap);
-  }
-
-  const facts = p.facts || {};
-  const rows = Object.keys(facts).map((k) =>
-    '<dt>' + escHtml(k) + '</dt><dd>' + escHtml(facts[k]) + '</dd>').join('');
-  const srcLine = r.blocked ? ''
-    : '<dt>Embed URL</dt><dd><code>' + escHtml(buildSrc(p, r.entry, state.theme)) + '</code></dd>';
-  if (rows || srcLine) {
-    const notes = document.createElement('details');
-    notes.className = 'notes';
-    notes.innerHTML = '<summary>Moderator notes</summary>' +
-      '<div class="notes-body"><dl>' + rows + srcLine + '</dl></div>';
-    card.appendChild(notes);
   }
   return card;
 }
@@ -275,9 +268,6 @@ function build() {
   });
 
   $('#toc').innerHTML = '<b>Jump to</b>' + toc.join('');
-  $('#modeDesc').textContent = 'all ' + PLAYERS.length + ' players, ' +
-    (state.mode === 'live' ? 'live radio, ' + LIVE_LABEL
-                           : 'podcast, ' + PODCAST_LABEL);
   updateLoaded();
 }
 
