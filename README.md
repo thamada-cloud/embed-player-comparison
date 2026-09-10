@@ -192,6 +192,23 @@ gain sound. Every other player sits idle until clicked.
 governs playing *without* a user gesture, and none of them do. A click inside a
 frame is a gesture, so click-to-play does not need it.
 
+## Deploying
+
+**Use `./deploy.sh "commit message"`.** It stamps a fresh version onto every asset
+reference, commits, pushes, then waits and confirms Pages is actually serving that
+version.
+
+The stamp is the point. Nearly all the content lives in `players.js` and
+`measurements.js`, and GitHub Pages serves them with `cache-control: max-age=600`.
+A browser will therefore use its cached copy for **up to ten minutes without
+asking the server**, so a reload looks like it did nothing: the HTML is fresh but
+the data behind it is not. This bit us once, with a YouTube content swap that was
+correctly deployed and invisible in the browser.
+
+Versioning each reference makes every deploy a new URL, so there is nothing stale
+to serve and no hard-reload ritual. `deploy.sh` bumps it automatically so it cannot
+be forgotten. Do not hand-edit the `?v=` values.
+
 ## Ordering
 
 **Page order is registry order.** Both pages render `PLAYERS` top to bottom exactly
