@@ -71,13 +71,14 @@ const PLAYERS = [
     modes: {
       live:    { src: 'https://www.youtube.com/embed/live_stream?channel=UCF-VP3b3oH0XASqsLI5rnLw', aspect: true,
                  caveat: 'Times Radio, a real broadcast station simulcasting 24/7. No iHeart station simulcasts live on YouTube, so this stands in for the format.' },
-      podcast: { src: 'https://www.youtube.com/embed/IXbs4Gv_BuY', aspect: true,
-                 caveat: 'A different episode of the same show. The target episode is not on the YouTube channel, which runs behind the audio feed.' }
+      podcast: { src: 'https://www.youtube.com/embed/p7sNqWWk1No', aspect: true,
+                 caveat: 'Different content: a 2m46s KFI AM 640 clip, not the target episode. Still iHeart content, unlike the earlier stand-in.' }
     },
     facts: {
-      'Content': 'Same show, different episode. Live card is a real radio simulcast from another broadcaster.',
+      'Content': 'Podcast card is a KFI AM 640 clip, "Gary Hoffmann Slams MLB\'s Netflix Debut", 2m46s. KFI is an iHeart station, so this is real iHeart content rather than a third-party stand-in, but it is a short clip and not the episode the other players are playing. Live card is a real radio simulcast from another broadcaster.',
       'Sign-in': 'Not required to play',
       'Format': 'The only genuinely video entry, which is its main point of difference. Do not read that as a flaw.',
+      'Length': 'At 2m46s this is far shorter than the 47 minute episode elsewhere, so do not compare progress bars or timecodes against the other cards.',
       'Live behavior': 'The channel-based embed auto-follows whatever that channel is streaming, so it does not go stale. It shows an offline placeholder if the channel stops.',
       'Fallback': 'If Times Radio is dark, swap channel UCWw6scNyopJ0yjMu1SyOEyw (talkSPORT).'
     }

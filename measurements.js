@@ -2,7 +2,7 @@
    Measured offline with Playwright, which can read inside cross-origin
    frames. A published page cannot, which is why this data is baked. */
 const MEASUREMENTS = {
- "measuredAt": "2026-09-04",
+ "measuredAt": "2026-09-10",
  "frameWidth": 640,
  "narrowWidth": 375,
  "players": {
@@ -302,8 +302,8 @@ const MEASUREMENTS = {
      "controlCount": 7,
      "outboundLinks": 2,
      "platformPush": true,
-     "textLen": 110,
-     "textSample": "Save the Whales! | STUFF YOU SHOULD KNOW Stuff You Should Know Stuff You Should Know 228K subscribers Watch on",
+     "textLen": 88,
+     "textSample": "Gary Hoffmann Slams MLB's Netflix Debut KFI AM 640 KFI AM 640 9.17K subscribers Watch on",
      "settleSeconds": 4.3
     },
     "dark": {
@@ -340,8 +340,8 @@ const MEASUREMENTS = {
      "controlCount": 7,
      "outboundLinks": 2,
      "platformPush": true,
-     "textLen": 110,
-     "textSample": "Save the Whales! | STUFF YOU SHOULD KNOW Stuff You Should Know Stuff You Should Know 228K subscribers Watch on",
+     "textLen": 88,
+     "textSample": "Gary Hoffmann Slams MLB's Netflix Debut KFI AM 640 KFI AM 640 9.17K subscribers Watch on",
      "settleSeconds": 4.3
     }
    },
@@ -356,12 +356,12 @@ const MEASUREMENTS = {
     "clientH": 360
    },
    "pixels": {
-    "light": 81.3,
-    "dark": 81.3
+    "light": 51.1,
+    "dark": 51.1
    },
    "themeResponds": false,
-   "lightLuma": 81.3,
-   "darkLuma": 81.3,
+   "lightLuma": 51.1,
+   "darkLuma": 51.1,
    "measured": true
   },
   "applepodcasts": {

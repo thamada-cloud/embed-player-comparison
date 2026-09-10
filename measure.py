@@ -10,8 +10,8 @@ one. Playwright can, because it drives the browser rather than living in the
 page. So the numbers are measured here, once, and baked into a data file that
 analysis.html renders. Re-run this to refresh them.
 
-    python3 measure.py            # all players
-    python3 measure.py spotify iheart   # just these ids
+    python3 measure.py                  # all players, replaces the file
+    python3 measure.py spotify iheart   # just these, MERGED into the file
 
 Each player is measured alone in a fresh page, so the network figures belong to
 that player and nothing else. Every dimension is measured twice, under
@@ -446,6 +446,30 @@ def main():
         br.close()
 
     out = ROOT / 'measurements.js'
+
+    # Partial runs MERGE into the existing file rather than replacing it, so
+    # re-measuring one player after a content swap does not wipe the other 28.
+    # A full run still replaces everything, and any player no longer in the
+    # registry is dropped so removals cannot linger as stale rows.
+    if only and out.exists():
+        prev = out.read_text()
+        try:
+            old_payload = json.loads(prev[prev.index('{'):prev.rindex(';')])
+            merged = dict(old_payload.get('players') or {})
+            merged.update(results)
+            live_ids = {p['id'] for p in json.loads((ROOT / '.players.json').read_text())}
+            dropped = [k for k in merged if k not in live_ids]
+            for k in dropped:
+                del merged[k]
+            if dropped:
+                print(f"  dropped {len(dropped)} player(s) no longer in the registry: "
+                      f"{', '.join(dropped)}")
+            print(f"  merged {len(results)} re-measured into {len(merged)} total")
+            results = merged
+        except Exception as e:
+            print(f"  could not merge into the existing file ({e}); writing only "
+                  f"the {len(results)} measured here")
+
     payload = {'measuredAt': time.strftime('%Y-%m-%d'), 'frameWidth': FRAME_W,
                'narrowWidth': NARROW_W, 'players': results}
     out.write_text(

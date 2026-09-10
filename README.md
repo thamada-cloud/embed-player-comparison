@@ -253,8 +253,11 @@ mounts an `audio` element, never by status code.
 - **Tidal needs a subscription and a signed-in browser.** Keep it out of any
   listening-preference question: a signed-out participant measures the paywall,
   not the player.
-- **YouTube shows a different episode.** The channel runs behind the audio feed and
-  does not have the target episode. Its live card is Times Radio, a real broadcast
+- **YouTube shows different content, deliberately.** Its podcast card is a KFI AM
+  640 clip, "Gary Hoffmann Slams MLB's Netflix Debut", 2m46s. KFI is an iHeart
+  station, so this is real iHeart content rather than a third-party stand-in, but
+  at 2m46s against a 47 minute episode elsewhere, do not compare its progress bar
+  or timecodes with the other cards. Its live card is Times Radio, a real broadcast
   station simulcasting 24/7, because no iHeart station simulcasts live on YouTube.
 - **Twitch only works on a real domain.** It reflects `parent=` into
   frame-ancestors, so the card is blank when the page is opened from a local file.
@@ -326,9 +329,14 @@ So the numbers are measured offline and written to `measurements.js`.
 ```bash
 node export-players.js          # players.js -> .players.json
 python3 -m http.server 8899     # measure.py needs the host page served
-python3 measure.py              # all players, roughly 25 minutes
-python3 measure.py spotify      # or just one, for iterating
+python3 measure.py              # all players, roughly 25 minutes, replaces the file
+python3 measure.py youtube      # just one, MERGED into the file, under a minute
 ```
+
+**Partial runs merge.** Naming ids re-measures only those and folds them into the
+existing data, so swapping one player's content no longer costs a full run. A full
+run still replaces everything, and either way any player no longer in the registry
+is dropped, so removals cannot linger as stale rows.
 
 Serve on **localhost**, not `127.0.0.1`. Twitch reflects `parent=` into
 `frame-ancestors` and special-cases `localhost` for any port; on a mismatched host
