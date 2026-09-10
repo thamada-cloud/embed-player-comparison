@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Embed Player Gallery</title>
-<link rel="stylesheet" href="shared.css?v=20260910203410">
+<link rel="stylesheet" href="shared.css?v=20260910211048">
 <style>
 /* ---------- gallery layout, this page only ---------- */
 main { background: var(--stage); padding: 20px 20px 80px; }
@@ -80,6 +80,14 @@ section { margin: 0; }
   </div>
 
   <div class="ctrl">
+    <label>Show</label>
+    <div class="seg" id="showSeg">
+      <button data-show="sysk" aria-pressed="true">Stuff You Should Know</button>
+      <button data-show="cj" aria-pressed="false">Crime Junkie</button>
+    </div>
+  </div>
+
+  <div class="ctrl">
     <label>Columns</label>
     <div class="seg" id="colSeg">
       <button data-cols="1" aria-pressed="true">1</button>
@@ -116,7 +124,7 @@ section { margin: 0; }
   </div>
 </main>
 
-<script src="players.js?v=20260910203410"></script>
+<script src="players.js?v=20260910211048"></script>
 <script>
 /* ============================================================================
    GALLERY
@@ -136,10 +144,16 @@ section { margin: 0; }
    ==========================================================================*/
 
 const state = {
-  mode: 'podcast',
+  mode: 'podcast',   /* 'live' or 'podcast' */
+  show: 'sysk',      /* which podcast, when mode is 'podcast' */
   theme: 'light',
   cols: 1
 };
+
+/* The mode key actually handed to the registry. Live ignores the show picker. */
+function effectiveMode() {
+  return state.mode === 'live' ? 'live' : SHOWS[state.show].mode;
+}
 
 const $ = (s) => document.querySelector(s);
 let observer = null;
@@ -154,7 +168,7 @@ function reservedHeight(entry, colWidth) {
    caveat bars, no notes. Those all live on index.html, which is the page for
    reading a player rather than looking at it. */
 function cardFor(p) {
-  const r = resolveEntry(p, state.mode);
+  const r = resolveEntry(p, effectiveMode());
 
   const card = document.createElement('div');
   card.className = 'card';
@@ -192,7 +206,7 @@ function cardFor(p) {
 function mount(wrap) {
   if (wrap.dataset.mounted === '1') return;
   const p = PLAYERS.find((x) => x.id === wrap.dataset.playerId);
-  const r = resolveEntry(p, state.mode);
+  const r = resolveEntry(p, effectiveMode());
   if (!p || r.blocked) return;
   wrap.dataset.mounted = '1';
   const f = applyFrameAttrs(document.createElement('iframe'), p, r.entry, state.theme);
@@ -204,7 +218,7 @@ function mount(wrap) {
 
 function updateLoaded() {
   const n = document.querySelectorAll('.frame-wrap[data-mounted="1"]').length;
-  const total = PLAYERS.filter((p) => !resolveEntry(p, state.mode).blocked).length;
+  const total = PLAYERS.filter((p) => !resolveEntry(p, effectiveMode()).blocked).length;
   $('#loaded').textContent = n + ' of ' + total + ' loaded';
 }
 
@@ -242,7 +256,7 @@ function build() {
     const c = cardFor(p);
     const wrap = c.querySelector('.frame-wrap');
     if (wrap) {
-      const r = resolveEntry(p, state.mode);
+      const r = resolveEntry(p, effectiveMode());
       wrap.style.minHeight = reservedHeight(r.entry, colWidth) + 'px';
     }
     grid.appendChild(c);
@@ -260,6 +274,14 @@ $('#modeSeg').addEventListener('click', (e) => {
   state.mode = b.dataset.mode;
   $('#modeSeg').querySelectorAll('button').forEach((x) =>
     x.setAttribute('aria-pressed', String(x.dataset.mode === state.mode)));
+  build();
+});
+
+$('#showSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.show = b.dataset.show;
+  $('#showSeg').querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-pressed', String(x.dataset.show === state.show)));
   build();
 });
 

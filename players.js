@@ -21,8 +21,26 @@
    group   key into GROUPS. Drives the scope filter on both pages.
    ==========================================================================*/
 
-const PODCAST_LABEL = 'Stuff You Should Know, the episode "Social Identity Theory: Your Group Rules, Others Drool"';
-const LIVE_LABEL    = 'Z100 New York (WHTZ-FM)';
+const LIVE_LABEL = 'Z100 New York (WHTZ-FM)';
+
+/* Two podcasts, switchable. Each maps to its own mode key in a player's `modes`,
+   so a player can carry one, both, or neither, and the fallback chain below
+   handles the gaps honestly instead of showing the wrong show silently. */
+const SHOWS = {
+  sysk: { label: 'Stuff You Should Know', mode: 'podcast',
+          episode: 'Social Identity Theory: Your Group Rules, Others Drool' },
+  cj:   { label: 'Crime Junkie',          mode: 'podcastCJ',
+          episode: 'UPDATE: The Sodder Children' }
+};
+const SHOW_BY_MODE = { podcast: 'sysk', podcastCJ: 'cj' };
+
+function showLabel(mode) {
+  const k = SHOW_BY_MODE[mode];
+  return k ? SHOWS[k].label + ', the episode "' + SHOWS[k].episode + '"' : LIVE_LABEL;
+}
+
+/* Kept for anything still importing the old constant. */
+const PODCAST_LABEL = showLabel('podcast');
 
 /* Group metadata. `parity` is the only group on by default, which keeps a real
    session to 7 cards. The others are for internal review. */
@@ -41,10 +59,11 @@ const PLAYERS = [
     allow: 'autoplay',
     modes: {
       live:    { src: 'https://www.iheart.com/live/z100-1469/?embed=true', h: 200 },
-      podcast: { src: 'https://www.iheart.com/podcast/105-stuff-you-should-know-26940277/episode/social-identity-theory-your-group-343040435/?embed=true', h: 200 }
+      podcast: { src: 'https://www.iheart.com/podcast/105-stuff-you-should-know-26940277/episode/social-identity-theory-your-group-343040435/?embed=true', h: 200 },
+      podcastCJ: { src: 'https://www.iheart.com/podcast/crime-junkie-29319113/episode/update-the-sodder-children-343319869/?embed=true', h: 200 }
     },
     facts: {
-      'Content': 'Z100 live, and the exact target episode',
+      'Content': 'Z100 live, plus the exact target episode of both shows',
       'Sign-in': 'Not required to play',
       'Discovery': 'Public oEmbed at iheart.com/oembed/?url=...&format=json returns the canonical iframe, height and allow attributes',
       'Watch out': 'The URL slug is cosmetic. The trailing numeric ID resolves the content, so a wrong slug silently returns a different episode. Source IDs from us.api.iheart.com.'
@@ -55,10 +74,11 @@ const PLAYERS = [
     allow: 'autoplay', scrolling: 'no',
     modes: {
       live:    { src: 'https://tunein.com/embed/player/s340698/', h: 100 },
-      podcast: { src: 'https://tunein.com/embed/player/p295446/', h: 350, scrolling: 'auto' }
+      podcast: { src: 'https://tunein.com/embed/player/p295446/', h: 350, scrolling: 'auto' },
+      podcastCJ: { src: 'https://tunein.com/embed/player/p1086263/', h: 350, scrolling: 'auto' }
     },
     facts: {
-      'Content': 'Z100 live (station s340698) and the Stuff You Should Know program (p295446)',
+      'Content': 'Z100 live (station s340698), plus the Stuff You Should Know (p295446) and Crime Junkie (p1086263) programmes',
       'Sign-in': 'Not required to play',
       'Height': 'Station player is a fixed 100px and must not scroll. The programme player is a 350px window onto a 1352px episode list, so it scrolls internally.',
       'Watch out': 'Two decoys share the Z100 name, s343865 and s26824. Both are different stations.'
@@ -72,7 +92,9 @@ const PLAYERS = [
       live:    { src: 'https://www.youtube.com/embed/live_stream?channel=UCF-VP3b3oH0XASqsLI5rnLw', aspect: true,
                  caveat: 'Times Radio, a real broadcast station simulcasting 24/7. No iHeart station simulcasts live on YouTube, so this stands in for the format.' },
       podcast: { src: 'https://www.youtube.com/embed/p7sNqWWk1No', aspect: true,
-                 caveat: 'Different content: a 2m46s KFI AM 640 clip, not the target episode. Still iHeart content, unlike the earlier stand-in.' }
+                 caveat: 'Different content: a 2m46s KFI AM 640 clip, not the target episode. Still iHeart content, unlike the earlier stand-in.' },
+      podcastCJ: { src: 'https://www.youtube.com/embed/q9Uv9QkDlCU', aspect: true,
+                   caveat: 'A different Crime Junkie episode, 56m, from their own channel. The target episode is not posted there.' }
     },
     facts: {
       'Content': 'Podcast card is a KFI AM 640 clip, "Gary Hoffmann Slams MLB\'s Netflix Debut", 2m46s. KFI is an iHeart station, so this is real iHeart content rather than a third-party stand-in, but it is a short clip and not the episode the other players are playing. Live card is a real radio simulcast from another broadcaster.',
@@ -86,9 +108,10 @@ const PLAYERS = [
   {
     id: 'applepodcasts', name: 'Apple Podcasts', status: 'ok', group: 'parity',
     allow: 'autoplay *; encrypted-media *; fullscreen *; clipboard-write',
-    modes: { podcast: { src: 'https://embed.podcasts.apple.com/us/episode/1000787615438', h: 165 } },
+    modes: { podcast: { src: 'https://embed.podcasts.apple.com/us/episode/1000787615438', h: 165 },
+             podcastCJ: { src: 'https://embed.podcasts.apple.com/us/episode/1000787219983', h: 165 } },
     facts: {
-      'Content': 'The exact target episode',
+      'Content': 'The exact target episode of both shows',
       'Sign-in': 'Not required to play the full episode',
       'No live radio': 'Apple Podcasts carries no live radio, so the live view falls back to this player.',
       'Watch out': 'Autoplay is not honored. The participant must press play.'
@@ -97,9 +120,10 @@ const PLAYERS = [
   {
     id: 'spotify', name: 'Spotify', status: 'ok', group: 'parity',
     allow: 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture',
-    modes: { podcast: { src: 'https://open.spotify.com/embed/episode/6naVnsbI9VWEMSrqnJpIEI', h: 152 } },
+    modes: { podcast: { src: 'https://open.spotify.com/embed/episode/6naVnsbI9VWEMSrqnJpIEI', h: 152 },
+             podcastCJ: { src: 'https://open.spotify.com/embed/episode/3OxGBFEZ5mUzXC1pG0kX2d', h: 152 } },
     facts: {
-      'Content': 'The exact target episode',
+      'Content': 'The exact target episode of both shows',
       'Sign-in': 'Not required. Podcast episodes play in full anonymously, unlike music tracks which cut to a 30 second preview.',
       'No live radio': 'Spotify has no live radio product at all, so the live view falls back to this player.',
       'Height': 'Ships at 152px compact. A 352px card variant also exists.'
@@ -108,9 +132,10 @@ const PLAYERS = [
   {
     id: 'deezer', name: 'Deezer', status: 'ok', group: 'parity', themed: true,
     allow: 'encrypted-media; clipboard-write',
-    modes: { podcast: { src: 'https://widget.deezer.com/widget/{theme}/episode/929240302', h: 300 } },
+    modes: { podcast: { src: 'https://widget.deezer.com/widget/{theme}/episode/929240302', h: 300 },
+             podcastCJ: { src: 'https://widget.deezer.com/widget/{theme}/episode/930917952', h: 300 } },
     facts: {
-      'Content': 'The exact target episode (Deezer podcast 1845, episode 929240302)',
+      'Content': 'The exact target episode of both shows (Deezer 929240302 and 930917952)',
       'Sign-in': 'Not required for podcasts. Music tracks are capped at 30 second previews.',
       'No live radio': 'No live broadcast product, so the live view falls back to this player.',
       'Theming': 'Follows the page theme toggle through its own light and dark URL variants.'
@@ -331,14 +356,22 @@ const PLAYERS = [
    Pure functions, no page state, so both pages behave identically.
    ==========================================================================*/
 
+/* Ordered fallbacks per mode. A podcast falls back to the other podcast before
+   it falls back to live radio, because a different episode of a different show
+   is a closer substitute than a completely different medium. */
+const FALLBACK = {
+  live:      ['podcast', 'podcastCJ'],
+  podcast:   ['podcastCJ', 'live'],
+  podcastCJ: ['podcast', 'live']
+};
+
 /* Which mode entry does this player actually show, and did it fall back? */
 function resolveEntry(p, mode) {
   if (p.status === 'blocked') return { blocked: true };
-  const wanted = p.modes[mode];
-  if (wanted) return { entry: wanted, fellBack: false };
-  const other = mode === 'live' ? 'podcast' : 'live';
-  const alt = p.modes[other];
-  if (alt) return { entry: alt, fellBack: true, from: mode, to: other };
+  if (p.modes[mode]) return { entry: p.modes[mode], fellBack: false };
+  for (const alt of (FALLBACK[mode] || [])) {
+    if (p.modes[alt]) return { entry: p.modes[alt], fellBack: true, from: mode, to: alt };
+  }
   return { blocked: true };
 }
 
@@ -351,13 +384,19 @@ function buildSrc(p, entry, theme) {
     .replace('{host}', location.hostname || 'localhost');
 }
 
-/* Fallback notice, worded by direction. Live-only players such as Zeno.fm,
-   Apple Music and Twitch fall back the other way, and telling a moderator the
-   opposite of the truth mid-session is worse than saying nothing. */
-function fallbackText(to) {
-  return to === 'podcast'
-    ? 'No live radio on this platform. Showing its podcast player instead.'
-    : 'No podcast on this platform. Showing its live radio player instead.';
+/* Fallback notice, worded by what was asked for and what was substituted.
+   Getting this wrong is worse than saying nothing: live-only players such as
+   Zeno.fm fall back the opposite way from podcast-only ones, and a show
+   substitution is a different thing again from a medium substitution. */
+function fallbackText(to, from) {
+  if (to === 'live') return 'No podcast on this platform. Showing its live radio player instead.';
+  if (from === 'live') return 'No live radio on this platform. Showing its podcast player instead.';
+  const missing = SHOW_BY_MODE[from], shown = SHOW_BY_MODE[to];
+  if (missing && shown) {
+    return SHOWS[missing].label + ' is not on this platform. Showing ' +
+           SHOWS[shown].label + ' instead.';
+  }
+  return 'Showing different content on this platform.';
 }
 
 function escHtml(s) {

@@ -86,7 +86,41 @@ columns: all 36 mount on a full scroll with zero cards drifting more than 4px.
 | Arm | Content |
 | --- | --- |
 | Live radio | Z100 New York (WHTZ-FM) |
-| Podcast | Stuff You Should Know, the episode "Social Identity Theory: Your Group Rules, Others Drool" |
+| Podcast, Stuff You Should Know | "Social Identity Theory: Your Group Rules, Others Drool" |
+| Podcast, Crime Junkie | "UPDATE: The Sodder Children" |
+
+**The Show toggle picks the podcast.** Six players carry the exact same Crime Junkie
+episode: iHeartRadio, TuneIn, Apple Podcasts, Spotify and Deezer play it, and
+YouTube plays a different Crime Junkie episode from their own channel because the
+target one is not posted there.
+
+Every other player has no Crime Junkie entry and **falls back to Stuff You Should
+Know with a visible note saying so**, rather than quietly showing the wrong show.
+
+Crime Junkie IDs, all resolved from free public endpoints and render-checked so the
+frame really shows that episode:
+
+| Platform | ID |
+| --- | --- |
+| iHeartRadio | show `29319113`, episode `343319869` |
+| Apple Podcasts | show `1322200189`, episode `1000787219983` |
+| Spotify | show `3DgfoleqaW61T2amZQKINx`, episode `3OxGBFEZ5mUzXC1pG0kX2d` |
+| Deezer | podcast `679102`, episode `930917952` |
+| TuneIn | programme `p1086263` |
+| YouTube | `q9Uv9QkDlCU`, a different episode |
+
+Two notes for anyone extending this. The Spotify show id is not discoverable from
+Spotify itself without auth, but `crimejunkiepodcast.com` links to it, and its
+oEmbed title confirms the show. And **Crime Junkie is Simplecast-hosted**, which
+looks like it should let the Simplecast card carry the real thing, but the RSS guid
+is not Simplecast's player id and that player answers "Audio Not Found", so
+Simplecast keeps its stand-in content.
+
+### Adding another show
+
+Add an entry to `SHOWS` in `players.js` with its own mode key, add that key to the
+`modes` of any player that carries it, and add the key to `FALLBACK`. The toggle
+and the fallback notes are generated from `SHOWS`, so no page code changes.
 
 Verified per-platform IDs for that episode.
 
