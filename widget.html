@@ -810,6 +810,28 @@ const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
    can be translated on hover while the box does the clipping. */
 const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
 
+/* What the artwork cards put in their metadata lines.
+   Neither hero frame draws a now playing state, so this is a decision rather
+   than a reading. A live card that says only the station name while a song is
+   on air is withholding the one thing a listener is looking at it for, so the
+   track takes the lines while there is one and the station line comes back when
+   there is not. Identity is not lost either way, since both cards carry the
+   station's own tile beside the text.
+   Design B has two lines, so the track takes the SemiBold one and the artist
+   the Regular one under it. Note that the design A frames weight this the other
+   way round, artist SemiBold over track Regular; reading order won here, the
+   song being what a listener asks first. Worth settling in the design file.
+   Design C has one line, so the two are joined. */
+function heroLines(d) {
+  if (d.kind !== 'live') return { name: d.subtitle, sub: d.title };
+  if (d.track && d.artist) return { name: d.track, sub: d.artist };
+  return { name: d.title, sub: d.desc || d.subtitle };
+}
+function cLine(d) {
+  if (d.kind !== 'live') return null;
+  return (d.track && d.artist) ? `${d.track} \u2022 ${d.artist}` : d.subtitle;
+}
+
 /* Measured, never assumed. A line gets the marquee only when its text really
    is wider than its box, which depends on the widget's current width, so this
    runs again on every render and on every resize. The shift carries 4px past
@@ -1011,8 +1033,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? `<p class="h-name mq">${mqs(d.title)}</p>
-                   <p class="h-sub mq">${mqs(d.desc || d.subtitle)}</p>`
+                ? `<p class="h-name mq">${mqs(heroLines(d).name)}</p>
+                   <p class="h-sub mq">${mqs(heroLines(d).sub)}</p>`
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1074,7 +1096,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? `<p class="h-name mq">${mqs(d.subtitle)}</p>`
+                ? `<p class="h-name mq">${mqs(cLine(d))}</p>`
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1464,20 +1486,30 @@ function makeWidget(rootId, statusId, colourId, variant) {
     const has = !!(w.data.track && w.data.artist);
     /* Gaining or losing track data changes how many lines the block has, and
        now also its type size, so that edge needs a re-render. */
-    if (had !== has) { render(); return; }
-    if (!has) return;
-    const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
-    if (tr) tr.textContent = w.data.track;
-    if (ar) ar.textContent = w.data.artist;
+    /* The artwork cards keep the same number of lines whether a track is on or
+       not, so they are written in place. Only the bar card changes shape at that
+       edge, gaining or losing a two line block and a type size with it. */
+    if (variant === 'bar') {
+      if (had !== has) { render(); return; }
+      if (!has) return;
+      const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
+      if (tr) tr.textContent = w.data.track;
+      if (ar) ar.textContent = w.data.artist;
+    } else if (variant === 'hero') {
+      const lines = heroLines(w.data);
+      const n = q('.h-name .mqi'), b = q('.h-sub .mqi');
+      if (n) n.textContent = lines.name;
+      if (b) b.textContent = lines.sub;
+    } else {
+      const n = q('.h-name .mqi');
+      if (n) n.textContent = cLine(w.data);
+    }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
     markOverflow(root);
   }
   function startNowPlaying() {
     clearInterval(w.npTimer);
-    /* Neither hero design shows a track, only the station and its line, so
-       polling for one would be requests every five seconds that nothing reads. */
-    if (variant !== 'bar') return;
     if (!w.data || w.data.kind !== 'live' || !w.data.stationId) return;
     if (document.hidden) return;              /* nothing to update, nobody looking */
     refreshNowPlaying();

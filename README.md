@@ -657,6 +657,37 @@ a full bleed background, which is what made the live card grey even after the
 base colour was right. Its selector needed to outrank that one, not merely
 follow it.
 
+### The artwork cards show what is playing too
+
+Neither hero frame draws a now playing state, so the first build of designs B
+and C showed only the station name and its line, and their metadata poll was
+switched off as pointless. That was wrong. A live card that says only the
+station while a song is on air is withholding the one thing a listener is
+looking at it for.
+
+All three designs now poll and all three show the track, each in the lines it
+has.
+
+- **A** keeps its three lines, track, artist, station.
+- **B** has two, so the track takes the SemiBold line and the artist the Regular
+  one under it, and the station line comes back when nothing is on air.
+- **C** has one, so the two are joined with a bullet, falling back to the
+  station line.
+
+Identity survives either way, since both cards carry the station's own tile
+beside the text.
+
+One thing worth settling in the design file. The design A frames weight this the
+other way round, artist SemiBold over track Regular. Reading order won here, the
+song being what a listener asks first, so B emphasises the track. That is a
+decision rather than a reading of any frame.
+
+Verified against a stubbed endpoint so the state is deterministic rather than
+whatever Z100 happens to be doing: with a track, A reads Espresso / Sabrina
+Carpenter / Z100, B reads Espresso over Sabrina Carpenter, C reads Espresso
+bullet Sabrina Carpenter. A track change reaches all three. With nothing on air,
+B falls back to Z100 over its description and C to the joined station line.
+
 ### Design C, the third set
 
 Frames 2533:85625 (podcast) and 2533:91574 (live radio). Design B's card again,
