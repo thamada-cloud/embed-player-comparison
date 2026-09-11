@@ -118,6 +118,11 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
    so live radio gets the white plate the design gives it. */
 .widget.live .art { background: #fff; object-fit: contain; padding: 4px; }
 .widget.live .tile { background: #fff; background-image: none; object-fit: contain; padding: 3px; }
+/* The text and the controls are one group in the live frames, so they get a
+   wrapper. Everywhere except live-wide the wrapper is display:contents, which
+   removes it from the box tree and leaves .meta and .controls-row as the grid
+   items they were. */
+.col { display: contents; }
 .meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
         padding-right: 40px; color: var(--ihr-grey-100); }
 .title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
@@ -159,6 +164,25 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
      at 12/16 at BOTH sizes, so the wide rules must not scale them up. */
   .widget.live .titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
   .widget.live .subtitle { font-size: 12px; line-height: 16px; }
+
+  /* Live centres the text-plus-controls group against the 132px artwork, and
+     it is the GROUP that centres, not each row on its own. With a track the
+     group is 56 + 16 + 60 = 132 and fills the artwork exactly, which is why
+     frame 2527:144307 shows the text at y=0 and the controls at y=72. With no
+     track it is 16 + 16 + 60 = 92, and frame 2530:61496 puts it at y=20, the
+     centred position. The two-row grid could not do this: the artwork spans
+     both rows, so its surplus height was split evenly between them, which
+     pushed the text to the top and opened the gap under it to 33.5px. One flex
+     column, centred as a unit, is the layout the frames actually describe.
+     Podcast keeps the two-row grid, since its own frame offsets it from the
+     top rather than centring it. */
+  .widget.live .body { grid-template-areas: "art col"; }
+  .widget.live .col {
+    grid-area: col; align-self: stretch; min-width: 0;
+    display: flex; flex-direction: column; justify-content: center; gap: 16px;
+  }
+  /* The 5px is the podcast frame's top offset. Live centres instead. */
+  .widget.live .meta { padding-top: 0; }
 }
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
@@ -190,7 +214,10 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 .btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
 /* Live has a single control group and the frame puts it at x=0, so it is left
-   aligned rather than pushed to the far edge. */
+   aligned rather than pushed to the far edge. The empty left group it used to
+   render was still a flex item, so the row's 8px gap sat in front of the
+   icons and pushed them to 24px from the play button where the frame says 16.
+   An empty element is not free in a gapped flex row. */
 .widget.live .btn-row { justify-content: flex-start; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
 .icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 4px;
@@ -465,6 +492,8 @@ function makeWidget(rootId, statusId, colourId) {
         <div class="player">
           <div class="body">
             <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+            <div class="col">
             <div class="meta">
               ${isLive ? `
                 ${d.track && d.artist ? `
@@ -476,7 +505,6 @@ function makeWidget(rootId, statusId, colourId) {
                 <p class="title">${esc(d.title)}</p>
                 <p class="subtitle">${esc(d.subtitle)}</p>`}
             </div>
-            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt=""></button>
               <div class="stack">
@@ -489,12 +517,12 @@ function makeWidget(rootId, statusId, colourId) {
                     <span class="t dur">--:--</span>
                   </div>`}
                 <div class="btn-row">
+                  ${isLive ? '' : `
                   <div class="btn-group">
-                    ${isLive ? '' : `
                     <button class="icon-btn speed-btn" data-act="speed" aria-label="Playback speed"><span>1x</span></button>
                     <button class="icon-btn" data-act="back" aria-label="Back 15 seconds">${icon('back15')}</button>
-                    <button class="icon-btn" data-act="fwd" aria-label="Forward 30 seconds">${icon('fwd30')}</button>`}
-                  </div>
+                    <button class="icon-btn" data-act="fwd" aria-label="Forward 30 seconds">${icon('fwd30')}</button>
+                  </div>`}
                   <div class="btn-group">
                     <button class="icon-btn" data-act="save" aria-pressed="false" aria-label="Save">${icon('plus')}</button>
                     <button class="icon-btn" data-act="info" aria-label="Info">${icon('info')}</button>
@@ -502,6 +530,7 @@ function makeWidget(rootId, statusId, colourId) {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
           <div class="wave"></div>
