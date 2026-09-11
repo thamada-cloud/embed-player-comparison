@@ -538,6 +538,38 @@ What is different about it.
 - **The podcast card carries the same 220px episode list** as the other design,
   so that component is written once and used by both.
 
+**Playing is a second state, not a second card.** Frames 2512:113298 (podcast)
+and 2512:111876 (live radio) keep everything above unchanged and add the rest of
+the controls around the red button, which becomes a pause or a stop.
+
+- **Podcast, seven controls**, 8px apart: save, 1x, back 15, the red pause,
+  forward 30, info, share. It also gains a scrubber above the waveform, in a
+  column with the frame's 4px gap, with the elapsed and total times either side.
+- **Live radio, five**: a spacer, save, the red stop, info, share. The spacer is
+  in the frame as a playback speed button at `opacity: 0`, and it is there
+  because two icons sit to the right of the red button and only one to the left,
+  so without it the red button would not be centred. Reproduced as the frame
+  has it rather than replaced with a margin.
+- **The row is what is centred, not the button.** Idle simply hides every
+  secondary control, which leaves the red one alone in the middle and gives back
+  the resting frames exactly. Measured: the button's centre sits at the card's
+  centre in all three states, idle, playing and paused.
+- **The secondary icons are `#E6EAED`, not white.** The same glyphs in the first
+  design's frames export as pure white; these export at `#E6EAED`, so both sets
+  are committed rather than one being reused for the other. Back 15 and forward
+  30 are white in both and are shared.
+
+One export had to be overruled. The Figma component in the speed slot is named
+`Web Internal / Podcast Playback Speed`, but the asset it exports is a play
+triangle, its own root being `<g id="Web Internal / Play">`. What the frame
+renders there is the text `1x`, so that is what is built, in the Caption 1 style
+the frame lists, 14/18 SemiBold at -0.4. Exported assets are the rule; an export
+that disagrees with the frame it came from is not one.
+
+The pause and stop glyphs are now real exports too, `Web Internal / Pause` and
+`Web Internal / Stop` at 56, which replaced the hand drawn pair the first pass
+needed when no frame drew a playing state.
+
 Measured against the frame at 350: stage 224, top bar at y=16, thumbnail 40,
 play button 64 at `#c6002b` centred on both axes, waveform 12 tall flush to the
 bottom edge, list 220, card 444 overall.
@@ -554,6 +586,13 @@ Two things the frames do not survive contact with.
   photograph, not a flat colour, so the figure reported is the mean colour of
   the whole picture under the 70% scrim, and the page says as much: a light
   patch behind a word can still read worse than the average.
+
+A third leak turned up in the scrubber. The hero's track needed a different
+colour and a smaller touch padding than the first design's, and writing that as
+`background: var(--ihr-grey-450)` reset `background-clip`, which is what keeps
+the 2px line inside the padding. The whole 16px box painted grey and swallowed
+the red elapsed fill. `background-color` is the only safe way to change one of
+these.
 
 Two class names from the first design leaked in during the build and both were
 caught by measuring rather than by looking. `.thumb` is the slider's drag

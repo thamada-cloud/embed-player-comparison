@@ -190,17 +190,61 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .h-name { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
           color: var(--ihr-grey-100); }
 .h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
-.hero-play {
+/* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
+   The row is the thing that is centred on the card, not the button: it is
+   absolutely placed at the middle and lays its buttons out around the red one
+   with an 8px gap. Idle hides every secondary button, which leaves the red one
+   alone in the centre and reproduces the resting frames exactly. */
+.hero-controls {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 0 24px; box-sizing: border-box;
+}
+.widget.hero.live .hero-controls { top: calc(50% - 1px); }
+.h-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
+         padding: 4px; border-radius: 999px; display: flex; flex: 0 0 auto; }
+.h-btn img { width: 24px; height: 24px; display: block; }
+/* The Figma component in this slot is named Web Internal / Podcast Playback
+   Speed, but the asset it exports is a play triangle, its own root being
+   <g id="Web Internal / Play">. What the frame RENDERS there is the text 1x, so
+   that is what is built, in the Caption 1 style the frame lists, 14/18 SemiBold
+   at -0.4. Exported assets are the rule; an export that disagrees with the
+   frame it came from is not one. */
+.h-speed { display: block; width: 24px; height: 24px; line-height: 24px; text-align: center;
+           font-size: 14px; font-weight: 600; letter-spacing: -.4px; color: var(--true-white); }
+.h-btn:hover { background: rgba(255,255,255,.14); }
+.h-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
+.widget.hero:not(.playing) .h-btn { display: none; }
+/* The live frame keeps a speed button at opacity 0 on the left. It is a
+   spacer: two icons sit to the right of the red button and only one to the
+   left, so without it the red button would not be centred. Kept as the frame
+   has it rather than replaced with a margin. */
+.h-btn.spacer { visibility: hidden; pointer-events: none; }
+.hero-play {
+  position: relative;
   appearance: none; border: 0; cursor: pointer; background: var(--ihr-red-600);
   border-radius: 999px; padding: 4px; display: flex; flex: 0 0 auto;
   filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.12));
 }
 .hero-play img { width: 56px; height: 56px; display: block; }
-.hero-play:active { transform: translate(-50%, -50%) scale(.96); }
-/* The live frame nudges the button up by a pixel, which is in the frame as
-   top: calc(50% - 1px). Kept rather than tidied away. */
-.widget.hero.live .hero-play { top: calc(50% - 1px); }
+.hero-play:active { transform: scale(.96); }
+
+/* The bottom block. Podcast gains a scrubber above the waveform while playing,
+   in a column with the frame's 4px gap; live radio has no duration and so
+   never gets one. */
+.hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.widget.hero:not(.playing) .slider { display: none; }
+.widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
+/* 7px, not the other design's 12. The frame's slider row is 16 tall, which is
+   exactly enough for the 12px controller, and 12px of padding would have made
+   the bottom block 10px taller than the frame. */
+/* background-COLOR, never the shorthand. `background` resets background-clip,
+   and the clip is what keeps the 2px line inside the padding that gives the
+   scrubber a touch target: setting the shorthand painted the whole 16px box
+   grey and swallowed the red elapsed fill. */
+.widget.hero .track { padding: 7px 0; background-color: var(--ihr-grey-450); }
+.widget.hero .elapsed { top: 7px; }
+.widget.hero .thumb { top: 8px; }
 .stage .wave { position: relative; height: 12px; }
 /* The hero list sits on the card, not on the page, so it keeps square top
    corners against the stage above it. */
@@ -700,12 +744,12 @@ const INSTANCES = [];
 function makeWidget(rootId, statusId, colourId, variant) {
   variant = variant || 'bar';
   const wave = WAVE[variant];
-  /* The hero button is brand red, so its glyphs are the white cuts. play-white
-     is the export from these frames; the pause and stop are the same drawings
-     as the other widget with a white fill, since no pause state is drawn in
-     either hero frame. */
+  /* The hero button is brand red, so its glyphs are the white cuts, and all
+     three are Figma exports from these frames: the playing states carry a real
+     Web Internal / Pause and Web Internal / Stop at 56, which replaced the
+     hand drawn pair the first pass had to use. */
   const GLYPH = variant === 'hero'
-    ? { play: 'assets/play-white.svg', pause: 'assets/pause-white.svg', stop: 'assets/stop-white.svg' }
+    ? { play: 'assets/play-white.svg', pause: 'assets/h-pause.svg', stop: 'assets/h-stop.svg' }
     : { play: 'assets/play.svg', pause: 'assets/pause.svg', stop: 'assets/stop.svg' };
   const root = document.getElementById(rootId);
   const statusEl = document.getElementById(statusId);
@@ -726,6 +770,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
     w.buffering = !!on;
     const el = root.querySelector('.widget');
     if (el) el.classList.toggle('buffering', w.buffering);
+  };
+
+  /* The hero card shows its secondary controls only while playing, which is
+     the only difference between the resting frames and the playing ones. Like
+     buffering, it lives on the widget object so a re-render cannot lose it. */
+  const setPlayingClass = () => {
+    const el = root.querySelector('.widget');
+    if (el) el.classList.toggle('playing', !!w.playing);
   };
 
   /* The ring is DERIVED from the element's state, never latched by an event.
@@ -791,11 +843,35 @@ function makeWidget(rootId, statusId, colourId, variant) {
             </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
-          <button class="hero-play" data-act="play" aria-label="Play">
-            <img class="pi" src="${GLYPH.play}" alt="">
-            <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
-          </button>
-          <div class="wave"></div>
+          <div class="hero-controls">
+            ${isLive ? `
+              <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
+              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+            ` : `
+              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+              <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
+              <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
+            `}
+            <button class="hero-play" data-act="play" aria-label="Play">
+              <img class="pi" src="${GLYPH.play}" alt="">
+              <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
+            </button>
+            ${isLive ? '' : `
+              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+            <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
+            <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
+          </div>
+          <div class="hero-bottom">
+            ${isLive ? '' : `
+              <div class="slider">
+                <span class="t el">00:00</span>
+                <div class="track">
+                  <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                </div>
+                <span class="t dur">--:--</span>
+              </div>`}
+            <div class="wave"></div>
+          </div>
         </div>
         ${isLive ? '' : listMarkup(d)}
       </div>`;
@@ -865,6 +941,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
     buildBars();
     markOverflow(root);
     setBuffering(w.buffering);
+    setPlayingClass();
     if (w.ro) w.ro.disconnect();
     w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); });
     w.ro.observe(root);
@@ -958,7 +1035,11 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const steps = [1, 1.25, 1.5, 2, .75];
       w.speed = steps[(steps.indexOf(w.speed) + 1) % steps.length];
       if (a) a.playbackRate = w.speed;
-      btn.querySelector('span').textContent = w.speed + 'x';
+      /* The bar design writes the rate into the button; the hero design's
+         button is an icon with nowhere to put it, so it is reported instead. */
+      const lbl = btn.querySelector('span');
+      if (lbl) lbl.textContent = w.speed + 'x';
+      else status('Playback speed ' + w.speed + 'x');
     }
     if (kind === 'back' && a) a.currentTime = Math.max(0, a.currentTime - 15);
     if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
@@ -1036,6 +1117,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (!on) w.want = false;
     refreshBuffering();
     w.playing = on;
+    setPlayingClass();
     /* A live stream cannot be resumed from where it left off, so live radio
        stops rather than pauses. */
     const stopper = !!(w.data && w.data.kind === 'live');
