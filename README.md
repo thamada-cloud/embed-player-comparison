@@ -648,6 +648,14 @@ the 2px line inside the padding. The whole 16px box painted grey and swallowed
 the red elapsed fill. `background-color` is the only safe way to change one of
 these.
 
+A fourth leak, and the most instructive, was a five pixel padding. The bar
+card's wide layout offsets its text block by 5px against its 132px artwork, and
+the rule was written as `.meta`, unscoped. The artwork cards' metadata is also
+`.meta`, so above the 560 breakpoint they inherited it: a 36px text block became
+41 beside a 40px tile and stopped being centred on it. Invisible on a phone,
+since the rule lives inside the container query, which is exactly why it
+survived several passes of measuring the compact layout.
+
 Two class names from the first design leaked in during the build and both were
 caught by measuring rather than by looking. `.thumb` is the slider's drag
 handle, which is `position: absolute`, so the hero's thumbnail left the flex row

@@ -417,7 +417,13 @@ section.is-live > .band-note { color: #14532d; }
     column-gap: 16px; row-gap: 16px; align-items: start;
   }
   .art { width: 132px; height: 132px; align-self: start; }
-  .meta { padding-top: 5px; }
+  /* .body .meta, not .meta. This 5px is the bar card's own top offset against
+     its 132px artwork, and unscoped it also reached the artwork cards, whose
+     .meta sits in .topbar. There it added 5px to a 36px text block beside a
+     40px tile, so the block came out 41 tall and hung off the artwork instead
+     of centring on it. Only visible above the 560 breakpoint, which is why it
+     measured clean on a phone. */
+  .body .meta { padding-top: 5px; }
   /* Straight off frame 2526:135975: title 16/24 SemiBold, subtitle 14/18
      Regular, both at -0.2 letter spacing. An earlier pass guessed 20/24 and
      -0.4, which made the podcast title noticeably larger than the design. */
