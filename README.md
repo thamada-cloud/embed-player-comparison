@@ -409,9 +409,18 @@ The live frames were revised after the first build and now differ structurally:
   entirely and only the station line shows. Falling back to the station name on
   the artist row just repeated what the line below already said. Gaining or
   losing a track re-renders, since it changes how many lines the block has.
-- **Now playing is real.** Those two lines come from
-  `/v3/live-meta/stream/{id}/trackHistory`, and refresh every 25 seconds while
-  the station is playing, because the track changes while you listen.
+- **Now playing is real, and checked against the clock.** Those two lines come
+  from `/v3/live-meta/stream/{id}/trackHistory`, refreshed every 25 seconds
+  while the station plays, because the track changes while you listen. The
+  newest entry in that history is NOT automatically what is on air. The feed
+  logs songs only, so through a commercial break, a talk segment or a live read
+  the newest entry keeps ageing while the station plays something else. Every
+  entry carries `startTime` and `endTime`, so the widget shows a track only
+  while the clock is still inside its window, with 45 seconds of grace for the
+  segue and for the lag between the feed and the audio a listener hears.
+  Measured on seven stations at one moment, three were serving a track that had
+  already ended, by 2 to 11 minutes, and the widget had been presenting all
+  three as currently playing.
 - **No scrubber and no duration.** A live stream has no length, and the Slider
   instance is `hidden` in the frame.
 - **Stop, not pause.** A live stream cannot resume where it left off, so the
@@ -438,6 +447,27 @@ The live frames were revised after the first build and now differ structurally:
 
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
+
+### Long text marquees on hover, on pointer devices only
+
+Every clipping line of text (both widget titles, both subtitles, the live
+now-playing pair, and the episode rows) ellipsises exactly as before. On a
+device with a real pointer, hovering a line whose text does not fit scrolls it
+so the rest can be read, then returns.
+
+Three details matter.
+
+- **Only when it actually overflows.** The `.over` class is applied from a
+  measurement of `scrollWidth` against `clientWidth`, re-run on every render and
+  on every resize, because the same string fits at one widget width and not at
+  another. Applying the animation blindly makes short lines twitch on hover.
+- **The inner span stays `inline` until hovered.** `text-overflow: ellipsis`
+  and an `inline-block` child do not reliably agree, so the span only becomes
+  `inline-block` (and the box switches to `text-overflow: clip`) inside the
+  `:hover` rule. The resting state is untouched.
+- **Gated on `(hover: hover) and (pointer: fine)`.** Touch has no hover state,
+  so a phone keeps the ellipsis rather than inheriting an animation it can never
+  trigger. `prefers-reduced-motion` disables it as well.
 
 ## Deploying
 
