@@ -669,10 +669,14 @@ All three designs now poll and all three show the track, each in the lines it
 has.
 
 - **A** keeps its three lines, track, artist, station.
-- **B** has two drawn lines and takes a third, track in the SemiBold one, artist
-  under it, station under that.
-- **C** has one drawn line and takes a second, the track and artist joined with
-  a bullet on the first, the station on the second.
+- **B and C read identically**, track in the SemiBold line, artist under it,
+  station under that. C's own live frame drew a single joined line and was built
+  that way first; one metadata layout across the two artwork cards is worth more
+  than that detail, since it leaves the designs differing in the things being
+  compared rather than in how a song is written out. Verified identical, the
+  same three lines at 14/18 SemiBold, 12/16 Regular and 12/16 Regular dimmed.
+  C keeps its own 48px tile, which is a top bar difference rather than a
+  metadata one.
 
 The station line stays under the track rather than being replaced by it. A card
 that swaps the station out for the song has told you what is on but not where it
@@ -693,8 +697,7 @@ decision rather than a reading of any frame.
 Verified against a stubbed endpoint so the state is deterministic rather than
 whatever Z100 happens to be doing. With a track, all three carry the station
 line last: A reads Espresso, Sabrina Carpenter, Z100; B the same three lines;
-C reads Espresso bullet Sabrina Carpenter over the station line. A track change
-reaches all three. With nothing on air, B falls back to Z100 over its
+C the same. A track change reaches all three. With nothing on air, B falls back to Z100 over its
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 

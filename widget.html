@@ -824,23 +824,19 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    The station line stays, under the track, the way design A carries all three.
    A card that swaps the station out for the song has told you what is on but
    not where it is coming from, which for radio is half the point.
-   Design B has two drawn lines and takes a third: track in the SemiBold one,
-   artist under it, station under that in a dimmer tone so two Regular lines do
-   not read as one block. Note that the design A frames weight the first pair
-   the other way round, artist SemiBold over track Regular; reading order won
-   here, the song being what a listener asks first. Worth settling in the design
-   file. Design C has one drawn line and takes a second: the track and artist
-   joined on the first, the station on the second. */
+   Both artwork cards read the same way: track in the SemiBold line, artist
+   under it, station under that in a dimmer tone so two Regular lines do not
+   read as one block. Design C's own live frame drew a single joined line, and
+   it was built that way first; one metadata layout across the two cards is
+   worth more than that detail, since it leaves the designs differing in the
+   things being compared rather than in how a song is written out.
+   Note that the design A frames weight the first pair the other way round,
+   artist SemiBold over track Regular; reading order won here, the song being
+   what a listener asks first. Worth settling in the design file. */
 function heroLines(d) {
   if (d.kind !== 'live') return { name: d.subtitle, sub: d.title, station: null };
   if (d.track && d.artist) return { name: d.track, sub: d.artist, station: d.subtitle };
   return { name: d.title, sub: d.desc || d.subtitle, station: null };
-}
-function cLines(d) {
-  if (d.kind !== 'live') return null;
-  return (d.track && d.artist)
-    ? { name: `${d.track} \u2022 ${d.artist}`, station: d.subtitle }
-    : { name: d.subtitle, station: null };
 }
 
 /* Measured, never assumed. A line gets the marquee only when its text really
@@ -1109,8 +1105,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? (() => { const L = cLines(d); return `
+                ? (() => { const L = heroLines(d); return `
                    <p class="h-name mq">${mqs(L.name)}</p>
+                   <p class="h-sub mq">${mqs(L.sub)}</p>
                    ${L.station ? `<p class="h-station mq">${mqs(L.station)}</p>` : ''}`; })()
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
@@ -1520,9 +1517,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
       if (b) b.textContent = L.sub;
       if (st && L.station) st.textContent = L.station;
     } else {
-      const L = cLines(w.data);
-      const n = q('.h-name .mqi'), st = q('.h-station .mqi');
+      const L = heroLines(w.data);
+      const n = q('.h-name .mqi'), b = q('.h-sub .mqi'), st = q('.h-station .mqi');
       if (n) n.textContent = L.name;
+      if (b) b.textContent = L.sub;
       if (st && L.station) st.textContent = L.station;
     }
     /* The new track is a different length, so the marquee has to be
