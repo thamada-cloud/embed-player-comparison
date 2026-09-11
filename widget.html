@@ -310,6 +310,7 @@ section.is-live > .band-note { color: #14532d; }
 .widget.hero .elapsed { top: 7px; }
 .widget.hero .thumb { top: 8px; }
 .stage .wave { position: relative; height: 12px; }
+.widget.c .stage .wave { height: 24px; }
 /* The hero list sits on the card, not on the page, so it keeps square top
    corners against the stage above it. */
 .widget.hero .list { border-radius: 0; }
@@ -323,16 +324,18 @@ section.is-live > .band-note { color: #14532d; }
    The floor is the one concession. Everything inside the card is a fixed pixel
    size, so unlike a video the contents do not shrink with the box: the top bar
    is 56 tall, the control row is 64 and centred, and the bottom block is 72, so
-   below 210 the centred row starts to overlap what is above and below it. The
-   row sits at calc(50% + .5px), the frame's own half pixel, so 208 was a
-   fraction short and 210 is the real floor. 16:9 reaches it at a width of 373,
-   so the floor only applies on narrow phones.
+   below 234 the centred row starts to overlap what is above and below it. The
+   podcast bottom block is the binding one, a 32px list row, 8, a 16px scrubber,
+   4, and now a 24px waveform, so 84 in total, against a 64px control row whose
+   centre sits at calc(50% + .5px). That half pixel is why 232 still clashed and
+   234 is the real floor, caught by measuring rather than by the arithmetic.
+   16:9 reaches 234 at a width of 416, so the floor applies on phones.
    The ceiling is the other end of the same argument. A video can be any size
    because it scales; this card cannot, so past a point 16:9 is just a taller
    and taller field of artwork around the same 64px button. 400 holds the ratio
    through every width an embed slot realistically gets, phones and article
    columns up to 711, and past that the card grows wider rather than taller. */
-.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 210px; max-height: 400px; }
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 400px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
 /* Live C ends in a waveform running to the edge, like every other card here,
    so it takes no bottom padding. Its own frame parked three icons at the bottom
@@ -839,10 +842,13 @@ const WAVE_MAX = 16;
 const IDLE_HERO = [2,2,2,4,4,4,8,4,8,6,8,10,8,10,10,12,10,10,8,10,8,10,12,10,8,8,10,10,8,6,
                    10,10,8,10,12,10,10,8,10,6,8,4,8,8,10,8,4,8,4,8,4,6,4,4,8,4,4,2,4,2,2,4,
                    2,2,2,2,2,2,2,2];
+/* Design C's waveform is the same shape again at exactly double the hero's
+   scale, 4 to 24 rather than 2 to 12, read off 2533:85718. Same 4px bars. */
+const IDLE_C = IDLE_HERO.map((h) => h * 2);
 const WAVE = {
-  bar:  { idle: IDLE,      max: 16, gap: 2, barW: (width) => width < 560 ? 3 : 4 },
-  hero: { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 },
-  c:    { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 }
+  bar:  { idle: IDLE,      max: 16, floor: 3, gap: 2, barW: (width) => width < 560 ? 3 : 4 },
+  hero: { idle: IDLE_HERO, max: 12, floor: 2, gap: 1, barW: () => 4 },
+  c:    { idle: IDLE_C,    max: 24, floor: 4, gap: 1, barW: () => 4 }
 };
 const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
 /* Every clipping line of text is written as a span inside its box so the span
@@ -1709,9 +1715,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
       let peak = 0;
       for (let k = b[0]; k < b[1]; k++) if (w.freq[k] > peak) peak = w.freq[k];
       w.smooth[i] = w.smooth[i] * .55 + (peak / 255) * b[2] * .45;
-      const floor = wave.max === 16 ? 3 : 2;
-      const h = floor + w.smooth[i] * (wave.max - floor) * .80;
-      w.bars[i].style.height = Math.max(floor, Math.min(wave.max, h)).toFixed(1) + 'px';
+      const h = wave.floor + w.smooth[i] * (wave.max - wave.floor) * .80;
+      w.bars[i].style.height = Math.max(wave.floor, Math.min(wave.max, h)).toFixed(1) + 'px';
     }
   }
   function settle() {
