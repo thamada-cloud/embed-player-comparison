@@ -24,6 +24,9 @@
   --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
   --ihr-red-550: #cc032e; --true-white: #fff;
   --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
+  /* Overlay strength over the artwork colour. Was 70%. */
+  --overlay-pct: .60;
+  --overlay: rgba(0,0,0,.60);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -81,7 +84,7 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   /* artwork colour with the design's 70% black on top, authored as the same
      two stacked gradients Figma uses */
   background-image:
-    linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.7) 100%),
+    linear-gradient(90deg, var(--overlay) 0%, var(--overlay) 100%),
     linear-gradient(90deg, var(--dominant, #191b28) 0%, var(--dominant, #191b28) 100%);
   transition: background-image .35s ease;
 }
@@ -221,6 +224,13 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .status.err { color: #b00020; font-weight: 600; }
 .colourline { font: 11.5px ui-monospace, Menlo, monospace; color: var(--ihr-grey-450); display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .chip { width: 22px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
+.ratio { font-weight: 600; color: var(--ihr-grey-600); }
+.wcag { font: 600 10.5px/1 'Open Sans', sans-serif; letter-spacing: .04em; text-transform: uppercase;
+        padding: 3px 6px; border-radius: 3px; }
+.wcag.pass { background: rgba(20,140,80,.14); color: #14814f; }
+.wcag.warn { background: rgba(200,120,0,.16); color: #8a5200; }
+.wcag.fail { background: rgba(176,0,32,.12); color: #b00020; }
+.meta-note { color: var(--ihr-grey-450); }
 </style>
 </head>
 <body>
@@ -373,7 +383,30 @@ function dominantColour(img) {
   return pick(bins) || pick(all);
 }
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
-const over70 = (c) => c.map((v) => Math.round(v * .3));
+
+const OVERLAY = 0.60;                 /* keep in step with --overlay-pct */
+const overlaid = (c) => c.map((v) => Math.round(v * (1 - OVERLAY)));
+
+/* WCAG 2.x relative luminance and contrast ratio. Both text styles in the
+   header are "normal" text for WCAG purposes: 14px semibold is under the 18.66px
+   bold threshold and 12px regular is well under it, so the bar is 4.5 for AA and
+   7 for AAA, not the large-text 3 and 4.5. */
+const srgb = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+const luminance = (c) => 0.2126 * srgb(c[0]) + 0.7152 * srgb(c[1]) + 0.0722 * srgb(c[2]);
+function contrast(a, b) {
+  const la = luminance(a), lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+const TEXT_RGB = [0xf6, 0xf8, 0xf9];  /* --ihr-grey-100, the header text colour */
+
+/* The smallest overlay that would clear a target ratio for this artwork.
+   Useful for judging how much headroom a given colour actually has. */
+function overlayNeededFor(rgb, target) {
+  for (let pct = 30; pct <= 95; pct++) {
+    if (contrast(rgb.map((v) => Math.round(v * (1 - pct / 100))), TEXT_RGB) >= target) return pct;
+  }
+  return null;
+}
 
 /* ============================================================================
    One widget instance. Everything is scoped to its own root so two can share
@@ -467,9 +500,18 @@ function makeWidget(rootId, statusId, colourId) {
       const rgb = dominantColour(art);
       if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
       root.style.setProperty('--dominant', hex(rgb));
-      colourEl.innerHTML = `<span class="chip" style="background:${hex(rgb)}"></span>` +
-        `<span class="chip" style="background:${hex(over70(rgb))}"></span>` +
-        `<span>${hex(rgb)} with 70% black → ${hex(over70(rgb))}</span>`;
+      const bg = overlaid(rgb);
+      const r = contrast(bg, TEXT_RGB);
+      const aa = r >= 4.5, aaa = r >= 7;
+      const need = overlayNeededFor(rgb, 4.5);
+      colourEl.innerHTML =
+        `<span class="chip" style="background:${hex(rgb)}"></span>` +
+        `<span class="chip" style="background:${hex(bg)}"></span>` +
+        `<span>${hex(rgb)} with ${Math.round(OVERLAY * 100)}% black → ${hex(bg)}</span>` +
+        `<span class="ratio">${r.toFixed(2)} to 1</span>` +
+        `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
+        `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
+        (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : '');
     };
     if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => colourEl.textContent = ''; }
 

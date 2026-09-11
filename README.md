@@ -285,14 +285,49 @@ nothing is proxied or hosted.
 
 ### The colour treatment
 
-The header is the artwork's dominant colour with the design's **70% black** over
-it, authored the same way Figma authors the fill, as two stacked gradients:
+The header is the artwork's dominant colour with **60% black** over it, authored
+the same way Figma authors the fill, as two stacked gradients:
 
 ```css
 background-image:
-  linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.7) 100%),
+  linear-gradient(90deg, var(--overlay) 0%, var(--overlay) 100%),
   linear-gradient(90deg, var(--dominant) 0%, var(--dominant) 100%);
 ```
+
+### Does 60% still pass contrast
+
+Both header text styles are **normal** text for WCAG, not large: 14px semibold is
+under the 18.66px bold threshold and 12px regular is well under it. So the bar is
+**4.5 for AA and 7 for AAA**, against `#f6f8f9` text.
+
+The widget computes this live and shows the ratio and verdict under each player,
+so it stays checkable for any artwork rather than being asserted once.
+
+**Measured against 12 real catalogue artworks, 60% passes AA and AAA on all of
+them.** The tightest is Atlanta Monster at `#eac5a8`, which lands on 7.37 to 1.
+
+Light artwork is where it gets close, so the theoretical limits are worth knowing:
+
+| Artwork | 60% | 70% |
+| --- | --- | --- |
+| Pure white, if one ever got through | 5.39, AA only | 7.94, AAA |
+| Bright yellow | 5.69, AA only | 8.29, AAA |
+| Near white but saturated | 5.63, AA only | 8.26, AAA |
+| Atlanta Monster, the lightest real one | 7.37, AAA | 9.9, AAA |
+
+**60% never fails AA.** The AA floor for pure white artwork is a 56% overlay, so
+60% keeps a 4-point margin even in the worst case. What 60% gives up is **AAA on
+very light artwork**, which 70% held everywhere.
+
+Two things keep this from biting in practice. The extractor drops near-white
+desaturated pixels, so a white tile yields its brand colour rather than white.
+And light *and* saturated artwork is rare, which is why none of the 12 real
+samples fell below AAA.
+
+If AAA matters, the robust fix is not a bigger fixed number but an adaptive
+floor: compute the overlay each artwork needs and take the larger of that and
+60%. `overlayNeededFor()` already does that calculation and drives the "AA floor
+for this artwork" note in the readout.
 
 `--dominant` is extracted from the artwork in the browser at load. **A plain
 most-common-pixel reading is wrong for logo art**: the Z100 tile is 78% white
