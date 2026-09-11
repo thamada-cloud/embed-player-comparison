@@ -679,8 +679,27 @@ with two differences that change how it behaves rather than how it looks.
   bottom as well as the top, since it ends in icons rather than a waveform
   running to the edge.
 
-Measured against the frames at 350. Podcast: stage 263, top bar at 16,
-thumbnail 40, seven controls 8px apart, play button centred, list button 16px
+**Design C is 16:9 and fluid, like a YouTube embed.** The card keeps the ratio
+and its height follows its width, rather than being pinned to the frame's 263.
+Measured: 1.778 exactly at every width from 390 up, 1280 by 720 at a 1440
+viewport, 984 by 553 at 1024, 390 by 219 on a phone.
+
+Two things follow from that, and both are worth knowing before reading the card
+at a wide width.
+
+- **The contents do not scale.** A video fills its box; this card's parts are
+  fixed pixel sizes, so at 1280 by 720 the 64px button and the 40px thumbnail
+  sit in a large empty field. That is what a 16:9 box does to fixed content, not
+  a layout fault, but it is the reason the design was drawn at 263.
+- **There is a floor at 210px.** The top bar is 56, the centred control row is
+  64 and the bottom block is 72, so below 210 the centred row starts to overlap
+  what is above and below it. The row sits at `calc(50% + .5px)`, the frame's
+  own half pixel, which is why 208 was a fraction short. 16:9 reaches 210 at a
+  width of 373, so the floor only applies on narrow phones, and no overlap
+  occurs at 360, 320 or 300.
+
+Measured against the frames at 350, before the ratio change. Podcast: stage 263,
+top bar at 16, thumbnail 40, seven controls 8px apart, play button centred, list button 16px
 from the right edge and 8px above the scrubber, scrubber 4px above the waveform,
 waveform flush to the bottom, list closed. Live: stage 263, thumbnail 48, the
 red button centred and alone, three icons 8px apart ending 24px from the right

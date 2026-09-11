@@ -285,7 +285,16 @@ section.is-live > .band-note { color: #14532d; }
    Design B's card with its controls always on, a list button over the scrubber
    on the podcast side, and a live radio side that is genuinely its own layout
    rather than the podcast minus parts. */
-.widget.c .stage { height: 263px; }
+/* 16:9, fluid, the way a YouTube embed behaves: the box keeps its ratio and the
+   height follows the width instead of being pinned to the frame's 263.
+   The floor is the one concession. Everything inside the card is a fixed pixel
+   size, so unlike a video the contents do not shrink with the box: the top bar
+   is 56 tall, the control row is 64 and centred, and the bottom block is 72, so
+   below 210 the centred row starts to overlap what is above and below it. The
+   row sits at calc(50% + .5px), the frame's own half pixel, so 208 was a
+   fraction short and 210 is the real floor. 16:9 reaches it at a width of 373,
+   so the floor only applies on narrow phones. */
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 210px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
 /* Live C pads the bottom as well as the top, since it ends with a row of icons
    rather than a waveform running to the edge. */
