@@ -534,6 +534,12 @@ screenshot, and it carries the same episode and the same station as the cards
 below, so a comparison is like for like. A search swaps the matching embed too,
 so the top row keeps up with whatever was last chosen of that kind.
 
+They are stacked, never side by side. Two columns halved the width each embed
+got, and width is the one thing a player's layout actually responds to, so the
+baseline was being shown in a form the page never asks about. Each now takes the
+full width, the same as the prototype cards below it, measured identical at
+1440, 1024 and 430.
+
 The URLs are built at runtime from the ids the page already fetched rather than
 hard coded, which is the difference between a baseline that stays current and
 one that quietly points at last year's episode. The slug in an iHeart embed URL
