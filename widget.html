@@ -123,7 +123,10 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   .body {
     grid-template-columns: 132px 1fr;
     grid-template-areas: "art meta" "art controls";
-    column-gap: 16px; row-gap: 21px; align-items: start;
+    /* 16px, not 21. The podcast frame's title block starts at y=5 and ends at
+       51 with controls at 67, so the gap is 16 and the 5 is padding above the
+       title. Counting the 5 as part of the gap pushed everything down. */
+    column-gap: 16px; row-gap: 16px; align-items: start;
   }
   .art { width: 132px; height: 132px; align-self: start; }
   .meta { padding-top: 5px; }
@@ -137,6 +140,10 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
 @container (min-width: 560px) { .controls-row { align-items: flex-start; } }
+/* Live has no scrubber, so its single control group centres on the play button
+   rather than hanging off the top. The frame puts the 32px group at y=14 of a
+   60px row, which is exactly centred. */
+.widget.live .controls-row { align-items: center; }
 
 .play-btn {
   appearance: none; border: 0; cursor: pointer; background: var(--true-white);
@@ -186,7 +193,11 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 .list { width: 100%; height: 220px; background: var(--ihr-grey-150); padding: 12px 16px 16px;
         display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
-.list h3 { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
+/* The frame's list header is a 32px row (it carries a 32px Buttons frame
+   beside the label), so rendering it at the text's own 18px line-height closed
+   the gap under "Episodes" by 14px. */
+.list h3 { margin: 0; flex: 0 0 32px; height: 32px; display: flex; align-items: center;
+           font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
 .row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
        border-radius: var(--radius-widget); cursor: pointer; }
@@ -481,7 +492,11 @@ function makeWidget(rootId, statusId, colourId) {
         track.addEventListener('pointermove', mv); track.addEventListener('pointerup', up);
       });
     }
-    if (w.playing) { const pi = q('.pi'); if (pi) pi.src = 'assets/pause.svg'; loop(); }
+    if (w.playing) {
+      const pi = q('.pi');
+      if (pi) pi.src = d.kind === 'live' ? 'assets/stop.svg' : 'assets/pause.svg';
+      loop();
+    }
     tick();
   }
 
@@ -568,10 +583,18 @@ function makeWidget(rootId, statusId, colourId) {
         await w.audio.play();
         status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
       } catch (e) { status('Playback blocked. ' + e.message, true); return; }
-    } else if (w.audio) { w.audio.pause(); }
+    } else if (w.audio) {
+      w.audio.pause();
+      if (w.data && w.data.kind === 'live') w.audio.currentTime = 0;   /* stop, not pause */
+    }
     w.playing = on;
-    const pi = q('.pi'); if (pi) pi.src = on ? 'assets/pause.svg' : 'assets/play.svg';
-    const pb = q('[data-act="play"]'); if (pb) pb.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    /* A live stream cannot be resumed from where it left off, so live radio
+       stops rather than pauses. */
+    const stopper = !!(w.data && w.data.kind === 'live');
+    const pi = q('.pi');
+    if (pi) pi.src = on ? (stopper ? 'assets/stop.svg' : 'assets/pause.svg') : 'assets/play.svg';
+    const pb = q('[data-act="play"]');
+    if (pb) pb.setAttribute('aria-label', on ? (stopper ? 'Stop' : 'Pause') : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
     /* A live station changes track while you listen, so refresh the two title
        lines rather than leaving whatever was playing when it loaded. */

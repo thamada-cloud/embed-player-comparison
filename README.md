@@ -336,6 +336,20 @@ energy in the low bins.
 
 ### Two deliberate deviations, both flagged in the UI
 
+### Spacing is measured, not eyeballed
+
+Every gap here came off the frames. Three that were wrong in an earlier build and
+are worth knowing, because each looks plausible until measured:
+
+- **The row gap is 16px everywhere, not 21.** The podcast frame's title block
+  starts at y=5 and ends at 51 with controls at 67. The 5 is padding above the
+  title, not part of the gap. Counting it twice pushed the whole lower half down.
+- **The list header is a 32px row**, not the 18px of its own text. It carries a
+  32px Buttons frame beside the label, so rendering it at the text's line-height
+  closed the gap under "Episodes" by 14px. It also needs `flex: 0 0 32px`,
+  because as a flex item in a fixed-height column it was being shrunk back.
+- **Play to controls is 16px and the groups are centred on each other.**
+
 ### Live radio is its own layout, not the podcast minus parts
 
 The live frames were revised after the first build and now differ structurally:
@@ -348,6 +362,10 @@ The live frames were revised after the first build and now differ structurally:
   the station is playing, because the track changes while you listen.
 - **No scrubber and no duration.** A live stream has no length, and the Slider
   instance is `hidden` in the frame.
+- **Stop, not pause.** A live stream cannot resume where it left off, so the
+  button becomes a stop and the position resets.
+- **The control group centres on the play button.** With no scrubber above it,
+  the frame puts the 32px group at y=14 of a 60px row, which is exactly centred.
 - **One control group, left aligned.** Save, info and share sit at x=0 in the
   frame, not pushed to the far edge as in the podcast.
 - **No list section.** The 1280 live frame is 180px tall with no List instance
