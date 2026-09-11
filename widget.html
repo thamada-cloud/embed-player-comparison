@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Audio Widget Prototype</title>
+<title>Audio Widget Prototype, not shipped</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -63,6 +63,26 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .gauge .mode { font-weight: 600; }
 .gauge.wide .mode { color: var(--ihr-red-550); }
 .hint .vw { font-variant-numeric: tabular-nums; }
+
+/* ---------- what is live, what is not ----------
+   The page carries the production player and four prototypes at once, which is
+   the whole point of it and also the easiest thing in the world to misread in a
+   screenshot. Every group is banded and every card is tagged, so a section
+   cannot be looked at without its status being on screen next to it. */
+.band { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+        padding: 14px 16px; border-radius: 10px; margin: 0 0 4px; }
+.band p { margin: 0; font-size: 13px; max-width: 90ch; }
+.band-live { background: #e7f4ec; border: 1px solid #bcdfc9; color: #14532d; }
+.band-proto { background: #fff4e2; border: 1px solid #f0d5a8; color: #6b4708; }
+.band h2 { font-size: 15px; margin: 0; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+       padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.tag-live { background: #12703c; color: #fff; }
+.tag-proto { background: #8a5a06; color: #fff; }
+/* The same two tags again on every individual card, since a section can be
+   scrolled to, screenshotted or linked on its own. */
+.h2row .tag { font-weight: 700; }
+section.is-live > .band-note { color: #14532d; }
 
 /* ---------- the shipping player, for comparison ---------- */
 /* Stacked, never side by side. Two columns halved the width each embed got,
@@ -467,16 +487,21 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 <header>
   <div class="brand">Audio Widget Prototype <span>from Figma, Audio Widgets</span></div>
-  <div class="hint">Resize the window: each widget lays itself out from its own width. Search to load any iHeart podcast or station.</div>
+  <div class="hint">One live player at the top, four prototypes below it. Nothing below the first band is shipped.</div>
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
 </header>
 
 <main>
+  <div class="band band-live">
+    <span class="tag tag-live">Live today</span>
+    <p><b>This is what iHeart serves right now.</b> Real iframes from iheart.com, not screenshots and
+       not a rebuild. Anything you see here is already in production.</p>
+  </div>
+
   <section>
-    <div class="h2row"><h2>Shipping today</h2></div>
-    <p class="sub">The iHeart embed player as it is served right now, carrying the same episode and the
-       same station as the prototypes below, so the comparison is like for like. Both are live
-       iframes from iheart.com, not screenshots.</p>
+    <div class="h2row"><h2>iHeart embed player</h2><span class="tag tag-live">Live today</span></div>
+    <p class="sub">Carrying the same episode and the same station as the prototypes below, so the
+       comparison is like for like.</p>
     <div class="embeds">
       <div class="embed">
         <span class="embed-label">Podcast</span>
@@ -492,8 +517,20 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
     <p class="status" id="s-embeds"></p>
   </section>
 
+  <div class="band band-proto">
+    <span class="tag tag-proto">Prototype, not shipped</span>
+    <p><b>Everything from here down is a test build.</b> Two designs, each in a podcast and a live
+       radio version, built from the Figma frames and playing real iHeart audio. None of it is in
+       the product, and none of it is a variant anyone has been served.</p>
+  </div>
+
+  <div class="band band-proto">
+    <h2>Design A, the bar card</h2>
+    <p>Artwork beside the text, transport controls in a row, and the episode list below.</p>
+  </div>
+
   <section>
-    <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast"></span></div>
+    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast"></span></div>
     <p class="sub">Search any iHeart podcast. The newest episode loads and plays, and the header colour comes from that show's artwork.</p>
     <div class="search" data-for="podcast">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
@@ -505,7 +542,7 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   </section>
 
   <section>
-    <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live"></span></div>
+    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live"></span></div>
     <p class="sub">Search any iHeart station. Live radio has no duration, so there is no scrubber.</p>
     <div class="search" data-for="live">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
@@ -516,10 +553,16 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
     <div class="colourline" id="c-live"></div>
   </section>
 
+  <div class="band band-proto">
+    <h2>Design B, the hero card</h2>
+    <p>The artwork fills the card under a scrim, with one brand red play button in the middle of it.
+       Frames 2512:113087 and 2512:111965, and their playing states 2512:113298 and 2512:111876.</p>
+  </div>
+
   <section>
-    <div class="h2row"><h2>Podcast, hero card</h2><span class="gauge" id="g-podcast-hero"></span></div>
-    <p class="sub">A second design, frame 2512:113087. The show's own artwork is the background under
-       70% black, and one brand red play button sits in the middle of it.</p>
+    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast-hero"></span></div>
+    <p class="sub">The show's own artwork is the background under 70% black. Press play to see the
+       rest of the controls and the scrubber.</p>
     <div class="search" data-for="podcast-hero">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
       <div class="results" hidden></div>
@@ -530,9 +573,9 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   </section>
 
   <section>
-    <div class="h2row"><h2>Live radio, hero card</h2><span class="gauge" id="g-live-hero"></span></div>
-    <p class="sub">Frame 2512:111965. Same card, no episode list, and the two metadata lines swap
-       weights so the station name leads.</p>
+    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live-hero"></span></div>
+    <p class="sub">Same card, no episode list, and the two metadata lines swap weights so the station
+       name leads.</p>
     <div class="search" data-for="live-hero">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>

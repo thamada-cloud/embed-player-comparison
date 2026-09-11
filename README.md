@@ -526,6 +526,25 @@ The live frames were revised after the first build and now differ structurally:
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
 
+### The page says what is real and what is not, everywhere
+
+The prototype page carries the production player and four prototypes at once,
+which is the point of it and also the easiest thing in the world to misread,
+particularly in a screenshot of one section. So status is never more than a
+glance away.
+
+- A green **Live today** band opens the page and says the embeds under it are
+  real iframes from `iheart.com`, already in production.
+- An amber **Prototype, not shipped** band cuts the page in two before the
+  first prototype and says everything below it is a test build that nobody has
+  been served.
+- Each of the two designs gets its own band naming it, Design A the bar card and
+  Design B the hero card, so neither reads as a revision of the other.
+- Every individual section repeats its tag beside the heading, because a section
+  can be scrolled to, screenshotted or linked on its own, and a band three
+  screens up is no use then.
+- The browser tab says it too, since a tab title is often all a person sees.
+
 ### The shipping player sits at the top of the prototype page
 
 The iHeart embed as it is served today, one podcast and one live radio, above
