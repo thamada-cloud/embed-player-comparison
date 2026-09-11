@@ -233,12 +233,41 @@ frame is a gesture, so click-to-play does not need it.
 three: not a survey of other people's embeds, but a working build of ours, from
 Figma `Audio Widgets` nodes 2524:126999, 2526:135968, 2526:142928 and 2527:144307.
 
-**Sizes** 350px and 1280px. **Streams** podcast (Las Culturistas) and live radio
-(Z100). All four combinations come from one set of markup; the two layouts are a
-CSS grid swap. At 350 the artwork sits beside the text with controls on their own
-row beneath. At 1280 the artwork spans the full height beside both the text and
-the controls, which is what the Figma frame does and what the 350 layout could
-not express without overflowing the 180px player.
+**Both widgets are on the page at once**, podcast and live radio, each with its
+own search. Playing one pauses the other.
+
+**There is no size switch.** Each widget sizes itself from its own width using
+`@container`, not `@media`. Container queries are the right tool here because an
+embeddable widget has to respond to the slot it is dropped into, which is not
+always the viewport. Below 560px the artwork sits beside the text with controls
+on their own row beneath; above it the artwork spans the full height beside both,
+which is what the 1280 frame does and what the narrow layout cannot express
+without overflowing the 180px player. Artwork and type scale with `cqw` between
+the two frames' values, so 350 and 1280 land on the design's numbers and every
+width between is interpolated.
+
+### Search
+
+Both widgets search the live iHeart API and load anything you pick.
+
+| Need | Endpoint |
+| --- | --- |
+| Podcasts | `/v3/search/all?...&podcast=true` |
+| Stations | `/v3/search/all?...&station=true` |
+| Show detail and artwork | `/v3/podcast/podcasts/{id}` |
+| Episode list | `/v3/podcast/podcasts/{id}/episodes` |
+| **Episode audio** | `/v3/podcast/episodes/{id}` |
+| Station stream and logo | `/v2/content/liveStations/{id}` |
+
+**The episode-audio row is the one that matters.** The episode *list* returns
+`mediaUrl: null` for every item; the *single episode* endpoint returns it
+populated. Miss that and the search looks broken for podcasts.
+
+Everything in that chain was checked for CORS before the build, because all three
+of the features here depend on it: the API responses, the audio (so the analyser
+can read samples) and the artwork (so the canvas is not tainted and the colour can
+be extracted). All of it answers with `Access-Control-Allow-Origin`, which is why
+nothing is proxied or hosted.
 
 ### The colour treatment
 

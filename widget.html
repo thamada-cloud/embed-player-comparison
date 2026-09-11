@@ -11,686 +11,624 @@
 <style>
 /* ============================================================================
    AUDIO WIDGET PROTOTYPE
-   Built from Figma "Audio Widgets", nodes 2524:126999 (350 podcast),
-   2526:135968 (1280 podcast), 2526:142928 (350 live), 2527:144307 (1280 live).
+   Built from Figma "Audio Widgets": 2524:126999 and 2526:135968 (podcast, 350
+   and 1280), 2526:142928 and 2527:144307 (live radio).
 
-   Tokens below are the literal values from those frames, so a designer can
-   diff this against Figma rather than guess what was interpreted.
+   Both widgets live on this page at once, and each one sizes itself from its
+   own width with container queries rather than a manual switch. Container
+   queries, not media queries, because an embeddable widget has to respond to
+   the slot it is dropped into, which is not always the viewport.
    ==========================================================================*/
 :root {
-  --ihr-grey-100: #f6f8f9;
-  --ihr-grey-150: #edf1f3;
-  --ihr-grey-250: #dadfe3;
-  --ihr-grey-300: #a9afb2;
-  --ihr-grey-450: #55565b;
-  --ihr-grey-600: #27292d;
-  --ihr-red-550: #cc032e;
-  --true-white: #ffffff;
-  --radius-widget: 6px;
-  --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
-  --elevation-01: 0 1px 3px 0 rgba(0,0,0,.15);
-
-  /* Set at runtime from the artwork. The 70% black is the design's own
-     overlay, applied over the extracted colour exactly as the Figma frames do:
-     linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)) over a flat fill. */
-  --dominant: #191b28;
-  --overlay: rgba(0,0,0,.7);
+  --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-250: #dadfe3;
+  --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
+  --ihr-red-550: #cc032e; --true-white: #fff;
+  --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   background: #e9edef; color: var(--ihr-grey-600);
   font: 14px/1.4 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh; display: flex; flex-direction: column;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
 }
-
-/* ---------- page chrome, not part of the widget ---------- */
 header {
   background: #fff; border-bottom: 1px solid var(--ihr-grey-250);
-  padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
-  position: sticky; top: 0; z-index: 10;
+  padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
 }
-.brand { font-weight: 600; font-size: 14px; margin-right: auto; }
+.brand { font-weight: 600; }
 .brand span { font-weight: 400; font-size: 12px; color: var(--ihr-grey-450); margin-left: 8px; }
-.ctrl { display: flex; align-items: center; gap: 8px; }
-.ctrl > label {
-  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--ihr-grey-450); font-weight: 600;
-}
-.seg { display: inline-flex; border: 1px solid var(--ihr-grey-250); border-radius: 999px; overflow: hidden; background: #f4f7f8; }
-.seg button {
-  appearance: none; border: 0; background: transparent; color: var(--ihr-grey-450);
-  font: inherit; font-size: 13px; padding: 5px 14px; cursor: pointer; white-space: nowrap;
-}
-.seg button + button { border-left: 1px solid var(--ihr-grey-250); }
-.seg button[aria-pressed="true"] { background: var(--ihr-grey-600); color: #fff; font-weight: 600; }
-.swatches { display: flex; align-items: center; gap: 0; }
-.swatch { width: 30px; height: 30px; border: 1px solid rgba(0,0,0,.15); }
-.swatch:first-child { border-radius: 4px 0 0 4px; }
-.swatch:last-child { border-radius: 0 4px 4px 0; }
-.swatch-label { font: 11px/1.3 ui-monospace, Menlo, monospace; color: var(--ihr-grey-450); margin-left: 8px; }
+.hint { font-size: 12px; color: var(--ihr-grey-450); }
 
-main { flex: 1; padding: 34px 20px 70px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.stage { width: 100%; display: flex; justify-content: center; overflow-x: auto; padding-bottom: 6px; }
-.note { font-size: 12px; color: var(--ihr-grey-450); max-width: 78ch; text-align: center; }
-.note b { color: var(--ihr-grey-600); font-weight: 600; }
+main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid; gap: 34px; }
+section > h2 { font-size: 13px; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .06em; }
+section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450); max-width: 80ch; }
+
+/* ---------- search ---------- */
+.search { position: relative; margin-bottom: 12px; max-width: 460px; }
+.search input {
+  width: 100%; font: inherit; font-size: 14px; padding: 9px 12px;
+  border: 1px solid var(--ihr-grey-250); border-radius: 8px; background: #fff; color: inherit;
+}
+.search input:focus { outline: 2px solid var(--ihr-red-550); outline-offset: -1px; }
+.results {
+  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px);
+  background: #fff; border: 1px solid var(--ihr-grey-250); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); max-height: 320px; overflow-y: auto; padding: 4px;
+}
+.results[hidden] { display: none; }
+.results button {
+  display: flex; gap: 10px; align-items: center; width: 100%; text-align: left;
+  background: none; border: 0; font: inherit; padding: 8px; border-radius: 6px; cursor: pointer;
+}
+.results button:hover, .results button:focus { background: var(--ihr-grey-150); outline: none; }
+.results img { width: 38px; height: 38px; border-radius: 4px; object-fit: cover; background: var(--ihr-grey-250); flex: 0 0 auto; }
+.results b { display: block; font-size: 13px; font-weight: 600; }
+.results span { display: block; font-size: 11.5px; color: var(--ihr-grey-450); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .empty { padding: 12px; font-size: 12.5px; color: var(--ihr-grey-450); }
 
 /* ============================================================================
-   THE WIDGET
+   WIDGET. One set of rules; the container query does the rest.
    ==========================================================================*/
+.shell { container-type: inline-size; width: 100%; }
 .widget {
-  border-radius: var(--radius-widget); overflow: hidden;
-  display: flex; flex-direction: column; align-items: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,.10);
-  flex: 0 0 auto;
+  border-radius: var(--radius-widget); overflow: hidden; width: 100%;
+  display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10);
 }
-.widget.sm { width: 350px; }
-.widget.lg { width: 1280px; }
-
-/* The artwork colour with the design's 70% black over it. Two stacked
-   gradients, exactly as the Figma fill is authored. */
 .player {
-  width: 100%; height: 180px; position: relative;
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding-top: 16px;
+  width: 100%; min-height: 180px; position: relative;
+  display: flex; flex-direction: column; justify-content: space-between; padding-top: 16px;
+  /* artwork colour with the design's 70% black on top, authored as the same
+     two stacked gradients Figma uses */
   background-image:
-    linear-gradient(90deg, var(--overlay) 0%, var(--overlay) 100%),
-    linear-gradient(90deg, var(--dominant) 0%, var(--dominant) 100%);
+    linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.7) 100%),
+    linear-gradient(90deg, var(--dominant, #191b28) 0%, var(--dominant, #191b28) 100%);
   transition: background-image .35s ease;
 }
-
-/* Both sizes are the same markup, laid out differently.
-   350: artwork beside the text, controls on their own row underneath.
-   1280: artwork spans the full height beside BOTH the text and the controls,
-   which is what the Figma frame does (artwork 132 tall, metadata column at
-   x=148 containing title, subtitle and the control row). Using the 350 layout
-   at 1280 overflowed the 180px player. */
 .body {
   display: grid; width: 100%; padding: 0 16px; position: relative;
   grid-template-columns: 64px 1fr;
   grid-template-areas: "art meta" "controls controls";
   column-gap: 12px; row-gap: 16px; align-items: center;
 }
-.widget.lg .body {
-  grid-template-columns: 132px 1fr;
-  grid-template-areas: "art meta" "art controls";
-  column-gap: 16px; row-gap: 21px; align-items: start;
-}
-.body > .art { grid-area: art; align-self: center; }
-.widget.lg .body > .art { align-self: start; }
-.meta-row { display: contents; }
-.art {
-  border-radius: var(--radius-widget); box-shadow: var(--shadow-01);
-  flex: 0 0 auto; object-fit: cover; background: #222;
-}
-.widget.sm .art { width: 64px; height: 64px; }
-.widget.lg .art { width: 132px; height: 132px; }
-.meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px; padding-right: 40px; color: var(--ihr-grey-100); }
-.widget.lg .meta { padding-top: 5px; }
-.title {
-  font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px;
-  margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.subtitle {
-  font-weight: 400; font-size: 12px; line-height: 16px; margin: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.widget.lg .title { font-size: 20px; line-height: 24px; letter-spacing: -.4px; }
-.widget.lg .subtitle { font-size: 14px; line-height: 18px; }
+.art { grid-area: art; width: 64px; height: 64px; border-radius: var(--radius-widget);
+       box-shadow: var(--shadow-01); object-fit: cover; background: #222; align-self: center; }
+.meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
+        padding-right: 40px; color: var(--ihr-grey-100); }
+.title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
+         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subtitle { font-size: 12px; line-height: 16px; margin: 0; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap; }
 .ihr { position: absolute; right: 16px; top: 0; width: 25px; height: 26px; }
 
-.controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
-.widget.lg .controls-row { align-items: flex-start; }
+/* Wide layout. The artwork spans the full height beside BOTH the text and the
+   controls, which is what the 1280 frame does. */
+@container (min-width: 560px) {
+  .body {
+    grid-template-columns: clamp(96px, 11cqw, 132px) 1fr;
+    grid-template-areas: "art meta" "art controls";
+    column-gap: 16px; row-gap: 21px; align-items: start;
+  }
+  .art { width: 100%; height: auto; aspect-ratio: 1; align-self: start; }
+  .meta { padding-top: 5px; }
+  .title { font-size: clamp(15px, 1.5cqw, 20px); line-height: 1.2; letter-spacing: -.4px; }
+  .subtitle { font-size: clamp(12px, 1.1cqw, 14px); line-height: 1.3; }
+}
 
-/* play button: white circle, 3.75px padding round a 52.5px glyph = 60px */
+.controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
+@container (min-width: 560px) { .controls-row { align-items: flex-start; } }
+
 .play-btn {
-  appearance: none; border: 0; cursor: pointer;
-  background: var(--true-white); border-radius: 999px; padding: 3.75px;
+  appearance: none; border: 0; cursor: pointer; background: var(--true-white);
+  border-radius: 999px; padding: 3.75px; display: flex; flex: 0 0 auto;
   filter: drop-shadow(0 .938px 1.406px rgba(0,0,0,.15));
-  display: flex; flex: 0 0 auto;
 }
 .play-btn img { width: 52.5px; height: 52.5px; display: block; }
 .play-btn:active { transform: scale(.96); }
 .stack { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
 
-/* slider */
-.slider { display: flex; gap: 12px; align-items: center; justify-content: center; width: 100%; }
+.slider { display: flex; gap: 12px; align-items: center; width: 100%; }
 .slider .t { font-size: 12px; line-height: 16px; color: var(--true-white); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .track {
-  /* The design's track is a 2px line, which is an unusable pointer target, so
-     the hit area is padded out to 26px. content-box is essential here: under
-     the global border-box the 12px padding would eat the 2px line entirely. */
-  box-sizing: content-box;
-  flex: 1 1 0; min-width: 0; height: 2px; border-radius: var(--radius-widget);
-  background: var(--ihr-grey-250); background-clip: content-box;
-  padding: 12px 0; position: relative; cursor: pointer; touch-action: none;
+  box-sizing: content-box; flex: 1 1 0; min-width: 0; height: 2px;
+  border-radius: var(--radius-widget); background: var(--ihr-grey-250);
+  background-clip: content-box; padding: 12px 0; position: relative; cursor: pointer; touch-action: none;
 }
-.elapsed {
-  position: absolute; left: 0; top: 12px; height: 2px;
-  background: var(--ihr-red-550); border-radius: var(--radius-widget);
-}
-.thumb {
-  position: absolute; top: 13px; width: 12px; height: 12px; margin: -6px 0 0 -6px;
-  border-radius: 999px; background: var(--ihr-red-550); box-shadow: 0 1px 3px rgba(0,0,0,.15);
-}
-.live-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--true-white); background: var(--ihr-red-550);
-  padding: 2px 8px; border-radius: 2px;
-}
+.elapsed { position: absolute; left: 0; top: 12px; height: 2px; background: var(--ihr-red-550); border-radius: var(--radius-widget); }
+.thumb { position: absolute; top: 13px; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+         border-radius: 999px; background: var(--ihr-red-550); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.live-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--true-white);
+  background: var(--ihr-red-550); padding: 2px 8px; border-radius: 2px; }
 .live-dot { width: 6px; height: 6px; border-radius: 999px; background: #fff; animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
-.btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
-.icon-btn {
-  appearance: none; border: 0; background: transparent; cursor: pointer;
-  padding: 4px; border-radius: 999px; display: flex; position: relative;
-}
+.icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 4px;
+            border-radius: 999px; display: flex; }
 .icon-btn img { width: 24px; height: 24px; display: block; }
-.widget.lg .icon-btn img { width: 24px; height: 24px; }
 .icon-btn:hover { background: rgba(255,255,255,.14); }
 .icon-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
-/* The design renders playback speed as the literal text "1x", not a glyph. */
-.speed-btn {
-  min-width: 32px; height: 32px; align-items: center; justify-content: center;
-  color: var(--true-white); font-size: 14px; font-weight: 600; font-family: inherit;
-}
+.speed-btn { min-width: 32px; height: 32px; align-items: center; justify-content: center;
+  color: var(--true-white); font-size: 14px; font-weight: 600; font-family: inherit; }
 
-/* Waveform: bars rise from the BOTTOM edge with rounded tops.
-   The Figma frame authors this as items-start with rounded-bl/br inside a
-   wrapper carrying -scale-y-100. Reading those bar styles without applying the
-   flip gives the mirror image, bars hanging downward with rounded bottoms,
-   which is what an earlier version of this shipped. The flip is baked in here
-   rather than re-applied with a transform, so the bar heights stay readable. */
+/* Bars rise from the BOTTOM with rounded tops. Figma authors them as
+   items-start with rounded-bl/br inside a wrapper carrying -scale-y-100;
+   reading the bar styling without that flip gives the mirror image. */
 .wave { display: flex; gap: 2px; height: 16px; width: 100%; align-items: flex-end; opacity: .8; }
-.wave i {
-  flex: 1 1 0; min-width: 0; display: block; background: var(--ihr-grey-300);
-  border-radius: 2px 2px 0 0; height: 3px;
-  transition: height 90ms linear;
-}
-.wave.live i { transition: height 60ms linear; }
+.wave i { flex: 1 1 0; min-width: 0; display: block; background: var(--ihr-grey-300);
+          border-radius: 2px 2px 0 0; height: 3px; transition: height 90ms linear; }
 
-/* episode list under the player */
-.list {
-  width: 100%; height: 220px; background: var(--ihr-grey-150);
-  padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px; overflow: hidden;
-}
+.list { width: 100%; height: 220px; background: var(--ihr-grey-150); padding: 12px 16px 16px;
+        display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
 .list h3 { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
-.row {
-  display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
-  border-radius: var(--radius-widget); cursor: pointer;
-}
+.row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
+       border-radius: var(--radius-widget); cursor: pointer; }
 .row:hover { background: rgba(0,0,0,.05); }
 .row.on { background: rgba(204,3,46,.10); }
-.tile {
-  width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto;
-  background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
-  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); object-fit: cover;
-}
+.tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
+        background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
+        filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }
 .row-meta { display: flex; flex-direction: column; justify-content: center; flex: 1 1 0; min-width: 0; }
-.row-meta b { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-meta span { font-size: 12px; line-height: 16px; color: var(--ihr-grey-450); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge {
-  font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
-  background: var(--ihr-grey-300); color: var(--ihr-grey-600); padding: 2px 4px; border-radius: 2px;
-}
-.status { font-size: 12px; color: var(--ihr-grey-450); min-height: 16px; text-align: center; }
+.row-meta b { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-meta span { font-size: 12px; line-height: 16px; color: var(--ihr-grey-450);
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+         background: var(--ihr-grey-300); color: var(--ihr-grey-600); padding: 2px 4px; border-radius: 2px; }
+
+.status { font-size: 12px; color: var(--ihr-grey-450); min-height: 18px; margin: 8px 0 0; }
 .status.err { color: #b00020; font-weight: 600; }
+.colourline { font: 11.5px ui-monospace, Menlo, monospace; color: var(--ihr-grey-450); display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.chip { width: 22px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">Audio Widget Prototype <span>from Figma, Audio Widgets</span></div>
-
-  <div class="ctrl">
-    <label>Size</label>
-    <div class="seg" id="sizeSeg">
-      <button data-size="sm" aria-pressed="true">350px</button>
-      <button data-size="lg" aria-pressed="false">1280px</button>
-    </div>
-  </div>
-
-  <div class="ctrl">
-    <label>Stream</label>
-    <div class="seg" id="kindSeg">
-      <button data-kind="podcast" aria-pressed="true">Podcast</button>
-      <button data-kind="live" aria-pressed="false">Live Radio</button>
-    </div>
-  </div>
-
-  <div class="ctrl">
-    <label>Artwork colour</label>
-    <div class="swatches">
-      <span class="swatch" id="swDom" title="dominant colour extracted from the artwork"></span>
-      <span class="swatch" id="swOut" title="after the design's 70% black overlay"></span>
-    </div>
-    <span class="swatch-label" id="swText"></span>
-  </div>
+  <div class="hint">Resize the window: each widget lays itself out from its own width. Search to load any iHeart podcast or station.</div>
 </header>
 
 <main>
-  <div class="stage"><div id="mount"></div></div>
-  <p class="status" id="status"></p>
-  <p class="note" id="note"></p>
+  <section>
+    <h2>Podcast</h2>
+    <p class="sub">Search any iHeart podcast. The newest episode loads and plays, and the header colour comes from that show's artwork.</p>
+    <div class="search" data-for="podcast">
+      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell"><div id="w-podcast"></div></div>
+    <p class="status" id="s-podcast"></p>
+    <div class="colourline" id="c-podcast"></div>
+  </section>
+
+  <section>
+    <h2>Live radio</h2>
+    <p class="sub">Search any iHeart station. Live radio has no duration, so the scrubber is replaced with a live indicator.</p>
+    <div class="search" data-for="live">
+      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell"><div id="w-live"></div></div>
+    <p class="status" id="s-live"></p>
+    <div class="colourline" id="c-live"></div>
+  </section>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
 <script>
 /* ============================================================================
-   Two sources, both real and both analysable.
-
-   The waveform reads actual audio through a Web Audio AnalyserNode, which only
-   works if the browser is allowed to inspect the samples. That needs CORS on
-   the audio itself, so both sources below were checked first: the Omny podcast
-   mp3 and the iHeart HLS stream each return an Access-Control-Allow-Origin
-   header through their whole redirect chain. That is why nothing is hosted
-   here and why crossOrigin is set on the element.
+   iHeart's public API. Every endpoint used here answers with
+   Access-Control-Allow-Origin, as does the audio and the artwork it points at,
+   which is what makes both the analyser and the colour extraction possible
+   from the browser with nothing hosted locally.
    ==========================================================================*/
-const SOURCES = {
-  podcast: {
-    title: '"Yumming My Yuck" (w/ Carly Rae Jepsen)',
-    subtitle: 'Las Culturistas with Matt Rogers and Bowen Yang',
-    art: 'assets/las-culturistas.jpg',
-    audio: 'https://podtrac.com/pts/redirect.mp3/pscrb.fm/rss/p/traffic.omny.fm/d/clips/' +
-           'e73c998e-6e60-432f-8610-ae210140c5b1/a91018a4-ea4f-4130-bf55-ae270180c327/' +
-           '14a765e3-97da-47af-99ea-b4bf01417191/audio.mp3',
-    hls: false,
-    listTitle: 'Episodes',
-    rows: [
-      ['"Yumming My Yuck" (w/ Carly Rae Jepsen)', 'Sep 9, 2026 • 1 hr 21 min', 'e'],
-      ['"Class FTM License" (w/ Spike Einbinder)', 'Sep 4, 2026 • 1 hr 12 min', 'e'],
-      ['"I Don\'t Think So, Honey!" live', 'Aug 28, 2026 • 58 min', 'e'],
-      ['"Culture Is: Pop" (w/ guest)', 'Aug 21, 2026 • 1 hr 4 min', 'e']
-    ]
-  },
-  live: {
-    title: 'Z100',
-    subtitle: "New York's #1 Hit Music Station",
-    art: 'assets/z100.png',
-    audio: 'https://stream.revma.ihrhls.com/zc1469/hls.m3u8',
-    hls: true,
-    listTitle: 'Recently Played',
-    rows: [
-      ['On Air Now', 'Z100 New York • Live', null],
-      ['Top 40 Hits', 'Continuous play', null],
-      ['Elvis Duran and the Morning Show', 'Weekdays 6a to 10a', null],
-      ['Z100 Weekend Countdown', 'Saturdays 9a', null]
-    ]
-  }
-};
+const API = 'https://us.api.iheart.com/api';
+const jget = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 
-/* The 70 bar heights are the design's own resting waveform, read straight off
-   the Figma frame, so the idle state matches the mock pixel for pixel. */
+const searchPodcasts = (q) => jget(`${API}/v3/search/all?keywords=${encodeURIComponent(q)}` +
+  `&maxRows=8&bundle=false&station=false&artist=false&track=false&playlist=false&podcast=true`)
+  .then((d) => (d.results && d.results.podcasts) || []);
+
+const searchStations = (q) => jget(`${API}/v3/search/all?keywords=${encodeURIComponent(q)}` +
+  `&maxRows=8&bundle=false&station=true&artist=false&track=false&playlist=false&podcast=false`)
+  .then((d) => (d.results && d.results.stations) || []);
+
+/* The episode LIST omits mediaUrl; the single-episode endpoint includes it.
+   That one detail is the difference between a searchable widget and a
+   decorative one. */
+async function loadPodcast(id) {
+  const [show, eps] = await Promise.all([
+    jget(`${API}/v3/podcast/podcasts/${id}`),
+    jget(`${API}/v3/podcast/podcasts/${id}/episodes?limit=8`).then((d) => d.data || [])
+  ]);
+  if (!eps.length) throw new Error('no episodes');
+  const first = await jget(`${API}/v3/podcast/episodes/${eps[0].id}`).then((d) => d.episode);
+  return {
+    kind: 'podcast',
+    title: first.title, subtitle: show.title,
+    art: show.imageUrl, audio: first.mediaUrl, hls: false,
+    listTitle: 'Episodes',
+    rows: eps.map((e) => ({
+      id: e.id, title: e.title,
+      sub: new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+           (e.duration ? ' • ' + Math.round(e.duration / 60) + ' min' : ''),
+      badge: e.isExplicit ? 'e' : null, art: e.imageUrl || show.imageUrl
+    }))
+  };
+}
+
+async function loadStation(id) {
+  const d = await jget(`${API}/v2/content/liveStations/${id}`);
+  const h = d.hits[0];
+  const s = h.streams || {};
+  const url = s.secure_hls_stream || s.hls_stream || s.secure_shoutcast_stream || s.shoutcast_stream;
+  return {
+    kind: 'live',
+    title: h.name, subtitle: h.description || (h.markets && h.markets[0] && h.markets[0].name) || 'Live radio',
+    art: h.logo || `https://i.iheart.com/v3/re/assets/images/${id}.png`,
+    audio: url, hls: /\.m3u8/.test(url || ''),
+    listTitle: 'On air',
+    rows: [
+      { title: h.name, sub: (h.description || 'Live radio'), badge: null, art: h.logo },
+      { title: 'Live stream', sub: h.callLetters || 'iHeartRadio', badge: null, art: h.logo }
+    ]
+  };
+}
+
+/* The design's own resting waveform, read off the Figma frame. */
 const IDLE = [3,3,3,5,5,5,11,5,11,8,11,13,11,13,13,16,13,13,11,13,11,13,16,13,11,11,13,13,11,8,
               13,13,11,13,16,13,13,11,13,8,11,5,11,11,13,11,5,11,5,11,5,8,5,5,11,5,5,3,5,3,3,5,
               3,3,3,3,3,3,3,3];
-const WAVE_MAX = 16;          /* container height in the design */
-const state = { size: 'sm', kind: 'podcast', playing: false, speed: 1, saved: false };
-
-const $ = (s) => document.querySelector(s);
-const mount = $('#mount');
-let audio, ctx, analyser, srcNode, freq, raf, hls, bars = [], smooth = [];
+const WAVE_MAX = 16;
+const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ---------------------------------------------------------------------------
-   Dominant colour, the same question the real players answer differently.
-
-   Straight "most common pixel" is wrong for logo art: the Z100 tile is 78%
-   white padding, so the most common colour is the background, not the brand.
-   So near-white and near-black pixels are excluded first, and the most
-   populous remaining bucket wins. Falls back to the raw mode if a piece of
-   art really is monochrome.
+   Dominant colour. Straight "most common pixel" is wrong for logo art: a
+   station tile can be 78% white padding, so the background would win over the
+   brand. Near-white and near-black are dropped first.
    ------------------------------------------------------------------------ */
 function dominantColour(img) {
-  const N = 48;
-  const c = document.createElement('canvas');
+  const N = 48, c = document.createElement('canvas');
   c.width = c.height = N;
   const g = c.getContext('2d', { willReadFrequently: true });
-  g.drawImage(img, 0, 0, N, N);
+  try { g.drawImage(img, 0, 0, N, N); } catch (e) { return null; }
   let data;
-  try { data = g.getImageData(0, 0, N, N).data; }
-  catch (e) { return null; }          /* tainted canvas, cannot read */
-
-  const bins = new Map(), binsAll = new Map();
+  try { data = g.getImageData(0, 0, N, N).data; } catch (e) { return null; }
+  const bins = new Map(), all = new Map();
   for (let i = 0; i < data.length; i += 4) {
-    const r = data[i], gg = data[i + 1], b = data[i + 2], a = data[i + 3];
-    if (a < 128) continue;
+    const r = data[i], gg = data[i + 1], b = data[i + 2];
+    if (data[i + 3] < 128) continue;
     const key = (r >> 4) * 256 + (gg >> 4) * 16 + (b >> 4);
-    const add = (m) => {
-      const e = m.get(key) || [0, 0, 0, 0];
-      e[0] += r; e[1] += gg; e[2] += b; e[3]++; m.set(key, e);
-    };
-    add(binsAll);
+    const add = (m) => { const e = m.get(key) || [0,0,0,0]; e[0]+=r; e[1]+=gg; e[2]+=b; e[3]++; m.set(key, e); };
+    add(all);
     const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
     const sat = mx === 0 ? 0 : (mx - mn) / mx;
-    const lum = 0.2126 * r + 0.7152 * gg + 0.0722 * b;
-    if (sat < 0.15 && lum > 200) continue;     /* white-ish padding */
-    if (lum < 12) continue;                    /* pure black */
+    const lum = .2126*r + .7152*gg + .0722*b;
+    if (sat < .15 && lum > 200) continue;
+    if (lum < 12) continue;
     add(bins);
   }
-  const pick = (m) => {
-    let best = null, n = -1;
+  const pick = (m) => { let best = null, n = -1;
     m.forEach((e) => { if (e[3] > n) { n = e[3]; best = e; } });
-    return best && [Math.round(best[0] / best[3]), Math.round(best[1] / best[3]), Math.round(best[2] / best[3])];
+    return best && [Math.round(best[0]/best[3]), Math.round(best[1]/best[3]), Math.round(best[2]/best[3])]; };
+  return pick(bins) || pick(all);
+}
+const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
+const over70 = (c) => c.map((v) => Math.round(v * .3));
+
+/* ============================================================================
+   One widget instance. Everything is scoped to its own root so two can share
+   a page without touching each other's state.
+   ==========================================================================*/
+const INSTANCES = [];
+
+function makeWidget(rootId, statusId, colourId) {
+  const root = document.getElementById(rootId);
+  const statusEl = document.getElementById(statusId);
+  const colourEl = document.getElementById(colourId);
+  const w = {
+    data: null, audio: null, ctx: null, analyser: null, src: null, freq: null,
+    hls: null, raf: 0, bars: [], smooth: [], playing: false, speed: 1, saved: false
   };
-  return pick(bins) || pick(binsAll);
-}
+  INSTANCES.push(w);
+  const q = (sel) => root.querySelector(sel);
 
-const hex = (rgb) => '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
-/* what the eye actually sees once the design's 70% black sits on top */
-const composited = (rgb) => rgb.map((v) => Math.round(v * 0.3));
+  const status = (m, err) => { statusEl.textContent = m || ''; statusEl.className = 'status' + (err ? ' err' : ''); };
 
-function applyArtworkColour(img) {
-  const rgb = dominantColour(img);
-  if (!rgb) return;
-  document.documentElement.style.setProperty('--dominant', hex(rgb));
-  $('#swDom').style.background = hex(rgb);
-  $('#swOut').style.background = hex(composited(rgb));
-  $('#swText').textContent = hex(rgb) + ' → ' + hex(composited(rgb));
-}
-
-/* ---------------------------------------------------------------------------
-   Markup
-   ------------------------------------------------------------------------ */
-const icon = (name, alt) => `<img src="assets/${name}.svg" alt="${alt}">`;
-
-function build() {
-  const s = SOURCES[state.kind];
-  const lg = state.size === 'lg';
-  const barCount = lg ? IDLE.length * 4 : IDLE.length;
-  const isLive = state.kind === 'live';
-
-  mount.innerHTML = `
-    <div class="widget ${state.size}">
-      <div class="player">
-        <div class="body">
-          <img class="art" id="art" src="${s.art}" alt="" crossorigin="anonymous">
-          <div class="meta">
-            <p class="title">${s.title}</p>
-            <p class="subtitle">${s.subtitle}</p>
-          </div>
-          <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
-
-          <div class="controls-row">
-            <button class="play-btn" id="play" aria-label="Play">
-              <img id="playIcon" src="assets/play.svg" alt="">
-            </button>
-            <div class="stack">
-              ${isLive ? `
-                <div class="slider">
-                  <span class="live-badge"><span class="live-dot"></span>Live</span>
-                  <div style="flex:1"></div>
-                  <span class="t" id="elapsedTxt">00:00</span>
-                </div>` : `
-                <div class="slider">
-                  <span class="t" id="elapsedTxt">00:00</span>
-                  <div class="track" id="track">
-                    <div class="elapsed" id="elapsed" style="width:0"></div>
-                    <div class="thumb" id="thumb" style="left:0"></div>
+  function render() {
+    const d = w.data; if (!d) return;
+    const isLive = d.kind === 'live';
+    root.innerHTML = `
+      <div class="widget">
+        <div class="player">
+          <div class="body">
+            <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+            <div class="meta">
+              <p class="title">${esc(d.title)}</p>
+              <p class="subtitle">${esc(d.subtitle)}</p>
+            </div>
+            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+            <div class="controls-row">
+              <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt=""></button>
+              <div class="stack">
+                ${isLive ? `
+                  <div class="slider">
+                    <span class="live-badge"><span class="live-dot"></span>Live</span>
+                    <div style="flex:1"></div><span class="t el">00:00</span>
+                  </div>` : `
+                  <div class="slider">
+                    <span class="t el">00:00</span>
+                    <div class="track">
+                      <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                    </div>
+                    <span class="t dur">--:--</span>
+                  </div>`}
+                <div class="btn-row">
+                  <div class="btn-group">
+                    ${isLive ? '' : `
+                    <button class="icon-btn speed-btn" data-act="speed" aria-label="Playback speed"><span>1x</span></button>
+                    <button class="icon-btn" data-act="back" aria-label="Back 15 seconds">${icon('back15')}</button>
+                    <button class="icon-btn" data-act="fwd" aria-label="Forward 30 seconds">${icon('fwd30')}</button>`}
                   </div>
-                  <span class="t" id="durTxt">--:--</span>
-                </div>`}
-              <div class="btn-row">
-                <div class="btn-group">
-                  ${isLive ? '' : `
-                  <button class="icon-btn speed-btn" id="speed" aria-label="Playback speed">
-                    <span id="speedTxt">1x</span>
-                  </button>
-                  <button class="icon-btn" id="back" aria-label="Back 15 seconds">${icon('back15','')}</button>
-                  <button class="icon-btn" id="fwd" aria-label="Forward 30 seconds">${icon('fwd30','')}</button>`}
-                </div>
-                <div class="btn-group">
-                  <button class="icon-btn" id="save" aria-pressed="false" aria-label="Save">${icon('plus','')}</button>
-                  <button class="icon-btn" id="info" aria-label="Info">${icon('info','')}</button>
-                  <button class="icon-btn" id="share" aria-label="Share">${icon('share','')}</button>
+                  <div class="btn-group">
+                    <button class="icon-btn" data-act="save" aria-pressed="false" aria-label="Save">${icon('plus')}</button>
+                    <button class="icon-btn" data-act="info" aria-label="Info">${icon('info')}</button>
+                    <button class="icon-btn" data-act="share" aria-label="Share">${icon('share')}</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <div class="wave">${IDLE.map((h) => `<i style="height:${h}px"></i>`).join('')}</div>
         </div>
-
-        <div class="wave ${isLive ? 'live' : ''}" id="wave">
-            ${Array.from({ length: barCount }, (_, i) =>
-              `<i style="height:${IDLE[lg ? Math.floor(i / 4) : i]}px"></i>`).join('')}
+        <div class="list">
+          <h3>${esc(d.listTitle)}</h3>
+          <div class="rows">
+            ${d.rows.map((r, i) => `
+              <div class="row${i === 0 ? ' on' : ''}">
+                <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                <div class="row-meta"><b>${esc(r.title)}</b><span>${esc(r.sub)}</span></div>
+                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
+                <button class="icon-btn" aria-label="More"><img src="assets/overflow.svg" alt="" style="filter:invert(15%)"></button>
+              </div>`).join('')}
+          </div>
         </div>
-      </div>
+      </div>`;
 
-      <div class="list">
-        <h3>${s.listTitle}</h3>
-        <div class="rows">
-          ${s.rows.map((r, i) => `
-            <div class="row${i === 0 ? ' on' : ''}">
-              <img class="tile" src="${s.art}" alt="">
-              <div class="row-meta"><b>${r[0]}</b><span>${r[1]}</span></div>
-              ${r[2] ? `<span class="badge">${r[2]}</span>` : ''}
-              <button class="icon-btn" aria-label="More"><img src="assets/overflow.svg" alt="" style="filter:invert(15%)"></button>
-            </div>`).join('')}
-        </div>
-      </div>
-    </div>`;
+    /* One bar per design value at any width. The design draws four bars per
+       value at 1280; here the bars simply flex, which keeps the silhouette
+       identical and the analyser mapping size-independent. */
+    w.bars = [...root.querySelectorAll('.wave i')];
+    w.smooth = new Array(w.bars.length).fill(0);
 
-  bars = [...mount.querySelectorAll('.wave i')];
-  smooth = new Array(bars.length).fill(0);
-
-  const art = $('#art');
-  if (art.complete) applyArtworkColour(art);
-  else art.onload = () => applyArtworkColour(art);
-
-  wireWidget();
-  $('#note').innerHTML = isLive
-    ? 'Live radio has no duration, so the scrubber is replaced with a live indicator. ' +
-      'The 1280 live frame in Figma still shows a podcast scrubber, which looks like a copy from the podcast variant.'
-    : 'Drag the scrubber, change speed, skip. The waveform is reading the real episode audio.';
-}
-
-/* ---------------------------------------------------------------------------
-   Audio and the analyser
-   ------------------------------------------------------------------------ */
-function teardown() {
-  cancelAnimationFrame(raf);
-  if (hls) { hls.destroy(); hls = null; }
-  if (audio) { audio.pause(); audio.removeAttribute('src'); audio.load(); }
-  srcNode = null; analyser = null;
-  state.playing = false;
-}
-
-function ensureAudio() {
-  if (audio) return audio;
-  audio = new Audio();
-  audio.crossOrigin = 'anonymous';       /* required for the analyser to read samples */
-  audio.preload = 'none';
-  audio.addEventListener('timeupdate', onTime);
-  audio.addEventListener('loadedmetadata', onTime);
-  audio.addEventListener('ended', () => setPlaying(false));
-  audio.addEventListener('error', () => setStatus('Audio failed to load. The stream may be geo-restricted or temporarily down.', true));
-  return audio;
-}
-
-function connectAnalyser() {
-  if (analyser) return;
-  ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-  srcNode = ctx.createMediaElementSource(audio);
-  analyser = ctx.createAnalyser();
-  analyser.fftSize = 512;
-  analyser.smoothingTimeConstant = 0.75;
-  freq = new Uint8Array(analyser.frequencyBinCount);
-  srcNode.connect(analyser);
-  analyser.connect(ctx.destination);
-}
-
-function loadSource() {
-  const s = SOURCES[state.kind];
-  ensureAudio();
-  if (s.hls) {
-    if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-      audio.src = s.audio;                       /* Safari plays HLS natively */
-    } else if (window.Hls && window.Hls.isSupported()) {
-      hls = new window.Hls({ enableWorker: true });
-      hls.loadSource(s.audio);
-      hls.attachMedia(audio);
-      hls.on(window.Hls.Events.ERROR, (_, d) => {
-        if (d.fatal) setStatus('Live stream error: ' + d.details, true);
-      });
-    } else {
-      setStatus('This browser cannot play HLS, so live radio is unavailable here.', true);
-      return false;
-    }
-  } else {
-    audio.src = s.audio;
-  }
-  return true;
-}
-
-function setStatus(msg, err) {
-  const el = $('#status');
-  el.textContent = msg || '';
-  el.className = 'status' + (err ? ' err' : '');
-}
-
-async function setPlaying(on) {
-  const icon = $('#playIcon'), btn = $('#play');
-  if (on) {
-    if (!audio || !audio.src && !hls) { if (!loadSource()) return; }
-    try {
-      connectAnalyser();
-      if (ctx.state === 'suspended') await ctx.resume();
-      await audio.play();
-      setStatus(state.kind === 'live' ? 'Live from Z100 New York.' : 'Playing the real episode audio.');
-    } catch (e) {
-      setStatus('Playback blocked: ' + e.message, true);
-      return;
-    }
-  } else if (audio) {
-    audio.pause();
-  }
-  state.playing = on;
-  if (icon) icon.src = on ? 'assets/pause.svg' : 'assets/play.svg';
-  if (btn) btn.setAttribute('aria-label', on ? 'Pause' : 'Play');
-  if (on) loop(); else cancelAnimationFrame(raf), settle();
-}
-
-const fmt = (s) => {
-  if (!isFinite(s)) return '--:--';
-  const m = Math.floor(s / 60), ss = Math.floor(s % 60);
-  return (m < 10 ? '0' : '') + m + ':' + (ss < 10 ? '0' : '') + ss;
-};
-
-function onTime() {
-  const et = $('#elapsedTxt'); if (!et || !audio) return;
-  et.textContent = fmt(audio.currentTime);
-  const dt = $('#durTxt'); if (dt) dt.textContent = fmt(audio.duration);
-  const el = $('#elapsed'), th = $('#thumb'), tr = $('#track');
-  if (el && th && tr && isFinite(audio.duration) && audio.duration > 0) {
-    const p = Math.min(1, audio.currentTime / audio.duration);
-    el.style.width = (p * 100) + '%';
-    th.style.left = (p * 100) + '%';
-  }
-}
-
-/* Map the FFT across the bars. Low frequencies carry most of the energy in
-   speech and music, so a linear map would leave the right half dead. A mild
-   power curve spreads the interesting range across the whole strip. */
-function loop() {
-  raf = requestAnimationFrame(loop);
-  if (!analyser) return;
-  analyser.getByteFrequencyData(freq);
-  const n = bars.length, usable = Math.floor(freq.length * 0.72);
-  for (let i = 0; i < n; i++) {
-    const t = i / (n - 1);
-    const idx = Math.min(usable - 1, Math.floor(Math.pow(t, 1.7) * usable));
-    const v = freq[idx] / 255;
-    smooth[i] = smooth[i] * 0.62 + v * 0.38;
-    const h = 3 + smooth[i] * (WAVE_MAX - 3) * 1.55;
-    bars[i].style.height = Math.max(3, Math.min(WAVE_MAX, h)).toFixed(1) + 'px';
-  }
-}
-
-/* Ease back to the design's resting shape when playback stops. */
-function settle() {
-  const lg = state.size === 'lg';
-  let k = 0;
-  const step = () => {
-    k += 0.12;
-    bars.forEach((b, i) => {
-      const target = IDLE[lg ? Math.floor(i / 4) : i];
-      const cur = parseFloat(b.style.height) || 3;
-      b.style.height = (cur + (target - cur) * Math.min(1, k)).toFixed(1) + 'px';
-    });
-    if (k < 1) requestAnimationFrame(step);
-  };
-  step();
-}
-
-/* ---------------------------------------------------------------------------
-   Wiring
-   ------------------------------------------------------------------------ */
-function wireWidget() {
-  $('#play').addEventListener('click', () => setPlaying(!state.playing));
-
-  const speed = $('#speed');
-  if (speed) speed.addEventListener('click', () => {
-    const steps = [1, 1.25, 1.5, 2, 0.75];
-    state.speed = steps[(steps.indexOf(state.speed) + 1) % steps.length];
-    if (audio) audio.playbackRate = state.speed;
-    $('#speedTxt').textContent = state.speed + 'x';
-  });
-  const back = $('#back'); if (back) back.addEventListener('click', () => { if (audio) audio.currentTime = Math.max(0, audio.currentTime - 15); });
-  const fwd = $('#fwd');  if (fwd)  fwd.addEventListener('click',  () => { if (audio) audio.currentTime = Math.min(audio.duration || 1e9, audio.currentTime + 30); });
-
-  const save = $('#save');
-  save.addEventListener('click', () => {
-    state.saved = !state.saved;
-    save.setAttribute('aria-pressed', String(state.saved));
-    setStatus(state.saved ? 'Saved to your library.' : '');
-  });
-  $('#info').addEventListener('click', () => setStatus(SOURCES[state.kind].subtitle));
-  $('#share').addEventListener('click', () => setStatus('Share sheet would open here.'));
-
-  const track = $('#track');
-  if (track) {
-    const seek = (e) => {
-      if (!audio || !isFinite(audio.duration)) return;
-      const r = track.getBoundingClientRect();
-      const p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-      audio.currentTime = p * audio.duration;
-      onTime();
+    const art = q('.art');
+    const paint = () => {
+      const rgb = dominantColour(art);
+      if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
+      root.style.setProperty('--dominant', hex(rgb));
+      colourEl.innerHTML = `<span class="chip" style="background:${hex(rgb)}"></span>` +
+        `<span class="chip" style="background:${hex(over70(rgb))}"></span>` +
+        `<span>${hex(rgb)} with 70% black → ${hex(over70(rgb))}</span>`;
     };
-    track.addEventListener('pointerdown', (e) => {
-      track.setPointerCapture(e.pointerId); seek(e);
-      const move = (ev) => seek(ev);
-      const up = () => { track.removeEventListener('pointermove', move); track.removeEventListener('pointerup', up); };
-      track.addEventListener('pointermove', move);
-      track.addEventListener('pointerup', up);
-    });
+    if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => colourEl.textContent = ''; }
+
+    root.onclick = (e) => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      act(b.dataset.act, b);
+    };
+    const track = q('.track');
+    if (track) {
+      const seek = (ev) => {
+        if (!w.audio || !isFinite(w.audio.duration)) return;
+        const r = track.getBoundingClientRect();
+        w.audio.currentTime = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * w.audio.duration;
+        tick();
+      };
+      track.addEventListener('pointerdown', (ev) => {
+        track.setPointerCapture(ev.pointerId); seek(ev);
+        const mv = (e2) => seek(e2);
+        const up = () => { track.removeEventListener('pointermove', mv); track.removeEventListener('pointerup', up); };
+        track.addEventListener('pointermove', mv); track.addEventListener('pointerup', up);
+      });
+    }
+    if (w.playing) { const pi = q('.pi'); if (pi) pi.src = 'assets/pause.svg'; loop(); }
+    tick();
   }
+
+  function act(kind, btn) {
+    const a = w.audio;
+    if (kind === 'play') return toggle();
+    if (kind === 'speed') {
+      const steps = [1, 1.25, 1.5, 2, .75];
+      w.speed = steps[(steps.indexOf(w.speed) + 1) % steps.length];
+      if (a) a.playbackRate = w.speed;
+      btn.querySelector('span').textContent = w.speed + 'x';
+    }
+    if (kind === 'back' && a) a.currentTime = Math.max(0, a.currentTime - 15);
+    if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
+    if (kind === 'save') { w.saved = !w.saved; btn.setAttribute('aria-pressed', String(w.saved));
+      status(w.saved ? 'Saved to your library.' : ''); }
+    if (kind === 'info') status(w.data.subtitle);
+    if (kind === 'share') status('Share sheet would open here.');
+  }
+
+  function ensureAudio() {
+    if (w.audio) return;
+    const a = new Audio();
+    a.crossOrigin = 'anonymous';     /* required before the analyser can read samples */
+    a.preload = 'none';
+    a.addEventListener('timeupdate', tick);
+    a.addEventListener('loadedmetadata', tick);
+    a.addEventListener('ended', () => setPlaying(false));
+    a.addEventListener('error', () => status('That audio would not load. It may be geo-restricted or offline.', true));
+    w.audio = a;
+  }
+
+  function attachSource() {
+    const d = w.data;
+    ensureAudio();
+    if (d.hls) {
+      if (w.audio.canPlayType('application/vnd.apple.mpegurl')) { w.audio.src = d.audio; }
+      else if (window.Hls && window.Hls.isSupported()) {
+        w.hls = new window.Hls({ enableWorker: true });
+        w.hls.loadSource(d.audio); w.hls.attachMedia(w.audio);
+        w.hls.on(window.Hls.Events.ERROR, (_, x) => { if (x.fatal) status('Live stream error. ' + x.details, true); });
+      } else { status('This browser cannot play HLS.', true); return false; }
+    } else { w.audio.src = d.audio; }
+    return true;
+  }
+
+  async function toggle() { setPlaying(!w.playing); }
+
+  async function setPlaying(on) {
+    if (on) {
+      INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
+      if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
+      if (!w.audio || (!w.audio.src && !w.hls)) { if (!attachSource()) return; }
+      try {
+        if (!w.analyser) {
+          w.ctx = w.ctx || new (window.AudioContext || window.webkitAudioContext)();
+          w.src = w.ctx.createMediaElementSource(w.audio);
+          w.analyser = w.ctx.createAnalyser();
+          w.analyser.fftSize = 512; w.analyser.smoothingTimeConstant = .75;
+          w.freq = new Uint8Array(w.analyser.frequencyBinCount);
+          w.src.connect(w.analyser); w.analyser.connect(w.ctx.destination);
+        }
+        if (w.ctx.state === 'suspended') await w.ctx.resume();
+        await w.audio.play();
+        status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
+      } catch (e) { status('Playback blocked. ' + e.message, true); return; }
+    } else if (w.audio) { w.audio.pause(); }
+    w.playing = on;
+    const pi = q('.pi'); if (pi) pi.src = on ? 'assets/pause.svg' : 'assets/play.svg';
+    const pb = q('[data-act="play"]'); if (pb) pb.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
+  }
+  w.pause = () => setPlaying(false);
+
+  const fmt = (s) => !isFinite(s) ? '--:--' :
+    (Math.floor(s / 60) < 10 ? '0' : '') + Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
+
+  function tick() {
+    const a = w.audio, el = q('.el'); if (!el) return;
+    el.textContent = fmt(a ? a.currentTime : 0);
+    const du = q('.dur'); if (du && a) du.textContent = fmt(a.duration);
+    const e = q('.elapsed'), th = q('.thumb');
+    if (e && th && a && isFinite(a.duration) && a.duration > 0) {
+      const p = Math.min(1, a.currentTime / a.duration) * 100;
+      e.style.width = p + '%'; th.style.left = p + '%';
+    }
+  }
+
+  /* Low frequencies carry nearly all the energy in speech and music, so a
+     linear map would leave the right half of the strip dead. */
+  function loop() {
+    w.raf = requestAnimationFrame(loop);
+    if (!w.analyser) return;
+    w.analyser.getByteFrequencyData(w.freq);
+    const n = w.bars.length, usable = Math.floor(w.freq.length * .72);
+    for (let i = 0; i < n; i++) {
+      const idx = Math.min(usable - 1, Math.floor(Math.pow(i / (n - 1), 1.7) * usable));
+      w.smooth[i] = w.smooth[i] * .62 + (w.freq[idx] / 255) * .38;
+      const h = 3 + w.smooth[i] * (WAVE_MAX - 3) * 1.55;
+      w.bars[i].style.height = Math.max(3, Math.min(WAVE_MAX, h)).toFixed(1) + 'px';
+    }
+  }
+  function settle() {
+    let k = 0;
+    const step = () => {
+      k += .12;
+      w.bars.forEach((b, i) => {
+        const cur = parseFloat(b.style.height) || 3;
+        b.style.height = (cur + (IDLE[i] - cur) * Math.min(1, k)).toFixed(1) + 'px';
+      });
+      if (k < 1) requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  /* Loading new content means a fresh media element: createMediaElementSource
+     can only ever be called once per element, so reuse would silently mute it. */
+  w.load = (data) => {
+    cancelAnimationFrame(w.raf);
+    if (w.hls) { w.hls.destroy(); w.hls = null; }
+    if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }
+    w.audio = null; w.analyser = null; w.src = null; w.playing = false; w.speed = 1;
+    w.data = data; status(''); render();
+  };
+  return w;
 }
 
-$('#sizeSeg').addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b) return;
-  state.size = b.dataset.size;
-  document.querySelectorAll('#sizeSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  const wasPlaying = state.playing;
-  build();                       /* rebuild keeps the same audio element alive */
-  if (wasPlaying) { state.playing = true; $('#playIcon').src = 'assets/pause.svg'; loop(); }
-  onTime();
-});
+/* ---------------------------------------------------------------------------
+   Search
+   ------------------------------------------------------------------------ */
+function wireSearch(box, widget) {
+  const input = box.querySelector('input'), list = box.querySelector('.results');
+  const isPodcast = box.dataset.for === 'podcast';
+  let timer, seq = 0;
 
-$('#kindSeg').addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.kind === state.kind) return;
-  state.kind = b.dataset.kind;
-  document.querySelectorAll('#kindSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  /* Switching stream means a new media element: a MediaElementSource can only
-     ever be created once per element, so reuse would silently mute it. */
-  teardown(); audio = null;
-  build(); setStatus('');
-});
+  const close = () => { list.hidden = true; list.innerHTML = ''; };
+  document.addEventListener('click', (e) => { if (!box.contains(e.target)) close(); });
 
-build();
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 2) return close();
+    timer = setTimeout(async () => {
+      const mine = ++seq;
+      list.hidden = false;
+      list.innerHTML = '<div class="empty">Searching</div>';
+      try {
+        const rows = isPodcast ? await searchPodcasts(q) : await searchStations(q);
+        if (mine !== seq) return;                       /* a newer query won */
+        if (!rows.length) { list.innerHTML = '<div class="empty">Nothing found.</div>'; return; }
+        list.innerHTML = rows.map((r) => {
+          const id = r.id, title = r.title || r.name;
+          const sub = isPodcast ? (r.description || '').replace(/<[^>]*>/g, '').slice(0, 70)
+                                : [r.callLetters, r.description].filter(Boolean).join(' • ').slice(0, 70);
+          const art = isPodcast ? '' : `https://i.iheart.com/v3/re/assets/images/${id}.png`;
+          return `<button data-id="${id}"><img src="${art}" alt="" onerror="this.style.visibility='hidden'">` +
+                 `<span style="min-width:0"><b>${esc(title)}</b><span>${esc(sub)}</span></span></button>`;
+        }).join('');
+        list.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
+          close(); input.blur();
+          const sEl = document.getElementById(box.dataset.for === 'podcast' ? 's-podcast' : 's-live');
+          sEl.textContent = 'Loading'; sEl.className = 'status';
+          try {
+            const data = isPodcast ? await loadPodcast(b.dataset.id) : await loadStation(b.dataset.id);
+            if (!data.audio) throw new Error('no playable stream for this one');
+            widget.load(data);
+          } catch (err) {
+            sEl.textContent = 'Could not load that. ' + err.message; sEl.className = 'status err';
+          }
+        }));
+      } catch (e) {
+        if (mine === seq) list.innerHTML = '<div class="empty">Search failed. ' + esc(e.message) + '</div>';
+      }
+    }, 280);
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   Boot with the two shows from the Figma frames
+   ------------------------------------------------------------------------ */
+const wPod = makeWidget('w-podcast', 's-podcast', 'c-podcast');
+const wLive = makeWidget('w-live', 's-live', 'c-live');
+document.querySelectorAll('.search').forEach((b) =>
+  wireSearch(b, b.dataset.for === 'podcast' ? wPod : wLive));
+
+(async () => {
+  try { wPod.load(await loadPodcast(31090140)); }        /* Las Culturistas */
+  catch (e) { document.getElementById('s-podcast').textContent = 'Could not reach the iHeart API. ' + e.message; }
+  try { wLive.load(await loadStation(1469)); }           /* Z100 New York */
+  catch (e) { document.getElementById('s-live').textContent = 'Could not reach the iHeart API. ' + e.message; }
+})();
 </script>
 </body>
 </html>
