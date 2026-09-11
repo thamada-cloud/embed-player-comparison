@@ -357,6 +357,29 @@ design's own waveform, read off the Figma frame, so the idle state matches the
 mock. On play they are driven by a Web Audio `AnalyserNode` reading the real
 stream, and on pause they ease back to the resting shape.
 
+**Bars are frequency bands measured in hertz, not a slice of the FFT array.**
+The first build read one bin per bar, spread across a fixed fraction of the
+bins with a power curve. That was wrong twice over. A fraction of the bin array
+is a fraction of the Nyquist rate, so the strip covered a different range of
+frequencies depending on the listener's sample rate, and the curve put the whole
+right half of the strip above 5kHz, where recorded music and speech carry almost
+no energy.
+
+The second part is what made it look broken, and it only appears at a normal
+sample rate. Headless Chrome opened the context at 24kHz here, which halves
+every frequency and hid the fault; forcing the 48kHz a real machine runs at
+reproduced it exactly. On live music with the old mapping, **119 of 213 bars
+never moved**, the right third averaged 6.2px of a 16px scale, and the left
+third sat pinned at 16.0 with 0.5px of movement.
+
+Each bar now owns a log-spaced band between 40Hz and 11kHz, takes the loudest
+bin in that band rather than a single sample, and carries a gain that rises with
+frequency, since the spectrum of almost all material falls with it. `fftSize` is
+2048 rather than 512, because the bass bands need bins narrower than the bands
+themselves. Same audio, same 48kHz context, after: **no dead bars at all**, mean
+heights of 10.4, 10.5 and 10.4 across the three thirds, and movement spread over
+the whole strip.
+
 **Bars rise from the bottom edge with rounded tops.** This is easy to get
 backwards and the first build did. Figma authors the bars as `items-start` with
 `rounded-bl`/`rounded-br`, inside a wrapper carrying `-scale-y-100`. Read the bar

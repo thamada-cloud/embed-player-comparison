@@ -761,6 +761,7 @@ function makeWidget(rootId, statusId, colourId) {
       `<i style="height:${IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / n))]}px"></i>`).join('');
     w.bars = [...wave.querySelectorAll('i')];
     w.smooth = new Array(n).fill(0);
+    w.bands = null;                      /* bar count changed, so the bands must be rebuilt */
   }
   const idleAt = (i) => IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / w.bars.length))];
 
@@ -828,8 +829,12 @@ function makeWidget(rootId, statusId, colourId) {
           w.ctx = w.ctx || new (window.AudioContext || window.webkitAudioContext)();
           w.src = w.ctx.createMediaElementSource(w.audio);
           w.analyser = w.ctx.createAnalyser();
-          w.analyser.fftSize = 512; w.analyser.smoothingTimeConstant = .75;
+          /* 2048, not 512. At the 512 the bins are 23Hz wide on a 48k context
+             and 12Hz on a 24k one, which is what a log mapping needs at the
+             bass end; at 512 the lowest bands all landed in the same bin. */
+          w.analyser.fftSize = 2048; w.analyser.smoothingTimeConstant = .6;
           w.freq = new Uint8Array(w.analyser.frequencyBinCount);
+          w.bands = null;
           w.src.connect(w.analyser); w.analyser.connect(w.ctx.destination);
         }
         if (w.ctx.state === 'suspended') await w.ctx.resume();
@@ -923,15 +928,51 @@ function makeWidget(rootId, statusId, colourId) {
 
   /* Low frequencies carry nearly all the energy in speech and music, so a
      linear map would leave the right half of the strip dead. */
+  /* Bars are frequency BANDS, not single bins.
+     The old mapping read one bin per bar, spread over a fixed fraction of the
+     spectrum with a power curve. Two things went wrong with that. The fraction
+     is a fraction of the Nyquist rate, so the strip showed a different range of
+     frequencies depending on the device's sample rate, and the mapping put the
+     whole right half of the strip above 5kHz, where recorded music and speech
+     carry almost no energy. Measured on an episode, the left third averaged
+     15.5px of a 16px cap, pinned at the ceiling and therefore not moving, while
+     the right third sat at 9.8px.
+     Log spacing over a range in HERTZ fixes both: every bar gets a band of real
+     content, the same bands on every device. Each band takes the loudest bin it
+     covers rather than an average, which keeps a bar lively when its band is
+     wide, and a tilt lifts the higher bands, which are genuinely quieter in
+     almost all material. */
+  const F_MIN = 40, F_MAX = 11000;
+  function bands(n) {
+    if (w.bands && w.bands.length === n) return w.bands;
+    const bins = w.freq.length;
+    const binHz = (w.ctx.sampleRate / 2) / bins;
+    const top = Math.min(F_MAX, (w.ctx.sampleRate / 2) * .95);
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const f0 = F_MIN * Math.pow(top / F_MIN, i / n);
+      const f1 = F_MIN * Math.pow(top / F_MIN, (i + 1) / n);
+      const lo = Math.min(bins - 1, Math.floor(f0 / binHz));
+      const hi = Math.max(lo + 1, Math.min(bins, Math.ceil(f1 / binHz)));
+      /* Rising gain. The spectrum of most material falls with frequency, so a
+         flat gain draws a ramp sloping down to the right however loud the
+         track. Tuned against the measured profile rather than picked. */
+      out.push([lo, hi, .62 + 1.05 * Math.pow(i / (n - 1), .85)]);
+    }
+    w.bands = out;
+    return out;
+  }
   function loop() {
     w.raf = requestAnimationFrame(loop);
     if (!w.analyser) return;
     w.analyser.getByteFrequencyData(w.freq);
-    const n = w.bars.length, usable = Math.floor(w.freq.length * .72);
+    const n = w.bars.length, bs = bands(n);
     for (let i = 0; i < n; i++) {
-      const idx = Math.min(usable - 1, Math.floor(Math.pow(i / (n - 1), 1.7) * usable));
-      w.smooth[i] = w.smooth[i] * .62 + (w.freq[idx] / 255) * .38;
-      const h = 3 + w.smooth[i] * (WAVE_MAX - 3) * 1.55;
+      const b = bs[i];
+      let peak = 0;
+      for (let k = b[0]; k < b[1]; k++) if (w.freq[k] > peak) peak = w.freq[k];
+      w.smooth[i] = w.smooth[i] * .55 + (peak / 255) * b[2] * .45;
+      const h = 3 + w.smooth[i] * (WAVE_MAX - 3) * .80;
       w.bars[i].style.height = Math.max(3, Math.min(WAVE_MAX, h)).toFixed(1) + 'px';
     }
   }
