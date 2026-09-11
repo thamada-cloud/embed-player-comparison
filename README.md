@@ -732,6 +732,30 @@ C the same. A track change reaches all three. With nothing on air, B falls back 
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 
+### Clicking the card plays and pauses it, on the artwork designs
+
+Designs B and C toggle from anywhere on the card, the way a video player does.
+Design A does not: it has no surface that is not already a control or the
+episode list.
+
+Four things are deliberately excluded from the toggle.
+
+- **Anything carrying `data-act`**, so the real buttons fire once rather than
+  twice.
+- **The scrubber**, since a seek is a click.
+- **The drawer**, which covers the card and has rows of its own.
+- **A drag**, measured as more than 6px of travel or a live text selection, so
+  pulling across a title to read or copy it does not stop the audio.
+
+It adds no `role` and no `tabindex`. The play button is still the accessible
+control, and a second one would only duplicate it in the tab order.
+
+Verified on all four artwork cards: the card click starts and stops, the play
+button still works, the info button leaves playback alone, the scrubber seeks
+from 3s to 2950s while playing, a click inside the open drawer does nothing, a
+drag across the title does nothing, and the bar card ignores surface clicks
+entirely.
+
 ### How the contrast check works, and why an average was not good enough
 
 The first version of this readout reported the artwork's mean colour under the
