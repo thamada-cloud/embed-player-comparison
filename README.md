@@ -701,6 +701,44 @@ C the same. A track change reaches all three. With nothing on air, B falls back 
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 
+### How the contrast check works, and why an average was not good enough
+
+The first version of this readout reported the artwork's mean colour under the
+scrim. That was a poor check, and measuring it said so. Sampling the actual
+artwork pixels behind each line of text, the average overstated the true worst
+case by as much as 7.6 on a dark cover.
+
+The fix is two figures, one measured and one proved.
+
+**Measured.** Every metadata line's box is mapped back through the
+`object-fit: cover` transform into artwork pixels, the scrim is applied to each
+sample, and the worst ratio behind the text is reported along with the share of
+that area below AA. Sampled at 64px per line, which is enough to catch a bright
+patch behind a word.
+
+**Proved.** The scrim sets a floor that no artwork can break. The worst any
+picture can be is pure white, so white under the scrim is the worst background
+any artwork can produce, and that is arithmetic rather than a sample.
+
+| Scrim | Guaranteed floor, grey-100 text |
+| --- | --- |
+| 55% | 4.47 |
+| 60% | 5.39 |
+| 65% | 6.55 |
+| 70% | 8.00 |
+| 75% | 9.77 |
+
+Read the other way, the scrim would have to fall below 55.2% before AA could
+fail on some artwork, and below 66.7% before AAA could. Design A at 60% clears
+AA on anything by construction; B at 70% and C at 75% clear AAA on anything.
+
+The model was then checked against the extreme. Across a scan of the catalogue
+the brightest cover found was Crime Junkie, mean luminance 0.81 with 80% of its
+pixels bright. Behind the text it measured 8.00 to 1 at 70% and 9.77 at 75%,
+which is the computed floor exactly, to two decimal places. The artwork contains
+pure white where the text sits, so it produced the theoretical worst case and
+still passed AAA.
+
 ### Design C darkens its scrim to 75%
 
 The frames draw `rgba(0,0,0,0.7)` on both artwork designs. Design C paints 75

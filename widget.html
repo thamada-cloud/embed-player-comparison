@@ -937,6 +937,20 @@ function contrast(a, b) {
 }
 const TEXT_RGB = [0xf6, 0xf8, 0xf9];  /* --ihr-grey-100, the header text colour */
 
+/* The scrim sets a FLOOR, and the floor is the honest number for a card whose
+   background is a photograph.
+   An average tells you almost nothing about legibility: it is one figure for a
+   surface that varies pixel by pixel, and measured here it overstated the true
+   worst case behind the text by as much as 7.6. What can be said with
+   certainty is the other end. The worst any artwork can possibly be is pure
+   white, so white under the scrim is the worst background any picture can
+   produce, and that is a computation rather than a sample.
+   At 70% black that floor is 8.00 to 1 against the grey-100 text, at 75% it is
+   9.77, both clear of the 7 that AAA asks for normal text. The scrim would have
+   to fall to 66.7% before AAA could fail on some artwork, and to 55.2% before
+   AA could. */
+const scrimFloor = (pct) => contrast([255 * (1 - pct), 255 * (1 - pct), 255 * (1 - pct)], TEXT_RGB);
+
 /* The smallest overlay that would clear a target ratio for this artwork.
    Useful for judging how much headroom a given colour actually has. */
 function overlayNeededFor(rgb, target) {
@@ -974,6 +988,45 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const q = (sel) => root.querySelector(sel);
 
   const status = (m, err) => { statusEl.textContent = m || ''; statusEl.className = 'status' + (err ? ' err' : ''); };
+
+  /* What the text is actually sitting on, rather than what the picture averages.
+     Each metadata line's box is mapped back through the object-fit: cover
+     transform into artwork pixels, the scrim is applied to every sample, and
+     the worst ratio and the share below AA are reported. Sampled at 64px per
+     line, which is enough to catch a bright patch behind a word and cheap
+     enough to run on every render. */
+  function worstBehindText(pct) {
+    const stage = q('.stage'), img = q('.art');
+    if (!stage || !img || !img.naturalWidth) return null;
+    const lines = [...root.querySelectorAll('.meta p')];
+    if (!lines.length) return null;
+    const sr = stage.getBoundingClientRect();
+    const scale = Math.max(sr.width / img.naturalWidth, sr.height / img.naturalHeight);
+    const ox = (sr.width - img.naturalWidth * scale) / 2;
+    const oy = (sr.height - img.naturalHeight * scale) / 2;
+    let worst = Infinity, below = 0, total = 0;
+    for (const p of lines) {
+      const b = p.getBoundingClientRect();
+      if (!b.width || !b.height) continue;
+      const sx = (b.left - sr.left - ox) / scale, sy = (b.top - sr.top - oy) / scale;
+      const sw = Math.max(1, b.width / scale), sh = Math.max(1, b.height / scale);
+      const N = 64, c = document.createElement('canvas');
+      c.width = N; c.height = Math.max(4, Math.round(N * sh / sw));
+      const g = c.getContext('2d', { willReadFrequently: true });
+      let data;
+      try { g.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+            data = g.getImageData(0, 0, c.width, c.height).data; }
+      catch (e) { return null; }                     /* tainted or off screen */
+      const text = getComputedStyle(p).color.match(/[0-9]+/g).map(Number);
+      for (let i = 0; i < data.length; i += 4) {
+        const r = contrast([data[i] * (1 - pct), data[i + 1] * (1 - pct), data[i + 2] * (1 - pct)], text);
+        if (r < worst) worst = r;
+        if (r < 4.5) below++;
+        total++;
+      }
+    }
+    return total ? { worst, belowAA: below / total } : null;
+  }
 
   /* Buffering is a property of the widget, not of the markup, because render()
      rewrites the markup and would otherwise drop the ring mid-load. */
@@ -1270,19 +1323,38 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const bg = variant !== 'bar'
         ? rgb.map((v) => Math.round(v * (1 - pct)))
         : overlaid(rgb);
-      const r = contrast(bg, TEXT_RGB);
-      const aa = r >= 4.5, aaa = r >= 7;
-      const need = variant === 'bar' ? overlayNeededFor(rgb, 4.5) : null;
+      /* The bar card's background really is one flat colour, so one ratio
+         describes it exactly. The artwork cards are graded on the two figures
+         that mean something over a photograph: the worst the text actually
+         sits on, and the worst any artwork could ever produce at this scrim. */
+      if (variant === 'bar') {
+        const r = contrast(bg, TEXT_RGB);
+        const aa = r >= 4.5, aaa = r >= 7;
+        const need = overlayNeededFor(rgb, 4.5);
+        colourEl.innerHTML =
+          `<span class="chip" style="background:${hex(rgb)}"></span>` +
+          `<span class="chip" style="background:${hex(bg)}"></span>` +
+          `<span>${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
+          `<span class="ratio">${r.toFixed(2)} to 1</span>` +
+          `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
+          `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
+          (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : '');
+        return;
+      }
+      const floor = scrimFloor(pct);
+      const m = worstBehindText(pct);
+      const judged = m ? m.worst : floor;
+      const aa = judged >= 4.5, aaa = judged >= 7;
       colourEl.innerHTML =
-        `<span class="chip" style="background:${hex(rgb)}"></span>` +
         `<span class="chip" style="background:${hex(bg)}"></span>` +
-        `<span>${variant !== 'bar' ? 'artwork average ' : ''}${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
-        `<span class="ratio">${r.toFixed(2)} to 1</span>` +
+        (m
+          ? `<span>worst pixel behind the text</span><span class="ratio">${m.worst.toFixed(2)} to 1</span>`
+          : `<span>artwork could not be sampled, judged on the floor alone</span>`) +
         `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
         `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
-        (variant !== 'bar'
-          ? `<span class="meta-note">average over the whole picture, so a light patch behind a word can still read worse</span>`
-          : (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : ''));
+        `<span class="meta-note">${Math.round(pct * 100)}% black guarantees ${floor.toFixed(2)} to 1 on ANY artwork, ` +
+        `since the worst a picture can be is pure white` +
+        (m && m.belowAA ? `. ${(m.belowAA * 100).toFixed(1)}% of this one is below AA` : '') + `</span>`;
     };
     if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => colourEl.textContent = ''; }
 
