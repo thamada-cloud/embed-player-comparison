@@ -182,6 +182,20 @@ negatives on some hosts.
 
 ## Frame sizing and corners, and who causes what
 
+**The gallery imposes no width.** An embed takes the width of whatever it is
+dropped into, so the page hands each player the window and lets it answer for
+itself. Earlier builds capped the single column at 760px and the page at 1400,
+and both numbers were invented rather than taken from any player. They also
+quietly decided the thing the page exists to ask: Spotify and Apple Podcasts
+change layout somewhere around 600 to 700px, so a fixed 760 put every player in
+the same form at every window size. Measured after the caps came out, one
+column: 1880px at a 1920 viewport, 984 at 1024, 350 at 390, with no horizontal
+overflow at any of them. Two and three columns divide the same full width, 931
+and 615 at 1920.
+
+Heights are a different matter and stay per player, since an embed really does
+declare its own height and the registry records the real one for each.
+
 Two things worth recording, because both looked like our doing and only one was.
 
 **The corners are ours.** Measured across every player: **not one rounds its own
