@@ -136,6 +136,12 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .titles .np-artist { font-weight: 600; }
 .subtitle { font-size: 12px; line-height: 16px; margin: 0; overflow: hidden;
             text-overflow: ellipsis; white-space: nowrap; }
+/* With no track playing the station line is the only line in the block, so it
+   takes the podcast title's size at each width rather than the 12/16 it uses
+   as a third line under a track and artist. A deliberate step past the frame,
+   which drew this state at 12/16. Declared here, ahead of the container query,
+   so the wide override inside the query wins on order as well as specificity. */
+.widget.live.notrack .subtitle { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
 .ihr { position: absolute; right: 16px; top: 0; width: 25px; height: 26px; }
 
 /* ---------- marquee ----------
@@ -206,6 +212,11 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   }
   /* The 5px is the podcast frame's top offset. Live centres instead. */
   .widget.live .meta { padding-top: 0; }
+  /* With no track the station line is the only line in the block, so it takes
+     the podcast title's size rather than the 12/16 it uses as a third line
+     under a track and artist. A deliberate step past the frame, which drew
+     this state at 12/16. */
+  .widget.live.notrack .subtitle { font-size: 16px; line-height: 24px; letter-spacing: -.2px; font-weight: 600; }
 }
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
@@ -218,8 +229,28 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .play-btn {
   appearance: none; border: 0; cursor: pointer; background: var(--true-white);
   border-radius: 999px; padding: 3.75px; display: flex; flex: 0 0 auto;
+  position: relative;
   filter: drop-shadow(0 .938px 1.406px rgba(0,0,0,.15));
 }
+/* Buffering ring. Geometry and timing are the accomplice loading icon from
+   iheartradio/web, packages/accomplice/src/icons/loading: a circle of r=47 in a
+   100 viewBox, round cap, stroke-dasharray 60 300 so the arc covers about a
+   fifth of the 295 unit circumference, rotating once every .75s, linear, in
+   gray300. The site renders that icon at 24px, where its 8 unit stroke reads as
+   roughly 2px, so the stroke is scaled down here rather than tripled by the
+   larger ring. The site swaps the play glyph for the spinner; this rings the
+   button instead, as asked, which keeps the glyph readable while it loads. */
+.spin { position: absolute; inset: -7px; display: none; pointer-events: none; overflow: visible; }
+.widget.buffering .spin { display: block; }
+.spin circle {
+  fill: transparent; stroke: var(--ihr-grey-300); stroke-width: 4.5;
+  stroke-dasharray: 60 300; stroke-linecap: round;
+  transform-origin: center; animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+/* Still turns, because a stopped ring would read as a hung player, but slowly
+   enough not to be the flicker the preference is asking to avoid. */
+@media (prefers-reduced-motion: reduce) { .spin circle { animation-duration: 2.4s; } }
 .play-btn img { width: 52.5px; height: 52.5px; display: block; }
 .play-btn:active { transform: scale(.96); }
 .stack { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
@@ -545,11 +576,19 @@ function makeWidget(rootId, statusId, colourId) {
 
   const status = (m, err) => { statusEl.textContent = m || ''; statusEl.className = 'status' + (err ? ' err' : ''); };
 
+  /* Buffering is a property of the widget, not of the markup, because render()
+     rewrites the markup and would otherwise drop the ring mid-load. */
+  const setBuffering = (on) => {
+    w.buffering = !!on;
+    const el = root.querySelector('.widget');
+    if (el) el.classList.toggle('buffering', w.buffering);
+  };
+
   function render() {
     const d = w.data; if (!d) return;
     const isLive = d.kind === 'live';
     root.innerHTML = `
-      <div class="widget${isLive ? ' live' : ''}">
+      <div class="widget${isLive ? ' live' : ''}${isLive && !(d.track && d.artist) ? ' notrack' : ''}">
         <div class="player">
           <div class="body">
             <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
@@ -567,7 +606,9 @@ function makeWidget(rootId, statusId, colourId) {
                 <p class="subtitle mq">${mqs(d.subtitle)}</p>`}
             </div>
             <div class="controls-row">
-              <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt=""></button>
+              <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt="">
+                <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
+              </button>
               <div class="stack">
                 ${isLive ? '' : `
                   <div class="slider">
@@ -612,6 +653,7 @@ function makeWidget(rootId, statusId, colourId) {
 
     buildBars();
     markOverflow(root);
+    setBuffering(w.buffering);
     if (w.ro) w.ro.disconnect();
     w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); });
     w.ro.observe(root);
@@ -714,6 +756,15 @@ function makeWidget(rootId, statusId, colourId) {
     a.addEventListener('loadedmetadata', tick);
     a.addEventListener('ended', () => setPlaying(false));
     a.addEventListener('error', () => status('That audio would not load. It may be geo-restricted or offline.', true));
+    /* The element itself says when it is waiting on data. `playing` is the only
+       honest clear: `canplay` fires while the audio is still silent, so
+       clearing on it would drop the ring before a note is heard. */
+    a.addEventListener('waiting', () => setBuffering(true));
+    a.addEventListener('stalled', () => setBuffering(true));
+    a.addEventListener('seeking', () => { if (w.playing) setBuffering(true); });
+    a.addEventListener('playing', () => setBuffering(false));
+    a.addEventListener('pause', () => setBuffering(false));
+    a.addEventListener('error', () => setBuffering(false));
     w.audio = a;
   }
 
@@ -738,6 +789,10 @@ function makeWidget(rootId, statusId, colourId) {
       INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
       if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
       if (!w.audio || (!w.audio.src && !w.hls)) { if (!attachSource()) return; }
+      /* The gap between the press and the first sound is the longest wait in
+         the widget, and the element fires no `waiting` for it because nothing
+         was playing to interrupt. Ring it from the press. */
+      setBuffering(true);
       try {
         if (!w.analyser) {
           w.ctx = w.ctx || new (window.AudioContext || window.webkitAudioContext)();
@@ -750,8 +805,9 @@ function makeWidget(rootId, statusId, colourId) {
         if (w.ctx.state === 'suspended') await w.ctx.resume();
         await w.audio.play();
         status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
-      } catch (e) { status('Playback blocked. ' + e.message, true); return; }
+      } catch (e) { setBuffering(false); status('Playback blocked. ' + e.message, true); return; }
     } else if (w.audio) {
+      setBuffering(false);
       w.audio.pause();
       if (w.data && w.data.kind === 'live') w.audio.currentTime = 0;   /* stop, not pause */
     }

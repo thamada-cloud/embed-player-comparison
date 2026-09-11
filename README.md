@@ -404,6 +404,12 @@ The live frames were revised after the first build and now differ structurally:
 - **Three metadata lines, not two.** Track title in Regular 14/18, artist in
   SemiBold 14/18, then the station line in Regular 12/16. Note the weighting is
   the reverse of the podcast, where the title is the SemiBold one.
+- **One line when nothing is playing, at the podcast title's size.** The
+  station line carries the block on its own in that state, so it renders at
+  16/24 SemiBold wide and 14/18 SemiBold compact rather than the 12/16 it uses
+  as a third line under a track and artist. This is a deliberate step past the
+  frame, which drew the state at 12/16. The group is centred, so the larger
+  line simply re-centres, 16px above and 16px below inside the 132px artwork.
 - **One line when nothing is playing.** Talk stations return an empty track
   history (KFI, WOR and WTAM all do), so the two now-playing lines are dropped
   entirely and only the station line shows. Falling back to the station name on
@@ -447,6 +453,32 @@ The live frames were revised after the first build and now differ structurally:
 
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
+
+### The buffering ring is iheart.com's spinner
+
+Geometry and timing come from `packages/accomplice/src/icons/loading` in
+`iheartradio/web`: a circle of r=47 in a 100 viewBox, `stroke-linecap: round`,
+`stroke-dasharray: 60 300` so the arc covers about a fifth of the 295 unit
+circumference, rotating once every .75s, linear, stroked in gray300 `#a9afb2`.
+
+Two deliberate differences from the site.
+
+- **It rings the button rather than replacing the glyph.** `PlayButton` on the
+  site passes the spinner as the Button's `loader`, which swaps out the play
+  icon while pending. This was asked for as a ring, and keeping the glyph means
+  the control still reads as play while it loads.
+- **The stroke is scaled down.** The site renders that icon at 24px, where the
+  8 unit stroke reads as about 2px. Kept at 8 units around a 74px ring it would
+  be nearly 6px, three times the weight, so it is set to 4.5 units instead.
+
+What turns it on is the media element itself, not a timer: `waiting`, `stalled`
+and a `seeking` during playback raise it, `playing`, `pause` and `error` clear
+it. `canplay` deliberately does not clear it, because it fires while the audio
+is still silent. The press itself also raises it, since the gap between pressing
+play and the first sound is the longest wait in the widget and the element fires
+no `waiting` for it, having had nothing to interrupt. Measured on the podcast,
+that gap was 3.0 seconds. The flag lives on the widget object rather than in the
+markup, because a re-render would otherwise drop the ring mid-load.
 
 ### Long text marquees on hover, on pointer devices only
 
