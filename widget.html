@@ -225,6 +225,10 @@ section.is-live > .band-note { color: #14532d; }
    other widget, and the live frame shows the thumb on white. */
 .widget.hero.live .topbar .h-thumb { object-fit: contain; padding: 3px; }
 .topbar .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 0; }
+/* The live block runs flush, no gap between its three lines. The frames carry
+   2px there, this is a deliberate step past them, and it applies to the two
+   artwork cards only: design A's live block and both podcast pairs keep the 2. */
+.widget.hero.live .topbar .meta { gap: 0; }
 .topbar .ihr { position: static; flex: 0 0 auto; width: 25px; height: 26px; }
 /* Two type styles, swapped between the two frames. The name line is the
    SemiBold one at 14/18, the sub line the Regular one at 12/16. */

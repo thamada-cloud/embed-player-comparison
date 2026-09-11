@@ -689,7 +689,10 @@ has.
   | Track | 14/18 Regular, -0.2 |
 
   Every line is grey-100 `#f6f8f9`, including the station line, which is neither
-  white nor dimmed, and the three sit 2px apart in one column. Earlier builds had
+  white nor dimmed. The three sit 2px apart on design A and flush on B and C,
+  which is a deliberate step past the frames: they carry 2px everywhere, and the
+  artwork cards were asked to run their live block tight. The line heights, 16
+  and 18 against 12 and 14, still do the separating. Earlier builds had
   the track first and the station last, which was the older revision.
 
   With nothing on air all three fall back to the station's name over its
