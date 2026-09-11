@@ -232,18 +232,25 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   position: relative;
   filter: drop-shadow(0 .938px 1.406px rgba(0,0,0,.15));
 }
-/* Buffering ring. Geometry and timing are the accomplice loading icon from
-   iheartradio/web, packages/accomplice/src/icons/loading: a circle of r=47 in a
-   100 viewBox, round cap, stroke-dasharray 60 300 so the arc covers about a
-   fifth of the 295 unit circumference, rotating once every .75s, linear, in
-   gray300. The site renders that icon at 24px, where its 8 unit stroke reads as
-   roughly 2px, so the stroke is scaled down here rather than tripled by the
-   larger ring. The site swaps the play glyph for the spinner; this rings the
-   button instead, as asked, which keeps the glyph readable while it loads. */
-.spin { position: absolute; inset: -7px; display: none; pointer-events: none; overflow: visible; }
+/* Buffering ring, copied from iheart.com rather than approximated.
+   The spinner itself is packages/accomplice/src/icons/loading in
+   iheartradio/web: a circle of r=47 in a 100 viewBox, round cap,
+   stroke-dasharray 60 300 so the arc covers about a fifth of the 295 unit
+   circumference, stroke-width 8 user units, rotating once every .75s linear,
+   stroked in gray300.
+   How it is MOUNTED matters as much as the drawing, and is the part an earlier
+   pass got wrong. In button.tsx a pending icon button renders the loader with
+   LOADER_BOX_PROPS_ICON, which is position absolute, inset 0, width and height
+   100%, laid OVER the button with the glyph still visible underneath. So the
+   ring is the button's own diameter, not a larger ring around it, and its
+   stroke is 8/100 of the button, 4.8px on this 60px button. The earlier version
+   sat 7px outside the button at a 3.3px stroke, which is why it read as a
+   different spinner. */
+.spin { position: absolute; inset: 0; width: 100%; height: 100%;
+        display: none; pointer-events: none; overflow: visible; }
 .widget.buffering .spin { display: block; }
 .spin circle {
-  fill: transparent; stroke: var(--ihr-grey-300); stroke-width: 4.5;
+  fill: transparent; stroke: var(--ihr-grey-300); stroke-width: 8;
   stroke-dasharray: 60 300; stroke-linecap: round;
   transform-origin: center; animation: spin .75s linear infinite;
 }
@@ -584,6 +591,26 @@ function makeWidget(rootId, statusId, colourId) {
     if (el) el.classList.toggle('buffering', w.buffering);
   };
 
+  /* The ring is DERIVED from the element's state, never latched by an event.
+     Driving it from `waiting` and `stalled` alone put it up when nothing was
+     buffering: live radio fires `stalled` while playing perfectly well, and
+     stopping a live stream resets currentTime, whose `seeking` raised the ring
+     with no later event left to clear it. The only honest question is whether
+     the listener asked for audio and is not getting it, which is exactly
+     `w.want` against `paused` and a readyState below HAVE_FUTURE_DATA.
+     The 350ms delay is the other half. Audio that starts promptly should never
+     flash a spinner, and most presses here resolve well inside that window. */
+  const BUFFER_DELAY = 350;
+  const stuck = () => {
+    const a = w.audio;
+    return !!w.want && (!a || a.paused || a.readyState < 3);
+  };
+  function refreshBuffering() {
+    if (!stuck()) { clearTimeout(w.bufTimer); w.bufTimer = null; setBuffering(false); return; }
+    if (w.buffering || w.bufTimer) return;
+    w.bufTimer = setTimeout(() => { w.bufTimer = null; if (stuck()) setBuffering(true); }, BUFFER_DELAY);
+  }
+
   function render() {
     const d = w.data; if (!d) return;
     const isLive = d.kind === 'live';
@@ -756,15 +783,11 @@ function makeWidget(rootId, statusId, colourId) {
     a.addEventListener('loadedmetadata', tick);
     a.addEventListener('ended', () => setPlaying(false));
     a.addEventListener('error', () => status('That audio would not load. It may be geo-restricted or offline.', true));
-    /* The element itself says when it is waiting on data. `playing` is the only
-       honest clear: `canplay` fires while the audio is still silent, so
-       clearing on it would drop the ring before a note is heard. */
-    a.addEventListener('waiting', () => setBuffering(true));
-    a.addEventListener('stalled', () => setBuffering(true));
-    a.addEventListener('seeking', () => { if (w.playing) setBuffering(true); });
-    a.addEventListener('playing', () => setBuffering(false));
-    a.addEventListener('pause', () => setBuffering(false));
-    a.addEventListener('error', () => setBuffering(false));
+    /* Every one of these is a moment the answer can change, and each simply
+       re-asks it rather than asserting a state of its own. */
+    ['waiting', 'stalled', 'playing', 'canplay', 'canplaythrough', 'progress',
+     'timeupdate', 'seeking', 'seeked', 'pause', 'play', 'error', 'ended',
+     'loadstart', 'emptied'].forEach((ev) => a.addEventListener(ev, refreshBuffering));
     w.audio = a;
   }
 
@@ -789,10 +812,10 @@ function makeWidget(rootId, statusId, colourId) {
       INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
       if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
       if (!w.audio || (!w.audio.src && !w.hls)) { if (!attachSource()) return; }
-      /* The gap between the press and the first sound is the longest wait in
-         the widget, and the element fires no `waiting` for it because nothing
-         was playing to interrupt. Ring it from the press. */
-      setBuffering(true);
+      /* Intent is recorded before the first await, so the ring can be asked
+         about at any point during the load rather than only after it. */
+      w.want = true;
+      refreshBuffering();
       try {
         if (!w.analyser) {
           w.ctx = w.ctx || new (window.AudioContext || window.webkitAudioContext)();
@@ -805,12 +828,15 @@ function makeWidget(rootId, statusId, colourId) {
         if (w.ctx.state === 'suspended') await w.ctx.resume();
         await w.audio.play();
         status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
-      } catch (e) { setBuffering(false); status('Playback blocked. ' + e.message, true); return; }
+      } catch (e) { w.want = false; refreshBuffering(); status('Playback blocked. ' + e.message, true); return; }
     } else if (w.audio) {
-      setBuffering(false);
+      w.want = false;
+      refreshBuffering();
       w.audio.pause();
       if (w.data && w.data.kind === 'live') w.audio.currentTime = 0;   /* stop, not pause */
     }
+    if (!on) w.want = false;
+    refreshBuffering();
     w.playing = on;
     /* A live stream cannot be resumed from where it left off, so live radio
        stops rather than pauses. */
@@ -898,6 +924,9 @@ function makeWidget(rootId, statusId, colourId) {
     if (w.hls) { w.hls.destroy(); w.hls = null; }
     if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }
     w.audio = null; w.analyser = null; w.src = null; w.playing = false; w.speed = 1;
+    /* New content means nobody has asked for audio yet, and a pending ring
+       timer from the previous item must not land on the new one. */
+    w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
     w.data = data; status(''); render();
   };
   return w;

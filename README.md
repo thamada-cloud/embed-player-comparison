@@ -461,24 +461,31 @@ Geometry and timing come from `packages/accomplice/src/icons/loading` in
 `stroke-dasharray: 60 300` so the arc covers about a fifth of the 295 unit
 circumference, rotating once every .75s, linear, stroked in gray300 `#a9afb2`.
 
-Two deliberate differences from the site.
+**How it is mounted matters as much as how it is drawn**, and is the part a
+first pass got wrong. In `button.tsx` a pending icon button renders the loader
+through `LOADER_BOX_PROPS_ICON`: `position: absolute`, inset 0, width and height
+100%, laid over the button with the glyph still visible underneath. So the ring
+is the button's own diameter with a stroke of 8/100 of it, 4.8px on this 60px
+button. The first version sat 7px outside the button with a 3.3px stroke, on the
+theory that the site's weight should be preserved from its 24px render, and it
+read as a different spinner because it was one.
 
-- **It rings the button rather than replacing the glyph.** `PlayButton` on the
-  site passes the spinner as the Button's `loader`, which swaps out the play
-  icon while pending. This was asked for as a ring, and keeping the glyph means
-  the control still reads as play while it loads.
-- **The stroke is scaled down.** The site renders that icon at 24px, where the
-  8 unit stroke reads as about 2px. Kept at 8 units around a 74px ring it would
-  be nearly 6px, three times the weight, so it is set to 4.5 units instead.
+**What raises it is derived from the element's state, never latched by an
+event.** Driving it from `waiting` and `stalled` put the ring up when nothing
+was buffering: live radio fires `stalled` while playing perfectly well, and
+stopping a live stream resets `currentTime`, whose `seeking` raised the ring
+with no later event left to clear it. The only honest question is whether the
+listener asked for audio and is not getting it, so the state is
+`want && (paused || readyState < HAVE_FUTURE_DATA)`, re-asked on every event
+that could change the answer.
 
-What turns it on is the media element itself, not a timer: `waiting`, `stalled`
-and a `seeking` during playback raise it, `playing`, `pause` and `error` clear
-it. `canplay` deliberately does not clear it, because it fires while the audio
-is still silent. The press itself also raises it, since the gap between pressing
-play and the first sound is the longest wait in the widget and the element fires
-no `waiting` for it, having had nothing to interrupt. Measured on the podcast,
-that gap was 3.0 seconds. The flag lives on the widget object rather than in the
-markup, because a re-render would otherwise drop the ring mid-load.
+**A 350ms delay is the other half.** Audio that starts promptly should never
+flash a spinner. Measured: a synthetic `stalled` during playback does not raise
+it, stopping live radio leaves it down, and a genuine load raises it at 0.38s
+and clears it at 1.52s when sound starts.
+
+The flag lives on the widget object rather than in the markup, because a
+re-render would otherwise drop the ring mid-load.
 
 ### Long text marquees on hover, on pointer devices only
 
