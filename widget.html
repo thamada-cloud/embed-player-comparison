@@ -293,8 +293,13 @@ section.is-live > .band-note { color: #14532d; }
    below 210 the centred row starts to overlap what is above and below it. The
    row sits at calc(50% + .5px), the frame's own half pixel, so 208 was a
    fraction short and 210 is the real floor. 16:9 reaches it at a width of 373,
-   so the floor only applies on narrow phones. */
-.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 210px; }
+   so the floor only applies on narrow phones.
+   The ceiling is the other end of the same argument. A video can be any size
+   because it scales; this card cannot, so past a point 16:9 is just a taller
+   and taller field of artwork around the same 64px button. 400 holds the ratio
+   through every width an embed slot realistically gets, phones and article
+   columns up to 711, and past that the card grows wider rather than taller. */
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 210px; max-height: 400px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
 /* Live C pads the bottom as well as the top, since it ends with a row of icons
    rather than a waveform running to the edge. */

@@ -681,8 +681,8 @@ with two differences that change how it behaves rather than how it looks.
 
 **Design C is 16:9 and fluid, like a YouTube embed.** The card keeps the ratio
 and its height follows its width, rather than being pinned to the frame's 263.
-Measured: 1.778 exactly at every width from 390 up, 1280 by 720 at a 1440
-viewport, 984 by 553 at 1024, 390 by 219 on a phone.
+Measured: 1.778 exactly from 390 up to the 400px ceiling, 660 by 371 at a 700
+viewport, 390 by 219 on a phone.
 
 Two things follow from that, and both are worth knowing before reading the card
 at a wide width.
@@ -691,6 +691,13 @@ at a wide width.
   fixed pixel sizes, so at 1280 by 720 the 64px button and the 40px thumbnail
   sit in a large empty field. That is what a 16:9 box does to fixed content, not
   a layout fault, but it is the reason the design was drawn at 263.
+- **There is a ceiling at 400px.** A video can be any size because it scales;
+  this card cannot, so past a point 16:9 is just a taller and taller field of
+  artwork around the same 64px button. 400 holds the ratio through every width
+  an embed slot realistically gets, phones and article columns up to 711, and
+  past that the card grows wider rather than taller: 740 by 400 at a 780
+  viewport, 1280 by 400 at 1440. The card stays full bleed either way, so the
+  cap is on the height and never on the width.
 - **There is a floor at 210px.** The top bar is 56, the centred control row is
   64 and the bottom block is 72, so below 210 the centred row starts to overlap
   what is above and below it. The row sits at `calc(50% + .5px)`, the frame's
