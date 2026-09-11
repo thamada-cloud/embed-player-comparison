@@ -20,7 +20,7 @@
    the slot it is dropped into, which is not always the viewport.
    ==========================================================================*/
 :root {
-  --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-250: #dadfe3;
+  --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-200: #e6eaed; --ihr-grey-250: #dadfe3;
   --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
   --ihr-red-550: #cc032e; --ihr-red-600: #c6002b; --true-white: #fff;
   --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
@@ -312,9 +312,38 @@ section.is-live > .band-note { color: #14532d; }
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .list-row { display: flex; justify-content: flex-end; padding: 0 16px; box-sizing: border-box; }
-/* The episode list is closed until the list button is pressed, which is why the
-   frame shows none under the card. */
-.widget .list[hidden] { display: none; }
+/* The drawer, frame 2533:85717. It slides up over the player inside the card
+   rather than opening a panel beneath it, which is what the frame draws: the
+   Drawer instance is the same 358 by 263 box as the player, at 0,0.
+   It is closed by transform rather than by display, so the slide can be seen,
+   and visibility flips only at the end of the travel so a closed drawer is out
+   of the tab order rather than sitting invisibly over the controls. */
+.sheet {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--true-white);
+  border-radius: var(--radius-widget) var(--radius-widget) 0 0;
+  transform: translateY(100%); visibility: hidden;
+  transition: transform .28s ease, visibility 0s linear .28s;
+}
+.widget.sheet-open .sheet {
+  transform: translateY(0); visibility: visible;
+  transition: transform .28s ease, visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) { .sheet { transition: visibility 0s; } }
+.sheet-head { flex: 0 0 auto; display: flex; align-items: center; gap: 16px;
+              padding: 16px; background: var(--ihr-grey-200); }
+.sheet-head h3 { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 18px; line-height: 24px;
+                 font-weight: 700; color: var(--ihr-grey-600);
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-close { flex: 0 0 auto; appearance: none; border: 0; background: transparent;
+               cursor: pointer; padding: 4px; border-radius: 999px; display: flex; }
+.sheet-close img { width: 24px; height: 24px; display: block; }
+/* A dark wash, not the white one the icon buttons over artwork use, since this
+   header is light. */
+.sheet-close:hover { background: rgba(0,0,0,.08); }
+.sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; }
+.sheet-body .rows { gap: 2px; }
 
 /* ---------- marquee ----------
    Text that does not fit still ellipsises. On a device with a real pointer it
@@ -1088,8 +1117,33 @@ function makeWidget(rootId, statusId, colourId, variant) {
               </div>
               <div class="wave"></div>
             </div>`}
+          ${isLive ? '' : sheetMarkup(d)}
         </div>
-        ${isLive ? '' : listMarkup(d).replace('<div class="list">', '<div class="list" hidden>')}
+      </div>`;
+  }
+
+  /* The drawer, frame 2533:85717. It is not a panel under the card, it is the
+     card: the Drawer instance is 358 by 263 at 0,0, the same box as the player,
+     so it slides up over it and covers it rather than pushing anything down.
+     Header is 64 tall on ihr grey-200 with the title at 18/24 Bold and a close
+     button; the body is white with 16 of padding and the same 72px rows. */
+  function sheetMarkup(d) {
+    return `
+      <div class="sheet" aria-hidden="true">
+        <div class="sheet-head">
+          <h3>${esc(d.listTitle)}</h3>
+          <button class="sheet-close" data-act="list" aria-label="Close episodes"><img src="assets/sheet-close.svg" alt=""></button>
+        </div>
+        <div class="sheet-body">
+          <div class="rows">
+            ${d.rows.map((r, i) => `
+              <div class="row${i === 0 ? ' on' : ''}">
+                <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
+                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
+              </div>`).join('')}
+          </div>
+        </div>
       </div>`;
   }
 
@@ -1195,6 +1249,16 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const b = e.target.closest('[data-act]'); if (!b) return;
       act(b.dataset.act, b);
     };
+    /* A sheet that covers the player needs a keyboard way out, which the frame
+       has no opinion about and a person on a keyboard certainly does. */
+    root.onkeydown = (e) => {
+      if (e.key !== 'Escape') return;
+      const card = root.querySelector('.widget');
+      if (card && card.classList.contains('sheet-open')) {
+        e.stopPropagation();
+        act('list', root.querySelector('[data-act="list"]'));
+      }
+    };
     const track = q('.track');
     if (track) {
       const seek = (ev) => {
@@ -1267,12 +1331,20 @@ function makeWidget(rootId, statusId, colourId, variant) {
        the episode list being the only list this card has, and it is written as
        a toggle so the closed state stays the frame's own. */
     if (kind === 'list') {
-      const l = root.querySelector('.list');
-      if (l) {
-        const opening = l.hasAttribute('hidden');
-        if (opening) l.removeAttribute('hidden'); else l.setAttribute('hidden', '');
-        btn.setAttribute('aria-pressed', String(opening));
-        btn.setAttribute('aria-label', opening ? 'Hide episodes' : 'Show episodes');
+      const card = root.querySelector('.widget'), sheet = root.querySelector('.sheet');
+      if (card && sheet) {
+        const opening = !card.classList.contains('sheet-open');
+        card.classList.toggle('sheet-open', opening);
+        sheet.setAttribute('aria-hidden', String(!opening));
+        const opener = root.querySelector('[data-act="list"].h-btn');
+        if (opener) {
+          opener.setAttribute('aria-pressed', String(opening));
+          opener.setAttribute('aria-label', opening ? 'Hide episodes' : 'Show episodes');
+        }
+        /* Focus follows the sheet, since it covers the controls underneath and
+           a keyboard would otherwise be tabbing through a hidden player. */
+        const target = opening ? root.querySelector('.sheet-close') : opener;
+        if (target) target.focus({ preventScroll: true });
       }
     }
     if (kind === 'info') status(w.data.subtitle);

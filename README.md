@@ -666,12 +666,19 @@ with two differences that change how it behaves rather than how it looks.
   them from the start. The live frame settles this rather than my guessing it:
   it is drawn idle, play button untouched, with its three icons already on
   screen.
-- **A list button over the scrubber**, right aligned, 8px above it. This is the
-  only place in any of these frames where the episode list is something you ask
-  for rather than something simply there, and the card is drawn with no list
-  under it. What the button opens is an inference, the episode list being the
-  only list this card has. It is built as a toggle so the closed state stays the
-  frame's own.
+- **A list button over the scrubber**, right aligned, 8px above it, opening a
+  drawer. Frame 2533:85717 settles what it opens: a Drawer instance the same 358
+  by 263 box as the player, at 0,0, so it slides up OVER the card and covers it
+  rather than opening a panel beneath it. Header 64 tall on ihr grey-200 with
+  the title at 18/24 Bold and a close X; body white with 16 of padding and the
+  same 72px rows.
+
+  It is closed by transform rather than by display, so the slide is visible, and
+  visibility flips only at the end of the travel, which keeps a closed drawer
+  out of the tab order instead of leaving it invisibly over the controls. Focus
+  moves to the close button on open and back to the list button on close, and
+  Escape closes it. The frame has no opinion about the keyboard; a sheet that
+  covers the player needs a way out regardless.
 - **The two halves are less alike than in design B.** Podcast keeps the 40px
   thumbnail, two lines of text and the seven control row. Live radio has a 48px
   thumbnail and ONE line joining the station and its description.
