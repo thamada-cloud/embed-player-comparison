@@ -512,6 +512,21 @@ The live frames were revised after the first build and now differ structurally:
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
 
+### The shipping player sits at the top of the prototype page
+
+The iHeart embed as it is served today, one podcast and one live radio, above
+the four prototype cards. It is a live iframe from `iheart.com`, not a
+screenshot, and it carries the same episode and the same station as the cards
+below, so a comparison is like for like. A search swaps the matching embed too,
+so the top row keeps up with whatever was last chosen of that kind.
+
+The URLs are built at runtime from the ids the page already fetched rather than
+hard coded, which is the difference between a baseline that stays current and
+one that quietly points at last year's episode. The slug in an iHeart embed URL
+is cosmetic and the trailing numeric id resolves the content, checked rather
+than assumed: a URL with the slug replaced by a single `x` returns the right
+episode and the right station.
+
 ### The hero card, a second design on the same page
 
 Frames 2512:113087 (podcast) and 2512:111965 (live radio), built alongside the

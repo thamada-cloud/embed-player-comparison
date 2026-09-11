@@ -64,6 +64,14 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .gauge.wide .mode { color: var(--ihr-red-550); }
 .hint .vw { font-variant-numeric: tabular-nums; }
 
+/* ---------- the shipping player, for comparison ---------- */
+.embeds { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .embeds { grid-template-columns: 1fr 1fr; } }
+.embed { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.embed-label { font-size: 12px; color: var(--ihr-grey-450); }
+.embed iframe { width: 100%; height: 200px; border: 0; display: block;
+                border-radius: var(--radius-widget); background: var(--ihr-grey-150); }
+
 /* ---------- search ---------- */
 .search { position: relative; margin-bottom: 12px; max-width: 460px; }
 .search input {
@@ -462,6 +470,26 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 <main>
   <section>
+    <div class="h2row"><h2>Shipping today</h2></div>
+    <p class="sub">The iHeart embed player as it is served right now, carrying the same episode and the
+       same station as the prototypes below, so the comparison is like for like. Both are live
+       iframes from iheart.com, not screenshots.</p>
+    <div class="embeds">
+      <div class="embed">
+        <span class="embed-label">Podcast</span>
+        <iframe id="e-podcast" title="iHeart podcast embed, current production player"
+                allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <div class="embed">
+        <span class="embed-label">Live radio</span>
+        <iframe id="e-live" title="iHeart live radio embed, current production player"
+                allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <p class="status" id="s-embeds"></p>
+  </section>
+
+  <section>
     <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast"></span></div>
     <p class="sub">Search any iHeart podcast. The newest episode loads and plays, and the header colour comes from that show's artwork.</p>
     <div class="search" data-for="podcast">
@@ -543,6 +571,9 @@ async function loadPodcast(id) {
   const first = await jget(`${API}/v3/podcast/episodes/${eps[0].id}`).then((d) => d.episode);
   return {
     kind: 'podcast',
+    /* Carried so the production embed above the prototypes can be pointed at
+       the same episode rather than a hard coded one that goes stale. */
+    showId: id, episodeId: eps[0].id, showSlug: show.slug || 'podcast',
     title: first.title, subtitle: show.title,
     art: show.imageUrl, audio: first.mediaUrl, hls: false,
     listTitle: 'Episodes',
@@ -1318,6 +1349,10 @@ function wireSearch(box, widget) {
             const data = isPodcast ? await loadPodcast(b.dataset.id) : await loadStation(b.dataset.id);
             if (!data.audio) throw new Error('no playable stream for this one');
             widget.load(data);
+            /* The shipping player at the top follows the last thing chosen of
+               its kind, so the comparison stays like for like after a search. */
+            const frame = document.getElementById(isPodcast ? 'e-podcast' : 'e-live');
+            if (frame) frame.src = embedUrl[isPodcast ? 'podcast' : 'live'](data);
           } catch (err) {
             sEl.textContent = 'Could not load that. ' + err.message; sEl.className = 'status err';
           }
@@ -1377,16 +1412,29 @@ const vw = document.getElementById('vw');
 const showVw = () => { vw.textContent = Math.round(window.innerWidth); };
 addEventListener('resize', showVw); showVw();
 
+/* The shipping player, pointed at whatever the prototypes are showing.
+   The slug in an iHeart embed URL is cosmetic and the trailing numeric id is
+   what resolves the content, checked rather than assumed: a URL with the slug
+   replaced by a single x returns the right episode and the right station. The
+   real show slug is used where the API gives one anyway. */
+const embedUrl = {
+  podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}` +
+                  `/episode/episode-${d.episodeId}/?embed=true`,
+  live: (d) => `https://www.iheart.com/live/station-${d.stationId}/?embed=true`
+};
+
 (async () => {
   /* One fetch per source, shared by both designs, so the two cards are showing
      the same content and the comparison is about the design alone. */
   try {
     const pod = await loadPodcast(31090140);             /* Las Culturistas */
     wPod.load(pod); wPodHero.load(Object.assign({}, pod));
+    document.getElementById('e-podcast').src = embedUrl.podcast(pod);
   } catch (e) { document.getElementById('s-podcast').textContent = 'Could not reach the iHeart API. ' + e.message; }
   try {
     const live = await loadStation(1469);                /* Z100 New York */
     wLive.load(live); wLiveHero.load(Object.assign({}, live));
+    document.getElementById('e-live').src = embedUrl.live(live);
   } catch (e) { document.getElementById('s-live').textContent = 'Could not reach the iHeart API. ' + e.message; }
 })();
 </script>
