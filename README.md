@@ -415,9 +415,15 @@ The live frames were revised after the first build and now differ structurally:
   for a white tile.
 - **Now playing is signalled by the episode title turning brand red**, not by a
   filled row. A filled bar reads as a selection state rather than playback.
-- **The pause glyph is the one asset not exported from Figma.** No pause icon
-  appears in these four frames, so it is drawn to match the play glyph's bounds
-  and corner radius. Point me at the real node and it is a one file swap.
+- **Symmetric glyphs are centred geometrically, the play triangle is not.** The
+  exported play path sits 1.67px right of the viewBox centre, which is correct:
+  a triangle's visual mass leans left, so it is optically centred. Drawing the
+  pause and stop to the play glyph's bounds inherited that offset and left both
+  visibly off centre in the white circle. They now sit on 26.25 exactly.
+- **The pause and stop glyphs are the only assets not exported from Figma.** No pause icon
+  appears in these four frames, so both are drawn to the play glyph's height and
+  corner radius but centred geometrically. Point me at the real nodes and it is a
+  two file swap.
 
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
