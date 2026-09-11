@@ -437,6 +437,24 @@ The live frames were revised after the first build and now differ structurally:
   samples had a song genuinely on air that the history had not recorded at all.
   With the current endpoint the widget matched it 6 times out of 6.
 
+- **A 204 leaves the line alone.** Stations are between songs a large part of
+  the time, through spot breaks, live reads and talk. Sampled across 20 stations
+  at one instant, 13 answered 204. Clearing the line on every 204 meant it spent
+  most of its life empty. The production player does not clear it either:
+  `setCurrentTrackMeta` spreads the response over the existing meta and
+  preserves a `Track` type that is already set, so a 204 leaves what is on
+  screen alone. The line now holds the last track the station actually reported
+  and is reset only by loading a different station, so it can still never
+  resurrect a song from before the widget was opened, which was the original
+  fault with `trackHistory`.
+
+  204 really does mean nothing is on air, checked rather than assumed: on every
+  station answering 204, the newest `trackHistory` entry had expired minutes
+  earlier, by 8 to 36 minutes on the sample. And where the two sources disagreed
+  the other way, `currentTrackMeta` was the correct one: KROQ reported Deftones
+  as current while the history's newest entry was a Foo Fighters song that had
+  ended 6 minutes before.
+
 - **The poll follows the station, not the transport.** It starts when a station
   loads and runs while the tab is visible, whatever the play button is doing,
   which is what the production player does. Polling only during playback meant a

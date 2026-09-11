@@ -871,9 +871,21 @@ function makeWidget(rootId, statusId, colourId) {
     /* The station can be swapped out while this request is in flight, and
        writing A's track onto B is how a widget ends up lying quietly. */
     if (!w.data || w.data.stationId !== id) return;
+    /* No answer means keep the answer already on screen, which is what the
+       production player does: setCurrentTrackMeta spreads the response over the
+       existing meta and preserves a Track type that is already set, so a 204
+       leaves the line alone rather than clearing it.
+       This matters more than it sounds. Stations are between songs a large part
+       of the time, through spot breaks, live reads and talk. Sampled across 20
+       stations at one instant, 13 answered 204. Clearing on every 204 meant the
+       track line spent most of its life empty, which is the complaint. The line
+       now holds the last track the station actually reported and is reset only
+       by loading a different station, so it can still never resurrect a song
+       from before the widget was opened. */
+    if (!np) return;
     const had = !!(w.data.track && w.data.artist);
-    w.data.track = (np && np.track) || null;
-    w.data.artist = (np && np.artist) || null;
+    w.data.track = np.track || null;
+    w.data.artist = np.artist || null;
     const has = !!(w.data.track && w.data.artist);
     /* Gaining or losing track data changes how many lines the block has, and
        now also its type size, so that edge needs a re-render. */
