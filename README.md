@@ -415,18 +415,35 @@ The live frames were revised after the first build and now differ structurally:
   entirely and only the station line shows. Falling back to the station name on
   the artist row just repeated what the line below already said. Gaining or
   losing a track re-renders, since it changes how many lines the block has.
-- **Now playing is real, and checked against the clock.** Those two lines come
-  from `/v3/live-meta/stream/{id}/trackHistory`, refreshed every 25 seconds
-  while the station plays, because the track changes while you listen. The
-  newest entry in that history is NOT automatically what is on air. The feed
-  logs songs only, so through a commercial break, a talk segment or a live read
-  the newest entry keeps ageing while the station plays something else. Every
-  entry carries `startTime` and `endTime`, so the widget shows a track only
-  while the clock is still inside its window, with 45 seconds of grace for the
-  segue and for the lag between the feed and the audio a listener hears.
-  Measured on seven stations at one moment, three were serving a track that had
-  already ended, by 2 to 11 minutes, and the widget had been presenting all
-  three as currently playing.
+- **Now playing comes from `currentTrackMeta`, the endpoint iheart.com polls.**
+  `/v3/live-meta/stream/{id}/currentTrackMeta?defaultMetadata=true`, every 5
+  seconds, which is what `getCurrentTrackMeta` does in
+  `packages/playback/src/player/subscription/jw-player.ts` in `iheartradio/web`.
+  200 with a body is the track on air, 204 means nothing is on air right now,
+  and 404, 410 or 424 mean the station has no metadata service, so the widget
+  stops asking it, exactly as the production player does.
+
+  `defaultMetadata=true` is not optional. Without it the same stations answer
+  410 rather than 200, because third party listening is disabled on them.
+
+  **`trackHistory` was the wrong source, and it was wrong in both directions.**
+  It is a log of songs, not a statement about the present. Taking its newest
+  entry showed songs that had finished minutes earlier: on seven stations at one
+  moment, three were serving a track that had already ended, by 2 to 11 minutes.
+  Filtering that entry by its own `startTime` and `endTime` fixed the stale ones
+  but introduced the opposite fault, blanking tracks that really were playing,
+  because the log lags and skips. Measured against `currentTrackMeta` across six
+  stations, the history covered only 21% to 80% of wall clock time, and 3 of 18
+  samples had a song genuinely on air that the history had not recorded at all.
+  With the current endpoint the widget matched it 6 times out of 6.
+
+- **The poll follows the station, not the transport.** It starts when a station
+  loads and runs while the tab is visible, whatever the play button is doing,
+  which is what the production player does. Polling only during playback meant a
+  station loaded during a commercial break showed no track for as long as it sat
+  there, however long the song that followed ran. A station swapped out while a
+  request is in flight discards that response rather than writing one station's
+  track onto another.
 - **No scrubber and no duration.** A live stream has no length, and the Slider
   instance is `hidden` in the frame.
 - **Stop, not pause.** A live stream cannot resume where it left off, so the

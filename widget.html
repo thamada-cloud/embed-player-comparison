@@ -424,29 +424,36 @@ async function loadPodcast(id) {
 }
 
 /* What is playing on a station right now.
-   The newest entry in the track history is NOT automatically what is on air.
-   The feed logs songs only, so through a commercial break, a talk segment or a
-   live read the newest entry keeps ageing while the station plays something
-   else. Station 1469 was serving an entry whose own endTime had passed 7.4
-   minutes earlier, and the widget presented it as the current track. Every
-   entry carries startTime and endTime, so read them and show the track only
-   while the clock is still inside its window.
-   The grace covers the seconds between one song ending and the next being
-   reported, plus the lag between the metadata feed and the audio the listener
-   is actually hearing. */
-const NP_GRACE = 45;
+   This is `currentTrackMeta`, the endpoint iheart.com itself polls. See
+   packages/playback/src/player/subscription/jw-player.ts in iheartradio/web,
+   where `getCurrentTrackMeta` is called on a 5 second interval and a 404, 410
+   or 424 stops the polling for that station.
+   The endpoint answers the question directly, so nothing has to be inferred:
+   200 with a body is the track on air, 204 means nothing is on air right now.
+   `trackHistory` was the wrong source. It is a log of songs, not a statement
+   about the present, and reading it two ways was wrong two ways. Taking its
+   newest entry showed songs that had finished minutes earlier. Filtering that
+   entry by its own startTime and endTime stopped the stale ones but also
+   blanked tracks that really were playing, because the log lags and skips:
+   measured against this endpoint across six stations, the history covered only
+   21% to 80% of wall clock time, and 3 of 18 samples had a song genuinely on
+   air that the history had not recorded at all.
+   `defaultMetadata=true` is not optional. Without it the same stations answer
+   410 rather than 200, since third party listening is disabled on them. */
 async function nowPlaying(id) {
+  if (NO_META.has(id)) return null;
   try {
-    const d = await jget(`${API}/v3/live-meta/stream/${id}/trackHistory?limit=3`);
-    const now = Date.now() / 1000;
-    const t = (d.data || []).find((x) => {
-      const start = x.startTime;
-      const end = x.endTime || (start + (x.trackDuration || 0));
-      return start && start <= now + NP_GRACE && now <= end + NP_GRACE;
-    });
-    return t && t.title ? { track: t.title, artist: t.artist || null } : null;
+    const r = await fetch(`${API}/v3/live-meta/stream/${id}/currentTrackMeta?defaultMetadata=true`);
+    /* 204 is the station saying nothing is on air, which is an answer, not a
+       failure. 404, 410 and 424 mean this station has no metadata service at
+       all, so stop asking it, exactly as the production player does. */
+    if (r.status === 404 || r.status === 410 || r.status === 424) { NO_META.add(id); return null; }
+    if (!r.ok || r.status === 204) return null;
+    const d = await r.json();
+    return d && d.title ? { track: d.title, artist: d.artist || null } : null;
   } catch (e) { return null; }
 }
+const NO_META = new Set();
 
 async function loadStation(id) {
   const [d, np] = await Promise.all([
@@ -846,33 +853,47 @@ function makeWidget(rootId, statusId, colourId) {
     const pb = q('[data-act="play"]');
     if (pb) pb.setAttribute('aria-label', on ? (stopper ? 'Stop' : 'Pause') : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
-    /* A live station changes track while you listen, so refresh the two title
-       lines rather than leaving whatever was playing when it loaded. */
-    clearInterval(w.npTimer);
-    if (on && w.data.kind === 'live' && w.data.stationId) {
-      const refresh = async () => {
-        const np = await nowPlaying(w.data.stationId);
-        if (!w.playing) return;
-        const had = !!(w.data.track && w.data.artist);
-        w.data.track = (np && np.track) || null;
-        w.data.artist = (np && np.artist) || null;
-        const has = !!(w.data.track && w.data.artist);
-        /* Gaining or losing track data changes how many lines the block has,
-           so that edge needs a re-render rather than a text swap. */
-        if (had !== has) { render(); return; }
-        if (!has) return;
-        const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
-        if (tr) tr.textContent = w.data.track;
-        if (ar) ar.textContent = w.data.artist;
-        /* The new track is a different length, so the marquee has to be
-           re-measured rather than left on the previous track's distance. */
-        markOverflow(root);
-      };
-      refresh();
-      w.npTimer = setInterval(refresh, 25000);
-    }
   }
   w.pause = () => setPlaying(false);
+
+  /* Now playing follows the station, not the transport.
+     This used to start only when the listener pressed play and stop the moment
+     they stopped, which meant a station loaded during a commercial break kept
+     showing no track for as long as it sat there, however long the song that
+     came next ran. The production player installs its poller on load and keeps
+     it while the tab is visible, whatever the transport is doing, so this does
+     the same. Five seconds is production's interval too. */
+  const NP_INTERVAL = 5000;
+  async function refreshNowPlaying() {
+    if (!w.data || w.data.kind !== 'live' || !w.data.stationId) return;
+    const id = w.data.stationId;
+    const np = await nowPlaying(id);
+    /* The station can be swapped out while this request is in flight, and
+       writing A's track onto B is how a widget ends up lying quietly. */
+    if (!w.data || w.data.stationId !== id) return;
+    const had = !!(w.data.track && w.data.artist);
+    w.data.track = (np && np.track) || null;
+    w.data.artist = (np && np.artist) || null;
+    const has = !!(w.data.track && w.data.artist);
+    /* Gaining or losing track data changes how many lines the block has, and
+       now also its type size, so that edge needs a re-render. */
+    if (had !== has) { render(); return; }
+    if (!has) return;
+    const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
+    if (tr) tr.textContent = w.data.track;
+    if (ar) ar.textContent = w.data.artist;
+    /* The new track is a different length, so the marquee has to be
+       re-measured rather than left on the previous track's distance. */
+    markOverflow(root);
+  }
+  function startNowPlaying() {
+    clearInterval(w.npTimer);
+    if (!w.data || w.data.kind !== 'live' || !w.data.stationId) return;
+    if (document.hidden) return;              /* nothing to update, nobody looking */
+    refreshNowPlaying();
+    w.npTimer = setInterval(refreshNowPlaying, NP_INTERVAL);
+  }
+  w.startNowPlaying = startNowPlaying;
 
   const fmt = (s) => !isFinite(s) ? '--:--' :
     (Math.floor(s / 60) < 10 ? '0' : '') + Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
@@ -927,7 +948,7 @@ function makeWidget(rootId, statusId, colourId) {
     /* New content means nobody has asked for audio yet, and a pending ring
        timer from the previous item must not land on the new one. */
     w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
-    w.data = data; status(''); render();
+    w.data = data; status(''); render(); startNowPlaying();
   };
   return w;
 }
@@ -1011,6 +1032,12 @@ document.querySelectorAll('section').forEach((sec) => {
   new ResizeObserver(() => gauge(shell, out)).observe(shell);
   gauge(shell, out);
 });
+/* Production ties the now-playing poll to page visibility, and so does this:
+   a backgrounded tab has nobody to show a track change to, and resuming asks
+   once immediately so the line is current the moment the tab is looked at. */
+document.addEventListener('visibilitychange', () =>
+  INSTANCES.forEach((w) => { if (document.hidden) clearInterval(w.npTimer); else if (w.startNowPlaying) w.startNowPlaying(); }));
+
 const vw = document.getElementById('vw');
 const showVw = () => { vw.textContent = Math.round(window.innerWidth); };
 addEventListener('resize', showVw); showVw();
