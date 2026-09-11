@@ -55,17 +55,18 @@ const GROUPS = {
 const PLAYERS = [
   /* ===================== CORE, same content ===================== */
   {
-    id: 'iheart', name: 'iHeartRadio', status: 'ok', group: 'parity',
+    id: 'iheart', name: 'iHeartRadio', status: 'ok', group: 'parity', themed: true,
     allow: 'autoplay',
     modes: {
-      live:    { src: 'https://www.iheart.com/live/z100-1469/?embed=true', h: 200 },
-      podcast: { src: 'https://www.iheart.com/podcast/105-stuff-you-should-know-26940277/episode/social-identity-theory-your-group-343040435/?embed=true', h: 200 },
-      podcastCJ: { src: 'https://www.iheart.com/podcast/crime-junkie-29319113/episode/update-the-sodder-children-343319869/?embed=true', h: 200 }
+      live:    { src: 'https://www.iheart.com/live/z100-1469/?embed=true&theme={theme}', h: 200 },
+      podcast: { src: 'https://www.iheart.com/podcast/105-stuff-you-should-know-26940277/episode/social-identity-theory-your-group-343040435/?embed=true&theme={theme}', h: 200 },
+      podcastCJ: { src: 'https://www.iheart.com/podcast/crime-junkie-29319113/episode/update-the-sodder-children-343319869/?embed=true&theme={theme}', h: 200 }
     },
     facts: {
       'Content': 'Z100 live, plus the exact target episode of both shows',
       'Sign-in': 'Not required to play',
       'Discovery': 'Public oEmbed at iheart.com/oembed/?url=...&format=json returns the canonical iframe, height and allow attributes',
+      'Theme': 'Takes &theme=light or &theme=dark on the embed URL, which the theme control here drives. Served by the legacy widget app, whose getThemeFromQuery reads the query string and falls back to light on anything it does not recognise. It ignores prefers-color-scheme entirely, which is why an earlier measurement filed it as having one fixed appearance.',
       'Watch out': 'The URL slug is cosmetic. The trailing numeric ID resolves the content, so a wrong slug silently returns a different episode. Source IDs from us.api.iheart.com.'
     }
   },

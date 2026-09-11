@@ -180,6 +180,33 @@ negatives on some hosts.
 | Radio Garden | No iframe player. Their content API is public if you want to build your own. |
 | Radio France | X-Frame-Options DENY |
 
+## The theme control drives iHeart's own theme parameter
+
+The iHeart embed takes `&theme=light` or `&theme=dark` on the URL, so the
+gallery's theme control now rewrites it rather than only restyling the page
+chrome around it.
+
+Found by reading the production code rather than by guessing. The embed is
+served by the legacy widget app, not the new listen app, and
+`apps-legacy/www/src/widget/styles/getThemeFromQuery.ts` looks the value up in
+its own themes map and falls back to `light` on anything it does not recognise.
+It ignores `prefers-color-scheme` entirely.
+
+That last point matters for the measurement on the analysis page. The harness
+tests theme response by emulating `prefers-color-scheme` in both directions,
+which iHeart does not read, so it was filed as having one fixed appearance. It
+has two, reached a different way. Any other player driven by a URL parameter is
+open to the same mistake, so read that dimension as "does not follow the
+browser" rather than "has no dark theme".
+
+Confirmed against production, same URL with the parameter flipped:
+`backgroundPrimary` moves from `#FFFFFF` to `#2D3134`, `fontPrimary` from
+`#27292D` to `#FFFFFF`, and the border goes from a grey hairline to none.
+
+The same app also documents `thumbnail`, `subheading` and `description` as
+`true` or `false`, and carries an undocumented `secretColorParam` that takes a
+JSON object and overrides individual theme tokens on top of the chosen baseline.
+
 ## Frame sizing and corners, and who causes what
 
 **The gallery imposes no width.** An embed takes the width of whatever it is
