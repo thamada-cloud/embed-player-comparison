@@ -669,6 +669,15 @@ All three designs now poll and all three show the track, each in the lines it
 has.
 
 - **A** keeps its three lines, track, artist, station.
+- **The podcast pair leads with the episode.** Frames 2548:250303 (design B)
+  and 2548:250299 (design C) are identical: the episode at 14/18 SemiBold in
+  true white, the show under it at 12/16 Regular in grey-100, 2px apart beside a
+  40px tile. An earlier build had the order and the colour pairing both the
+  other way round.
+
+  Note the two blocks disagree on colour on purpose. The podcast pair is white
+  over grey-100; the live block is grey-100 throughout.
+
 - **All three designs read the same, and the order is station first.** The
   frames were revised, and 2527:144307, 2512:111965 and 2548:133528 now agree
   line for line.

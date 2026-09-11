@@ -239,7 +239,16 @@ section.is-live > .band-note { color: #14532d; }
           color: var(--ihr-grey-100); }
 .h-track { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 400;
            color: var(--ihr-grey-100); }
-/* The podcast cards keep their own pair, episode over show, in white. */
+/* The podcast pair, off 2548:250303 (design B) and 2548:250299 (design C),
+   which are identical. The episode leads at 14/18 SemiBold in TRUE WHITE and
+   the show sits under it at 12/16 Regular in grey-100, which is the reverse of
+   the order and the opposite of the colour pairing an earlier build had.
+   Note the live block runs the other way on colour, every line grey-100. */
+.h-ep { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
+        color: var(--true-white); }
+.h-show { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400;
+          color: var(--ihr-grey-100); }
+/* Still carries the live fallback's second line, the station description. */
 .h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
 /* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
    The row is the thing that is centred on the card, not the button: it is
@@ -1128,8 +1137,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <div class="meta">
               ${isLive
                 ? liveMeta(d)
-                : `<p class="h-sub mq">${mqs(d.title)}</p>
-                   <p class="h-name mq">${mqs(d.subtitle)}</p>`}
+                : `<p class="h-ep mq">${mqs(d.title)}</p>
+                   <p class="h-show mq">${mqs(d.subtitle)}</p>`}
             </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
@@ -1190,8 +1199,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <div class="meta">
               ${isLive
                 ? liveMeta(d)
-                : `<p class="h-sub mq">${mqs(d.title)}</p>
-                   <p class="h-name mq">${mqs(d.subtitle)}</p>`}
+                : `<p class="h-ep mq">${mqs(d.title)}</p>
+                   <p class="h-show mq">${mqs(d.subtitle)}</p>`}
             </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
