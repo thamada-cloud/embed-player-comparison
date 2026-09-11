@@ -510,7 +510,12 @@ function makeWidget(rootId, statusId, colourId) {
     const barW = width < 560 ? 3 : 4;
     const pitch = barW + 2;
     const n = Math.max(12, Math.floor((width + 2) / pitch));
-    if (n === w.bars.length && barW === w.barW) return;   /* nothing to redo */
+    /* Compare against the LIVE DOM, not cached state. Loading new content
+       replaces the widget's markup, which leaves an empty .wave while w.bars
+       still points at the old detached bars. Testing the cache meant that at an
+       unchanged width the counts matched, the rebuild was skipped, and the
+       waveform vanished on every content switch. */
+    if (n === wave.children.length && barW === w.barW) return;
     w.barW = barW;
     wave.style.setProperty('--bar-w', barW + 'px');
     wave.innerHTML = Array.from({ length: n }, (_, i) =>

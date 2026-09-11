@@ -344,6 +344,12 @@ are worth knowing, because each looks plausible until measured:
 - **The row gap is 16px everywhere, not 21.** The podcast frame's title block
   starts at y=5 and ends at 51 with controls at 67. The 5 is padding above the
   title, not part of the gap. Counting it twice pushed the whole lower half down.
+- **Cache guards must test the DOM, not remembered state.** The bar rebuild was
+  skipped when the new count matched `w.bars.length`, but loading new content
+  replaces the widget's markup, leaving an empty `.wave` while `w.bars` still
+  pointed at the old detached bars. At an unchanged width the counts matched, the
+  rebuild was skipped, and the waveform vanished on **every** content switch, in
+  both widgets. The guard now compares against `wave.children.length`.
 - **The list header is a 32px row**, not the 18px of its own text. It carries a
   32px Buttons frame beside the label, so rendering it at the text's line-height
   closed the gap under "Episodes" by 14px. It also needs `flex: 0 0 32px`,
