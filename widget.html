@@ -245,7 +245,7 @@ section.is-live > .band-note { color: #14532d; }
            font-size: 14px; font-weight: 600; letter-spacing: -.4px; color: var(--true-white); }
 .h-btn:hover { background: rgba(255,255,255,.14); }
 .h-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
-.widget.hero:not(.playing) .h-btn { display: none; }
+.widget.hero:not(.playing):not(.c) .h-btn { display: none; }
 /* The live frame keeps a speed button at opacity 0 on the left. It is a
    spacer: two icons sit to the right of the red button and only one to the
    left, so without it the red button would not be centred. Kept as the frame
@@ -264,7 +264,7 @@ section.is-live > .band-note { color: #14532d; }
    in a column with the frame's 4px gap; live radio has no duration and so
    never gets one. */
 .hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.widget.hero:not(.playing) .slider { display: none; }
+.widget.hero:not(.playing):not(.c) .slider { display: none; }
 .widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
 /* 7px, not the other design's 12. The frame's slider row is 16 tall, which is
    exactly enough for the 12px controller, and 12px of padding would have made
@@ -280,6 +280,27 @@ section.is-live > .band-note { color: #14532d; }
 /* The hero list sits on the card, not on the page, so it keeps square top
    corners against the stage above it. */
 .widget.hero .list { border-radius: 0; }
+
+/* ---------- design C, frames 2533:85625 and 2533:91574 ----------
+   Design B's card with its controls always on, a list button over the scrubber
+   on the podcast side, and a live radio side that is genuinely its own layout
+   rather than the podcast minus parts. */
+.widget.c .stage { height: 263px; }
+.widget.c .hero-controls { top: calc(50% + .5px); }
+/* Live C pads the bottom as well as the top, since it ends with a row of icons
+   rather than a waveform running to the edge. */
+.widget.c.live .stage { padding-bottom: 16px; }
+.widget.c.live .hero-controls { top: calc(50% - .5px); }
+.widget.c.live .topbar .h-thumb { width: 48px; height: 48px; }
+/* The list button sits 8px above the scrubber, and the pair sits 4px above the
+   waveform, which is two nested columns in the frame and two here. */
+.c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.list-row { display: flex; justify-content: flex-end; padding: 0 16px; box-sizing: border-box; }
+.c-icons { position: relative; display: flex; justify-content: flex-end; gap: 8px;
+           padding: 0 24px; width: 100%; box-sizing: border-box; }
+/* The episode list is closed until the list button is pressed, which is why the
+   frame shows none under the card. */
+.widget .list[hidden] { display: none; }
 
 /* ---------- marquee ----------
    Text that does not fit still ellipsises. On a device with a real pointer it
@@ -584,6 +605,39 @@ section.is-live > .band-note { color: #14532d; }
     <p class="status" id="s-live-hero"></p>
     <div class="colourline" id="c-live-hero"></div>
   </section>
+
+  <div class="band band-proto">
+    <h2>Design C, the hero card with controls always on</h2>
+    <p>Design B's card with every control on screen at rest, a list button over the scrubber that
+       opens the episodes, and a live radio side that is its own layout rather than the podcast
+       minus parts. Frames 2533:85625 and 2533:91574.</p>
+  </div>
+
+  <section>
+    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast-c"></span></div>
+    <p class="sub">Seven controls, a scrubber, and a list button at the right that opens the episode
+       list under the card.</p>
+    <div class="search" data-for="podcast-c">
+      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell" data-nobreak><div id="w-podcast-c"></div></div>
+    <p class="status" id="s-podcast-c"></p>
+    <div class="colourline" id="c-podcast-c"></div>
+  </section>
+
+  <section>
+    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live-c"></span></div>
+    <p class="sub">A 48px tile, one line joining the station and its description, three icons at the
+       bottom right, and no waveform.</p>
+    <div class="search" data-for="live-c">
+      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell" data-nobreak><div id="w-live-c"></div></div>
+    <p class="status" id="s-live-c"></p>
+    <div class="colourline" id="c-live-c"></div>
+  </section>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
@@ -705,7 +759,8 @@ const IDLE_HERO = [2,2,2,4,4,4,8,4,8,6,8,10,8,10,10,12,10,10,8,10,8,10,12,10,8,8
                    2,2,2,2,2,2,2,2];
 const WAVE = {
   bar:  { idle: IDLE,      max: 16, gap: 2, barW: (width) => width < 560 ? 3 : 4 },
-  hero: { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 }
+  hero: { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 },
+  c:    { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 }
 };
 const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
 /* Every clipping line of text is written as a span inside its box so the span
@@ -825,7 +880,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
      three are Figma exports from these frames: the playing states carry a real
      Web Internal / Pause and Web Internal / Stop at 56, which replaced the
      hand drawn pair the first pass had to use. */
-  const GLYPH = variant === 'hero'
+  const GLYPH = variant !== 'bar'
     ? { play: 'assets/play-white.svg', pause: 'assets/h-pause.svg', stop: 'assets/h-stop.svg' }
     : { play: 'assets/play.svg', pause: 'assets/pause.svg', stop: 'assets/stop.svg' };
   const root = document.getElementById(rootId);
@@ -954,9 +1009,79 @@ function makeWidget(rootId, statusId, colourId, variant) {
       </div>`;
   }
 
+  /* Design C, frames 2533:85625 (podcast) and 2533:91574 (live radio).
+     The same artwork card as design B, with two differences that matter.
+     The controls are there at rest rather than appearing on play, which the
+     live frame settles: it is drawn idle, with its play button untouched and
+     its three icons already on screen. And the podcast card carries a list
+     button above the scrubber, which is the only place in any of these frames
+     where the episode list is something you ask for rather than something that
+     is simply there.
+     The two halves are less alike than in design B. Podcast keeps the 40px
+     thumbnail, two lines of text and the seven control row; live radio has a
+     48px thumbnail, ONE line joining the station and its description, three
+     icons parked at the bottom right, and no waveform at all. */
+  function cMarkup(d, isLive) {
+    return `
+      <div class="widget hero c${isLive ? ' live' : ''}">
+        <div class="stage">
+          <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+          <div class="scrim"></div>
+          <div class="topbar">
+            <img class="h-thumb" src="${esc(d.art)}" alt="">
+            <div class="meta">
+              ${isLive
+                ? `<p class="h-name mq">${mqs(d.subtitle)}</p>`
+                : `<p class="h-sub mq">${mqs(d.title)}</p>
+                   <p class="h-name mq">${mqs(d.subtitle)}</p>`}
+            </div>
+            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+          </div>
+          <div class="hero-controls">
+            ${isLive ? '' : `
+              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+              <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
+              <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
+            `}
+            <button class="hero-play" data-act="play" aria-label="Play">
+              <img class="pi" src="${GLYPH.play}" alt="">
+              <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
+            </button>
+            ${isLive ? '' : `
+              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>
+              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
+              <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>`}
+          </div>
+          ${isLive ? `
+            <div class="c-icons">
+              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
+              <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
+            </div>` : `
+            <div class="hero-bottom">
+              <div class="c-rows">
+                <div class="list-row">
+                  <button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes"><img src="assets/h-list.svg" alt=""></button>
+                </div>
+                <div class="slider">
+                  <span class="t el">00:00</span>
+                  <div class="track">
+                    <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                  </div>
+                  <span class="t dur">--:--</span>
+                </div>
+              </div>
+              <div class="wave"></div>
+            </div>`}
+        </div>
+        ${isLive ? '' : listMarkup(d).replace('<div class="list">', '<div class="list" hidden>')}
+      </div>`;
+  }
+
   function render() {
     const d = w.data; if (!d) return;
     const isLive = d.kind === 'live';
+    if (variant === 'c') { root.innerHTML = cMarkup(d, isLive); return afterRender(); }
     if (variant === 'hero') { root.innerHTML = heroMarkup(d, isLive); return afterRender(); }
     root.innerHTML = `
       <div class="widget${isLive ? ' live' : ''}${isLive && !(d.track && d.artist) ? ' notrack' : ''}">
@@ -1028,24 +1153,24 @@ function makeWidget(rootId, statusId, colourId, variant) {
       /* The hero reads the whole picture, since the whole picture is the
          backdrop. The bar widget reads a dominant swatch, since that swatch is
          what it paints behind the text. */
-      const rgb = variant === 'hero' ? meanColour(art) : dominantColour(art);
+      const rgb = variant !== 'bar' ? meanColour(art) : dominantColour(art);
       if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
       root.style.setProperty('--dominant', hex(rgb));
-      const pct = variant === 'hero' ? SCRIM : OVERLAY;
-      const bg = variant === 'hero'
+      const pct = variant !== 'bar' ? SCRIM : OVERLAY;
+      const bg = variant !== 'bar'
         ? rgb.map((v) => Math.round(v * (1 - SCRIM)))
         : overlaid(rgb);
       const r = contrast(bg, TEXT_RGB);
       const aa = r >= 4.5, aaa = r >= 7;
-      const need = variant === 'hero' ? null : overlayNeededFor(rgb, 4.5);
+      const need = variant === 'bar' ? overlayNeededFor(rgb, 4.5) : null;
       colourEl.innerHTML =
         `<span class="chip" style="background:${hex(rgb)}"></span>` +
         `<span class="chip" style="background:${hex(bg)}"></span>` +
-        `<span>${variant === 'hero' ? 'artwork average ' : ''}${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
+        `<span>${variant !== 'bar' ? 'artwork average ' : ''}${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
         `<span class="ratio">${r.toFixed(2)} to 1</span>` +
         `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
         `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
-        (variant === 'hero'
+        (variant !== 'bar'
           ? `<span class="meta-note">average over the whole picture, so a light patch behind a word can still read worse</span>`
           : (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : ''));
     };
@@ -1122,6 +1247,19 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
     if (kind === 'save') { w.saved = !w.saved; btn.setAttribute('aria-pressed', String(w.saved));
       status(w.saved ? 'Saved to your library.' : ''); }
+    /* The list button only exists in design C, where the frame shows it above
+       the scrubber with no list under the card. What it opens is an inference,
+       the episode list being the only list this card has, and it is written as
+       a toggle so the closed state stays the frame's own. */
+    if (kind === 'list') {
+      const l = root.querySelector('.list');
+      if (l) {
+        const opening = l.hasAttribute('hidden');
+        if (opening) l.removeAttribute('hidden'); else l.setAttribute('hidden', '');
+        btn.setAttribute('aria-pressed', String(opening));
+        btn.setAttribute('aria-label', opening ? 'Hide episodes' : 'Show episodes');
+      }
+    }
     if (kind === 'info') status(w.data.subtitle);
     if (kind === 'share') status('Share sheet would open here.');
   }
@@ -1250,9 +1388,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
   }
   function startNowPlaying() {
     clearInterval(w.npTimer);
-    /* The hero frames show the station and its line, never a track, so polling
-       for one would be two requests every five seconds that nothing reads. */
-    if (variant === 'hero') return;
+    /* Neither hero design shows a track, only the station and its line, so
+       polling for one would be requests every five seconds that nothing reads. */
+    if (variant !== 'bar') return;
     if (!w.data || w.data.kind !== 'live' || !w.data.stationId) return;
     if (document.hidden) return;              /* nothing to update, nobody looking */
     refreshNowPlaying();
@@ -1417,7 +1555,10 @@ const wPod = makeWidget('w-podcast', 's-podcast', 'c-podcast');
 const wLive = makeWidget('w-live', 's-live', 'c-live');
 const wPodHero = makeWidget('w-podcast-hero', 's-podcast-hero', 'c-podcast-hero', 'hero');
 const wLiveHero = makeWidget('w-live-hero', 's-live-hero', 'c-live-hero', 'hero');
-const BY_SEARCH = { podcast: wPod, live: wLive, 'podcast-hero': wPodHero, 'live-hero': wLiveHero };
+const wPodC = makeWidget('w-podcast-c', 's-podcast-c', 'c-podcast-c', 'c');
+const wLiveC = makeWidget('w-live-c', 's-live-c', 'c-live-c', 'c');
+const BY_SEARCH = { podcast: wPod, live: wLive, 'podcast-hero': wPodHero, 'live-hero': wLiveHero,
+                    'podcast-c': wPodC, 'live-c': wLiveC };
 document.querySelectorAll('.search').forEach((b) => wireSearch(b, BY_SEARCH[b.dataset.for]));
 
 /* ---------------------------------------------------------------------------
@@ -1474,12 +1615,12 @@ const embedUrl = {
      the same content and the comparison is about the design alone. */
   try {
     const pod = await loadPodcast(31090140);             /* Las Culturistas */
-    wPod.load(pod); wPodHero.load(Object.assign({}, pod));
+    wPod.load(pod); wPodHero.load(Object.assign({}, pod)); wPodC.load(Object.assign({}, pod));
     document.getElementById('e-podcast').src = embedUrl.podcast(pod);
   } catch (e) { document.getElementById('s-podcast').textContent = 'Could not reach the iHeart API. ' + e.message; }
   try {
     const live = await loadStation(1469);                /* Z100 New York */
-    wLive.load(live); wLiveHero.load(Object.assign({}, live));
+    wLive.load(live); wLiveHero.load(Object.assign({}, live)); wLiveC.load(Object.assign({}, live));
     document.getElementById('e-live').src = embedUrl.live(live);
   } catch (e) { document.getElementById('s-live').textContent = 'Could not reach the iHeart API. ' + e.message; }
 })();

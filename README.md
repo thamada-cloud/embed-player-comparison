@@ -657,6 +657,35 @@ a full bleed background, which is what made the live card grey even after the
 base colour was right. Its selector needed to outrank that one, not merely
 follow it.
 
+### Design C, the third set
+
+Frames 2533:85625 (podcast) and 2533:91574 (live radio). Design B's card again,
+with two differences that change how it behaves rather than how it looks.
+
+- **The controls are on at rest.** Design B reveals them on play; design C has
+  them from the start. The live frame settles this rather than my guessing it:
+  it is drawn idle, play button untouched, with its three icons already on
+  screen.
+- **A list button over the scrubber**, right aligned, 8px above it. This is the
+  only place in any of these frames where the episode list is something you ask
+  for rather than something simply there, and the card is drawn with no list
+  under it. What the button opens is an inference, the episode list being the
+  only list this card has. It is built as a toggle so the closed state stays the
+  frame's own.
+- **The two halves are less alike than in design B.** Podcast keeps the 40px
+  thumbnail, two lines of text and the seven control row. Live radio has a 48px
+  thumbnail, ONE line joining the station and its description, three icons
+  parked at the bottom right, no waveform at all, and 16px of padding at the
+  bottom as well as the top, since it ends in icons rather than a waveform
+  running to the edge.
+
+Measured against the frames at 350. Podcast: stage 263, top bar at 16,
+thumbnail 40, seven controls 8px apart, play button centred, list button 16px
+from the right edge and 8px above the scrubber, scrubber 4px above the waveform,
+waveform flush to the bottom, list closed. Live: stage 263, thumbnail 48, the
+red button centred and alone, three icons 8px apart ending 24px from the right
+edge and 16px above the bottom.
+
 ### The buffering ring is iheart.com's spinner
 
 Geometry and timing come from `packages/accomplice/src/icons/loading` in
