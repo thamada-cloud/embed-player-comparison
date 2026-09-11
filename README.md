@@ -816,6 +816,11 @@ with two differences that change how it behaves rather than how it looks.
   waveform running to the edge, with no bottom padding. The 48px tile and the
   single line of text stay design C's own.
 
+**Its waveform is the same shape at double the hero's scale**, 4 to 24 rather
+than 2 to 12, on the same 4px bars, read off 2533:85718, so the strip is 24px
+tall rather than 12. The floor a bar rests at is held per design now rather than
+inferred from its ceiling.
+
 **Design C is 16:9 and fluid, like a YouTube embed.** The card keeps the ratio
 and its height follows its width, rather than being pinned to the frame's 263.
 Measured: 1.778 exactly from 390 up to the 400px ceiling, 660 by 371 at a 700
@@ -835,7 +840,7 @@ at a wide width.
   past that the card grows wider rather than taller: 740 by 400 at a 780
   viewport, 1280 by 400 at 1440. The card stays full bleed either way, so the
   cap is on the height and never on the width.
-- **There is a floor at 210px.** The top bar is 56, the centred control row is
+- **There is a floor at 234px.** The top bar is 56, the centred control row is
   64 and the bottom block is 72, so below 210 the centred row starts to overlap
   what is above and below it. The row sits at `calc(50% + .5px)`, the frame's
   own half pixel, which is why 208 was a fraction short. 16:9 reaches 210 at a
