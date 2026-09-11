@@ -669,20 +669,25 @@ All three designs now poll and all three show the track, each in the lines it
 has.
 
 - **A** keeps its three lines, track, artist, station.
-- **B and C read identically**, and the weights come from frame 2548:133528,
-  the only frame that draws an artwork card with a track on it. The track is the
-  **Regular** 14/18 and the artist the **SemiBold** one under it, the same
-  weighting the design A frames use, with the station line at 12/16 Regular in
-  full white. An earlier pass had the track in the SemiBold slot on a reading
-  order argument and dimmed the station line to 72%. The frame disagrees with
-  both, and the frame wins.
+- **All three designs read the same, and the order is station first.** The
+  frames were revised, and 2527:144307, 2512:111965 and 2548:133528 now agree
+  line for line.
 
-  With nothing on air both fall back to the station's name at 14/18 SemiBold
-  over its description at 12/16 Regular, which is 2512:111965.
+  | Line | Style |
+  | --- | --- |
+  | Station and description, joined | 12/16 Regular |
+  | Artist | 14/18 SemiBold, -0.2 |
+  | Track | 14/18 Regular, -0.2 |
 
-  Two differences between the cards are real and stay. B's metadata column is
-  `gap-[2px]` and C's is flush with no gap at all, and B's tile is 40px against
-  C's 48. Both are in their own frames.
+  Every line is grey-100 `#f6f8f9`, including the station line, which is neither
+  white nor dimmed, and the three sit 2px apart in one column. Earlier builds had
+  the track first and the station last, which was the older revision.
+
+  With nothing on air all three fall back to the station's name over its
+  description.
+
+  The tiles still differ, 40px on A's compact and B, 48 on C, and each is in its
+  own frame.
 
 The station line stays under the track rather than being replaced by it. A card
 that swaps the station out for the song has told you what is on but not where it

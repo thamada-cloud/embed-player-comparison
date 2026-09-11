@@ -154,6 +154,9 @@ section.is-live > .band-note { color: #14532d; }
    removes it from the box tree and leaves .meta and .controls-row as the grid
    items they were. */
 .col { display: contents; }
+/* 2px for live, which is what all three revised frames draw between the three
+   lines. Podcast keeps 4 between its pair. */
+.widget.live .meta { gap: 2px; }
 .meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
         padding-right: 40px; color: var(--ihr-grey-100); }
 .title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
@@ -161,10 +164,13 @@ section.is-live > .band-note { color: #14532d; }
 /* Live radio shows now playing over two lines, track then artist, with the
    station line beneath. Track is Regular and artist is SemiBold, which is the
    opposite weighting to the podcast title, straight from the frame. */
-.titles { display: flex; flex-direction: column; min-width: 0; }
-.titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
-.titles .np-track { font-weight: 400; }
-.titles .np-artist { font-weight: 600; }
+/* The two now-playing lines are siblings of the station line rather than a
+   nested block, since the revised frames put all three in one column 2px apart.
+   The weight rules move with them: scoped to .titles they stopped applying the
+   moment the wrapper went, and the track quietly rendered SemiBold. */
+.np-track { font-weight: 400; }
+.np-artist { font-weight: 600; }
+.widget.live .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
 .subtitle { font-size: 12px; line-height: 16px; margin: 0; overflow: hidden;
             text-overflow: ellipsis; white-space: nowrap; }
 /* With no track playing the station line is the only line in the block, so it
@@ -222,20 +228,19 @@ section.is-live > .band-note { color: #14532d; }
 .topbar .ihr { position: static; flex: 0 0 auto; width: 25px; height: 26px; }
 /* Two type styles, swapped between the two frames. The name line is the
    SemiBold one at 14/18, the sub line the Regular one at 12/16. */
-/* Three type styles, straight off frame 2548:133528, which is the only frame
-   that draws an artwork card with a track on it.
-   The track is the REGULAR 14/18 and the artist the SemiBold one under it, the
-   same weighting the design A frames use. An earlier pass put the track in the
-   SemiBold slot on a reading-order argument; the frame disagrees, and the frame
-   wins. The station line is 12/16 Regular in full white, not dimmed. */
-.h-track { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 400;
-           color: var(--ihr-grey-100); }
+/* The live block, identical across all three designs after the revision:
+   station line 12/16 Regular, artist 14/18 SemiBold, track 14/18 Regular, every
+   line in grey-100 and 2px apart. The station line is NOT white and NOT dimmed,
+   it is the same grey-100 as the two above it, since the whole column carries
+   that colour in the frames. */
+.h-station { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400;
+             color: var(--ihr-grey-100); }
 .h-name { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
           color: var(--ihr-grey-100); }
+.h-track { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 400;
+           color: var(--ihr-grey-100); }
+/* The podcast cards keep their own pair, episode over show, in white. */
 .h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
-/* B's meta column is gap-[2px] in 2512:111965. C's is flush, no gap at all, in
-   2548:133528. */
-.widget.c .topbar .meta { gap: 0; }
 /* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
    The row is the thing that is centred on the card, not the button: it is
    absolutely placed at the middle and lays its buttons out around the red one
@@ -407,7 +412,7 @@ section.is-live > .band-note { color: #14532d; }
   .subtitle { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
   /* The live frames keep the now-playing block at 14/18 and the station line
      at 12/16 at BOTH sizes, so the wide rules must not scale them up. */
-  .widget.live .titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
+  .widget.live .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
   .widget.live .subtitle { font-size: 12px; line-height: 16px; }
 
   /* Live centres the text-plus-controls group against the 132px artwork, and
@@ -844,16 +849,17 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    Note that the design A frames weight the first pair the other way round,
    artist SemiBold over track Regular; reading order won here, the song being
    what a listener asks first. Worth settling in the design file. */
-/* The live block for both artwork cards, in the order and the weights frame
-   2548:133528 draws: track Regular, artist SemiBold, station line under them.
-   With nothing on air it falls back to the station's own name and description,
-   which is what 2512:111965 draws. */
+/* The live block for both artwork cards. All three designs were revised to one
+   order, station line first at 12/16 Regular, artist under it at 14/18 SemiBold,
+   track last at 14/18 Regular, every line in grey-100 and 2px apart. Read off
+   2527:144307, 2512:111965 and 2548:133528, which now agree line for line.
+   With nothing on air it falls back to the station's own name and description. */
 function liveMeta(d) {
   const L = heroLines(d);
   return L.station
-    ? `<p class="h-track mq">${mqs(L.name)}</p>
+    ? `<p class="h-station mq">${mqs(L.station)}</p>
        <p class="h-name mq">${mqs(L.sub)}</p>
-       <p class="h-sub mq">${mqs(L.station)}</p>`
+       <p class="h-track mq">${mqs(L.name)}</p>`
     : `<p class="h-name mq">${mqs(L.name)}</p>
        <p class="h-sub mq">${mqs(L.sub)}</p>`;
 }
@@ -1270,12 +1276,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <div class="col">
             <div class="meta">
               ${isLive ? `
+                <p class="subtitle mq">${mqs(d.subtitle)}</p>
                 ${d.track && d.artist ? `
-                <div class="titles">
-                  <p class="title np-track mq">${mqs(d.track)}</p>
-                  <p class="title np-artist mq">${mqs(d.artist)}</p>
-                </div>` : ''}
-                <p class="subtitle mq">${mqs(d.subtitle)}</p>` : `
+                <p class="title np-artist mq">${mqs(d.artist)}</p>
+                <p class="title np-track mq">${mqs(d.track)}</p>` : ''}` : `
                 <p class="title mq">${mqs(d.title)}</p>
                 <p class="subtitle mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1608,10 +1612,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
       /* With a track the three lines are track, artist, station; the classes
          carry the weights, so the writer only has to keep the order. */
       const L = heroLines(w.data);
-      const tr = q('.h-track .mqi'), n = q('.h-name .mqi'), b = q('.h-sub .mqi');
-      if (tr) tr.textContent = L.name;
+      const st = q('.h-station .mqi'), n = q('.h-name .mqi'), tr = q('.h-track .mqi');
+      if (st) st.textContent = L.station;
       if (n) n.textContent = L.sub;
-      if (b) b.textContent = L.station;
+      if (tr) tr.textContent = L.name;
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
