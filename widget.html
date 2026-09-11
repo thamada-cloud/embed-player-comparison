@@ -203,6 +203,10 @@ section.is-live > .band-note { color: #14532d; }
                 object-fit: cover; border-radius: 0; box-shadow: none;
                 background: transparent; padding: 0; }
 .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.70); }
+/* Design C sits 5 points darker than the frames' 70, which is a choice rather
+   than a reading. Design B still paints the frames' own value, so the two can
+   be looked at side by side. */
+.widget.c .scrim { background: rgba(0,0,0,.75); }
 .topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
@@ -915,7 +919,10 @@ function dominantColour(img) {
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
 
 const OVERLAY = 0.60;                 /* keep in step with --overlay-pct */
-const SCRIM = 0.70;                   /* the hero frames' own rgba(0,0,0,0.7) */
+/* The hero frames draw rgba(0,0,0,0.7). Design C runs 5 points darker by
+   choice, so the value is per design rather than one constant, and the contrast
+   readout under each card reports the one that card actually paints. */
+const SCRIM = { hero: 0.70, c: 0.75 };
 const overlaid = (c) => c.map((v) => Math.round(v * (1 - OVERLAY)));
 
 /* WCAG 2.x relative luminance and contrast ratio. Both text styles in the
@@ -1259,9 +1266,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const rgb = variant !== 'bar' ? meanColour(art) : dominantColour(art);
       if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
       root.style.setProperty('--dominant', hex(rgb));
-      const pct = variant !== 'bar' ? SCRIM : OVERLAY;
+      const pct = variant !== 'bar' ? SCRIM[variant] : OVERLAY;
       const bg = variant !== 'bar'
-        ? rgb.map((v) => Math.round(v * (1 - SCRIM)))
+        ? rgb.map((v) => Math.round(v * (1 - pct)))
         : overlaid(rgb);
       const r = contrast(bg, TEXT_RGB);
       const aa = r >= 4.5, aaa = r >= 7;

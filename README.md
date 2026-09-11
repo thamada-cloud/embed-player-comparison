@@ -701,6 +701,18 @@ C the same. A track change reaches all three. With nothing on air, B falls back 
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 
+### Design C darkens its scrim to 75%
+
+The frames draw `rgba(0,0,0,0.7)` on both artwork designs. Design C paints 75
+instead, which is a choice rather than a reading, so the scrim value is held per
+design and design B still paints the frames' own 70 for a side by side look.
+
+The contrast readout under each card reports the value that card actually
+paints. Measured, average over the whole picture: Las Culturistas goes from
+16.96 to 1 at 70% to 17.49 at 75%, Z100 from 14.00 to 15.27. Both already passed
+AAA on average at 70, so the gain buys headroom on the bright patches the
+average hides rather than a change of grade.
+
 ### Design C, the third set
 
 Frames 2533:85625 (podcast) and 2533:91574 (live radio). Design B's card again,
