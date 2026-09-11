@@ -22,7 +22,7 @@ V="$(date -u +%Y%m%d%H%M%S)"
 echo "cache-bust version: $V"
 
 # rewrite every local asset reference to carry this version
-for f in index.html gallery.html analysis.html; do
+for f in index.html gallery.html analysis.html widget.html; do
   [ -f "$f" ] || continue
   /usr/bin/sed -i '' -E \
     -e "s|(href=\"shared\.css)(\?v=[0-9]+)?\"|\1?v=$V\"|g" \
@@ -50,7 +50,7 @@ echo -n "waiting for Pages to serve v=$V "
 for _ in $(seq 1 90); do
   if curl -s --max-time 15 "$BASE/gallery.html" | grep -q "players.js?v=$V"; then
     echo " live"
-    for f in index.html gallery.html analysis.html; do
+    for f in index.html gallery.html analysis.html widget.html; do
       n=$(curl -s --max-time 15 "$BASE/$f" | grep -c "?v=$V" || true)
       printf "  %-14s %s versioned refs\n" "$f" "$n"
     done

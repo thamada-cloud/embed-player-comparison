@@ -8,6 +8,7 @@ one shared registry. No build step, no dependencies.
 | `index.html` | **One at a time, all 50.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
 | `gallery.html` | **All 50 on one page, no filter.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
 | `analysis.html` | **Measured comparison.** Every player scored across 11 dimensions, with the numbers, the visual comparisons and what I would conclude. |
+| `widget.html` | **Our own widget prototype**, built from the Figma Audio Widgets frames. Two sizes, podcast and live radio, fully interactive, with a waveform driven by the real audio. |
 
 ## Files
 
@@ -225,6 +226,76 @@ gain sound. Every other player sits idle until clicked.
 30 players still carry `allow="autoplay"`. That is harmless: the permission only
 governs playing *without* a user gesture, and none of them do. A click inside a
 frame is a gesture, so click-to-play does not need it.
+
+## The widget prototype
+
+`widget.html` is a separate page and a different kind of thing from the other
+three: not a survey of other people's embeds, but a working build of ours, from
+Figma `Audio Widgets` nodes 2524:126999, 2526:135968, 2526:142928 and 2527:144307.
+
+**Sizes** 350px and 1280px. **Streams** podcast (Las Culturistas) and live radio
+(Z100). All four combinations come from one set of markup; the two layouts are a
+CSS grid swap. At 350 the artwork sits beside the text with controls on their own
+row beneath. At 1280 the artwork spans the full height beside both the text and
+the controls, which is what the Figma frame does and what the 350 layout could
+not express without overflowing the 180px player.
+
+### The colour treatment
+
+The header is the artwork's dominant colour with the design's **70% black** over
+it, authored the same way Figma authors the fill, as two stacked gradients:
+
+```css
+background-image:
+  linear-gradient(90deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,.7) 100%),
+  linear-gradient(90deg, var(--dominant) 0%, var(--dominant) 100%);
+```
+
+`--dominant` is extracted from the artwork in the browser at load. **A plain
+most-common-pixel reading is wrong for logo art**: the Z100 tile is 78% white
+padding, so the most common colour is the background, not the brand. The
+extractor therefore drops near-white and near-black pixels first and takes the
+most populous remaining bucket, falling back to the raw mode for genuinely
+monochrome art. Results against the design:
+
+| Artwork | Extracted | After the 70% black | Figma's value |
+| --- | --- | --- | --- |
+| Las Culturistas | `#161824` | `#07070b` | `rgb(25,27,40)` = `#191b28` |
+| Z100 | `#e70588` | `#450229` | dark maroon |
+
+The header shows both swatches live, so the treatment is inspectable rather than
+asserted.
+
+### The waveform really is the audio
+
+70 bars at 350, 280 at 1280, four per design bar. Their resting heights are the
+design's own waveform, read off the Figma frame, so the idle state matches the
+mock. On play they are driven by a Web Audio `AnalyserNode` reading the real
+stream, and on pause they ease back to the resting shape.
+
+That only works because the browser is allowed to inspect the samples, which
+needs CORS on the audio itself. Both sources were checked before the build: the
+Omny podcast mp3 and the iHeart HLS stream each return
+`Access-Control-Allow-Origin` through their whole redirect chain. **That is why
+no audio is hosted in this repo** and why `crossOrigin="anonymous"` is set. Live
+radio is HLS, played natively in Safari and through hls.js elsewhere.
+
+The FFT is mapped across the bars on a mild power curve. A linear map leaves the
+right half of the strip dead, because speech and music put nearly all their
+energy in the low bins.
+
+### Two deliberate deviations, both flagged in the UI
+
+- **Live radio has no scrubber.** A live stream has no duration, so the prototype
+  shows a live indicator instead. The 1280 live frame in Figma still shows a
+  podcast scrubber reading 20:12 of 35:00, which looks like a copy from the
+  podcast variant rather than an intent.
+- **The pause glyph is the one asset not exported from Figma.** No pause icon
+  appears in these four frames, so it is drawn to match the play glyph's bounds
+  and corner radius. Point me at the real node and it is a one file swap.
+
+Everything else, including the iHeart logo, the transport icons and the artwork,
+is the exported Figma asset committed under `assets/`.
 
 ## Deploying
 
