@@ -102,6 +102,13 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
         padding-right: 40px; color: var(--ihr-grey-100); }
 .title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Live radio shows now playing over two lines, track then artist, with the
+   station line beneath. Track is Regular and artist is SemiBold, which is the
+   opposite weighting to the podcast title, straight from the frame. */
+.titles { display: flex; flex-direction: column; min-width: 0; }
+.titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
+.titles .np-track { font-weight: 400; }
+.titles .np-artist { font-weight: 600; }
 .subtitle { font-size: 12px; line-height: 16px; margin: 0; overflow: hidden;
             text-overflow: ellipsis; white-space: nowrap; }
 .ihr { position: absolute; right: 16px; top: 0; width: 25px; height: 26px; }
@@ -122,6 +129,10 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   .meta { padding-top: 5px; }
   .title { font-size: 20px; line-height: 24px; letter-spacing: -.4px; }
   .subtitle { font-size: 14px; line-height: 18px; }
+  /* The live frames keep the now-playing block at 14/18 and the station line
+     at 12/16 at BOTH sizes, so the wide rules must not scale them up. */
+  .widget.live .titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
+  .widget.live .subtitle { font-size: 12px; line-height: 16px; }
 }
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
@@ -148,6 +159,9 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
          border-radius: 999px; background: var(--ihr-red-550); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 
 .btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
+/* Live has a single control group and the frame puts it at x=0, so it is left
+   aligned rather than pushed to the far edge. */
+.widget.live .btn-row { justify-content: flex-start; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
 .icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 4px;
             border-radius: 999px; display: flex; }
@@ -177,7 +191,10 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
        border-radius: var(--radius-widget); cursor: pointer; }
 .row:hover { background: rgba(0,0,0,.05); }
-.row.on { background: rgba(204,3,46,.10); }
+/* Now playing is signalled by the title turning brand red, not by a filled
+   row. The filled bar read as a selection state rather than playback. */
+.row.on { background: none; }
+.row.on .row-meta b { color: var(--ihr-red-550); }
 .tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
         background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
         filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }
@@ -271,21 +288,36 @@ async function loadPodcast(id) {
   };
 }
 
+/* What is playing on a station right now. The most recent entry in the track
+   history is the current track, which is what fills the live widget's two
+   title lines. */
+async function nowPlaying(id) {
+  try {
+    const d = await jget(`${API}/v3/live-meta/stream/${id}/trackHistory?limit=1`);
+    const t = (d.data || [])[0];
+    return t ? { track: t.title, artist: t.artist } : null;
+  } catch (e) { return null; }
+}
+
 async function loadStation(id) {
-  const d = await jget(`${API}/v2/content/liveStations/${id}`);
+  const [d, np] = await Promise.all([
+    jget(`${API}/v2/content/liveStations/${id}`),
+    nowPlaying(id)
+  ]);
   const h = d.hits[0];
-  const s = h.streams || {};
-  const url = s.secure_hls_stream || s.hls_stream || s.secure_shoutcast_stream || s.shoutcast_stream;
+  const st = h.streams || {};
+  const url = st.secure_hls_stream || st.hls_stream || st.secure_shoutcast_stream || st.shoutcast_stream;
   return {
-    kind: 'live',
-    title: h.name, subtitle: h.description || (h.markets && h.markets[0] && h.markets[0].name) || 'Live radio',
+    kind: 'live', stationId: id,
+    /* Three lines, per the updated live frames: track, artist, then the
+       station line. No list, so no rows. */
+    track: (np && np.track) || 'Live',
+    artist: (np && np.artist) || h.name,
+    title: h.name,
+    subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
     art: h.logo || `https://i.iheart.com/v3/re/assets/images/${id}.png`,
     audio: url, hls: /\.m3u8/.test(url || ''),
-    listTitle: 'On air',
-    rows: [
-      { title: h.name, sub: (h.description || 'Live radio'), badge: null, art: h.logo },
-      { title: 'Live stream', sub: h.callLetters || 'iHeartRadio', badge: null, art: h.logo }
-    ]
+    rows: []
   };
 }
 
@@ -344,7 +376,7 @@ function makeWidget(rootId, statusId, colourId) {
   const colourEl = document.getElementById(colourId);
   const w = {
     data: null, audio: null, ctx: null, analyser: null, src: null, freq: null,
-    hls: null, raf: 0, bars: [], smooth: [], barW: 0, ro: null,
+    hls: null, raf: 0, bars: [], smooth: [], barW: 0, ro: null, npTimer: 0,
     playing: false, speed: 1, saved: false
   };
   INSTANCES.push(w);
@@ -361,17 +393,20 @@ function makeWidget(rootId, statusId, colourId) {
           <div class="body">
             <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
             <div class="meta">
-              <p class="title">${esc(d.title)}</p>
-              <p class="subtitle">${esc(d.subtitle)}</p>
+              ${isLive ? `
+                <div class="titles">
+                  <p class="title np-track">${esc(d.track || 'Live')}</p>
+                  <p class="title np-artist">${esc(d.artist || d.title)}</p>
+                </div>
+                <p class="subtitle">${esc(d.subtitle)}</p>` : `
+                <p class="title">${esc(d.title)}</p>
+                <p class="subtitle">${esc(d.subtitle)}</p>`}
             </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt=""></button>
               <div class="stack">
-                ${isLive ? `
-                  <div class="slider">
-                    <div style="flex:1"></div><span class="t el">00:00</span>
-                  </div>` : `
+                ${isLive ? '' : `
                   <div class="slider">
                     <span class="t el">00:00</span>
                     <div class="track">
@@ -397,6 +432,7 @@ function makeWidget(rootId, statusId, colourId) {
           </div>
           <div class="wave"></div>
         </div>
+        ${isLive ? '' : `
         <div class="list">
           <h3>${esc(d.listTitle)}</h3>
           <div class="rows">
@@ -405,10 +441,9 @@ function makeWidget(rootId, statusId, colourId) {
                 <img class="tile" src="${esc(r.art || d.art)}" alt="">
                 <div class="row-meta"><b>${esc(r.title)}</b><span>${esc(r.sub)}</span></div>
                 ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
-                <button class="icon-btn" aria-label="More"><img src="assets/overflow.svg" alt="" style="filter:invert(15%)"></button>
               </div>`).join('')}
           </div>
-        </div>
+        </div>`}
       </div>`;
 
     buildBars();
@@ -538,6 +573,21 @@ function makeWidget(rootId, statusId, colourId) {
     const pi = q('.pi'); if (pi) pi.src = on ? 'assets/pause.svg' : 'assets/play.svg';
     const pb = q('[data-act="play"]'); if (pb) pb.setAttribute('aria-label', on ? 'Pause' : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
+    /* A live station changes track while you listen, so refresh the two title
+       lines rather than leaving whatever was playing when it loaded. */
+    clearInterval(w.npTimer);
+    if (on && w.data.kind === 'live' && w.data.stationId) {
+      const refresh = async () => {
+        const np = await nowPlaying(w.data.stationId);
+        if (!np || !w.playing) return;
+        w.data.track = np.track; w.data.artist = np.artist;
+        const tr = q('.np-track'), ar = q('.np-artist');
+        if (tr) tr.textContent = np.track;
+        if (ar) ar.textContent = np.artist;
+      };
+      refresh();
+      w.npTimer = setInterval(refresh, 25000);
+    }
   }
   w.pause = () => setPlaying(false);
 
@@ -586,6 +636,7 @@ function makeWidget(rootId, statusId, colourId) {
      can only ever be called once per element, so reuse would silently mute it. */
   w.load = (data) => {
     cancelAnimationFrame(w.raf);
+    clearInterval(w.npTimer);
     if (w.ro) { w.ro.disconnect(); w.ro = null; }
     if (w.hls) { w.hls.destroy(); w.hls = null; }
     if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }

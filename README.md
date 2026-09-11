@@ -336,12 +336,26 @@ energy in the low bins.
 
 ### Two deliberate deviations, both flagged in the UI
 
-- **Live radio has no scrubber and no live badge.** A live stream has no
-  duration. The 1280 live frame in Figma still shows a podcast scrubber reading
-  20:12 of 35:00, which looks copied from the podcast variant rather than
-  intended. Worth noting the consequence: with both the scrubber and the badge
-  gone, the live layout has a lot of empty space where the podcast has its
-  transport. That is a real gap in the design, not a build artefact.
+### Live radio is its own layout, not the podcast minus parts
+
+The live frames were revised after the first build and now differ structurally:
+
+- **Three metadata lines, not two.** Track title in Regular 14/18, artist in
+  SemiBold 14/18, then the station line in Regular 12/16. Note the weighting is
+  the reverse of the podcast, where the title is the SemiBold one.
+- **Now playing is real.** Those two lines come from
+  `/v3/live-meta/stream/{id}/trackHistory`, and refresh every 25 seconds while
+  the station is playing, because the track changes while you listen.
+- **No scrubber and no duration.** A live stream has no length, and the Slider
+  instance is `hidden` in the frame.
+- **One control group, left aligned.** Save, info and share sit at x=0 in the
+  frame, not pushed to the far edge as in the podcast.
+- **No list section.** The 1280 live frame is 180px tall with no List instance
+  at all, so the live widget is the player and nothing else.
+- **Station artwork on white**, since station logos are transparent PNGs drawn
+  for a white tile.
+- **Now playing is signalled by the episode title turning brand red**, not by a
+  filled row. A filled bar reads as a selection state rather than playback.
 - **The pause glyph is the one asset not exported from Figma.** No pause icon
   appears in these four frames, so it is drawn to match the play glyph's bounds
   and corner radius. Point me at the real node and it is a one file swap.
