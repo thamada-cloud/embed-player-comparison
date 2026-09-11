@@ -301,17 +301,17 @@ section.is-live > .band-note { color: #14532d; }
    columns up to 711, and past that the card grows wider rather than taller. */
 .widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 210px; max-height: 400px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
-/* Live C pads the bottom as well as the top, since it ends with a row of icons
-   rather than a waveform running to the edge. */
-.widget.c.live .stage { padding-bottom: 16px; }
+/* Live C ends in a waveform running to the edge, like every other card here,
+   so it takes no bottom padding. Its own frame parked three icons at the bottom
+   right instead and had no waveform at all; the control row and the waveform
+   come from 2512:111876, which is where that row is drawn. The rest of the card
+   stays design C's own, the 48px tile and the single line of text. */
 .widget.c.live .hero-controls { top: calc(50% - .5px); }
 .widget.c.live .topbar .h-thumb { width: 48px; height: 48px; }
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .list-row { display: flex; justify-content: flex-end; padding: 0 16px; box-sizing: border-box; }
-.c-icons { position: relative; display: flex; justify-content: flex-end; gap: 8px;
-           padding: 0 24px; width: 100%; box-sizing: border-box; }
 /* The episode list is closed until the list button is pressed, which is why the
    frame shows none under the card. */
 .widget .list[hidden] { display: none; }
@@ -1052,7 +1052,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
           <div class="hero-controls">
-            ${isLive ? '' : `
+            ${isLive ? `
+              <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
+              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+            ` : `
               <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
               <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
               <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
@@ -1062,15 +1065,13 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
             </button>
             ${isLive ? '' : `
-              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>
-              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
-              <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>`}
+              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+            <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
+            <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
           </div>
           ${isLive ? `
-            <div class="c-icons">
-              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
-              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
-              <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
+            <div class="hero-bottom">
+              <div class="wave"></div>
             </div>` : `
             <div class="hero-bottom">
               <div class="c-rows">

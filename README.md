@@ -674,10 +674,15 @@ with two differences that change how it behaves rather than how it looks.
   frame's own.
 - **The two halves are less alike than in design B.** Podcast keeps the 40px
   thumbnail, two lines of text and the seven control row. Live radio has a 48px
-  thumbnail, ONE line joining the station and its description, three icons
-  parked at the bottom right, no waveform at all, and 16px of padding at the
-  bottom as well as the top, since it ends in icons rather than a waveform
-  running to the edge.
+  thumbnail and ONE line joining the station and its description.
+
+  Its own frame, 2533:91574, parked three icons at the bottom right and drew no
+  waveform. That was built as drawn and then corrected: the icons belong in the
+  centred row beside the play button and the card ends in a waveform, per
+  2512:111876, which is where that row is actually drawn. So live C is now the
+  spacer, save, the red button, info and share, 8px apart and centred, over a
+  waveform running to the edge, with no bottom padding. The 48px tile and the
+  single line of text stay design C's own.
 
 **Design C is 16:9 and fluid, like a YouTube embed.** The card keeps the ratio
 and its height follows its width, rather than being pinned to the frame's 263.
@@ -708,9 +713,9 @@ at a wide width.
 Measured against the frames at 350, before the ratio change. Podcast: stage 263,
 top bar at 16, thumbnail 40, seven controls 8px apart, play button centred, list button 16px
 from the right edge and 8px above the scrubber, scrubber 4px above the waveform,
-waveform flush to the bottom, list closed. Live: stage 263, thumbnail 48, the
-red button centred and alone, three icons 8px apart ending 24px from the right
-edge and 16px above the bottom.
+waveform flush to the bottom, list closed. Live, after the correction: thumbnail 48,
+five items 8px apart with the red button centred, waveform 12 tall flush to the
+bottom.
 
 ### The buffering ring is iheart.com's spinner
 
