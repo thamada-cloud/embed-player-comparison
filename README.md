@@ -237,7 +237,21 @@ Figma `Audio Widgets` nodes 2524:126999, 2526:135968, 2526:142928 and 2527:14430
 own search. Playing one pauses the other.
 
 **There is no size switch.** Each widget sizes itself from its own width using
-`@container`, not `@media`. Container queries are the right tool here because an
+`@container`, not `@media`. The layout **steps** between the two frames rather
+than interpolating: the artwork holds 64px until the widget crosses 560px, then
+holds 132px, and type does the same. An earlier version scaled it continuously
+in `cqw`, which produced sizes appearing in neither frame and read as wrong at
+every width in between.
+
+**Waveform bars keep the design's width and grow in COUNT.** Figma uses 3px bars
+at 350 and 4px at 1280, so flexing a fixed 70 bars across a wide widget ballooned
+them to 15px, several times the design. The bar width is now fixed and the count
+is derived from the container, rebuilt on resize with the 70 design heights
+resampled across it. At 350 that lands on exactly 70 bars and at 1280 on 213,
+which is precisely what the 1280 frame shows once its 280-bar strip is clipped.
+
+**Station artwork sits on white.** Station logos are transparent PNGs drawn for a
+white tile; left on the dark header the mark loses its edges. Container queries are the right tool here because an
 embeddable widget has to respond to the slot it is dropped into, which is not
 always the viewport. Below 560px the artwork sits beside the text with controls
 on their own row beneath; above it the artwork spans the full height beside both,
@@ -322,10 +336,12 @@ energy in the low bins.
 
 ### Two deliberate deviations, both flagged in the UI
 
-- **Live radio has no scrubber.** A live stream has no duration, so the prototype
-  shows a live indicator instead. The 1280 live frame in Figma still shows a
-  podcast scrubber reading 20:12 of 35:00, which looks like a copy from the
-  podcast variant rather than an intent.
+- **Live radio has no scrubber and no live badge.** A live stream has no
+  duration. The 1280 live frame in Figma still shows a podcast scrubber reading
+  20:12 of 35:00, which looks copied from the podcast variant rather than
+  intended. Worth noting the consequence: with both the scrubber and the badge
+  gone, the live layout has a lot of empty space where the podcast has its
+  transport. That is a real gap in the design, not a build artefact.
 - **The pause glyph is the one asset not exported from Figma.** No pause icon
   appears in these four frames, so it is drawn to match the play glyph's bounds
   and corner radius. Point me at the real node and it is a one file swap.

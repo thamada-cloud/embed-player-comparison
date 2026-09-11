@@ -93,6 +93,11 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 }
 .art { grid-area: art; width: 64px; height: 64px; border-radius: var(--radius-widget);
        box-shadow: var(--shadow-01); object-fit: cover; background: #222; align-self: center; }
+/* Station logos are transparent PNGs drawn for a white tile. Left on the dark
+   header the artwork bleeds into the background and the mark loses its edges,
+   so live radio gets the white plate the design gives it. */
+.widget.live .art { background: #fff; object-fit: contain; padding: 4px; }
+.widget.live .tile { background: #fff; background-image: none; object-fit: contain; padding: 3px; }
 .meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
         padding-right: 40px; color: var(--ihr-grey-100); }
 .title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
@@ -103,16 +108,20 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
 /* Wide layout. The artwork spans the full height beside BOTH the text and the
    controls, which is what the 1280 frame does. */
+/* Two fixed states, not a fluid range. The artwork holds the 350 frame's 64px
+   until the widget crosses the breakpoint, then holds the 1280 frame's 132px.
+   Scaling it continuously with cqw made it drift to sizes that appear in
+   neither frame, which read as wrong at every width in between. */
 @container (min-width: 560px) {
   .body {
-    grid-template-columns: clamp(96px, 11cqw, 132px) 1fr;
+    grid-template-columns: 132px 1fr;
     grid-template-areas: "art meta" "art controls";
     column-gap: 16px; row-gap: 21px; align-items: start;
   }
-  .art { width: 100%; height: auto; aspect-ratio: 1; align-self: start; }
+  .art { width: 132px; height: 132px; align-self: start; }
   .meta { padding-top: 5px; }
-  .title { font-size: clamp(15px, 1.5cqw, 20px); line-height: 1.2; letter-spacing: -.4px; }
-  .subtitle { font-size: clamp(12px, 1.1cqw, 14px); line-height: 1.3; }
+  .title { font-size: 20px; line-height: 24px; letter-spacing: -.4px; }
+  .subtitle { font-size: 14px; line-height: 18px; }
 }
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
@@ -137,11 +146,6 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .elapsed { position: absolute; left: 0; top: 12px; height: 2px; background: var(--ihr-red-550); border-radius: var(--radius-widget); }
 .thumb { position: absolute; top: 13px; width: 12px; height: 12px; margin: -6px 0 0 -6px;
          border-radius: 999px; background: var(--ihr-red-550); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-.live-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
-  letter-spacing: 1px; text-transform: uppercase; color: var(--true-white);
-  background: var(--ihr-red-550); padding: 2px 8px; border-radius: 2px; }
-.live-dot { width: 6px; height: 6px; border-radius: 999px; background: #fff; animation: pulse 1.6s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
 .btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
@@ -156,9 +160,15 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 /* Bars rise from the BOTTOM with rounded tops. Figma authors them as
    items-start with rounded-bl/br inside a wrapper carrying -scale-y-100;
    reading the bar styling without that flip gives the mirror image. */
-.wave { display: flex; gap: 2px; height: 16px; width: 100%; align-items: flex-end; opacity: .8; }
-.wave i { flex: 1 1 0; min-width: 0; display: block; background: var(--ihr-grey-300);
-          border-radius: 2px 2px 0 0; height: 3px; transition: height 90ms linear; }
+/* Bars hold the design's width and the COUNT grows with the container. The
+   Figma frames use 3px bars at 350 (70 of them, flexed) and 4px at 1280, so
+   flexing a fixed 70 bars across a wide widget ballooned them to 15px, several
+   times the design. Width is fixed here and the count is derived instead. */
+.wave { display: flex; gap: 2px; height: 16px; width: 100%; align-items: flex-end;
+        opacity: .8; overflow: hidden; }
+.wave i { flex: 0 0 var(--bar-w, 3px); width: var(--bar-w, 3px); display: block;
+          background: var(--ihr-grey-300); border-radius: 2px 2px 0 0; height: 3px;
+          transition: height 90ms linear; }
 
 .list { width: 100%; height: 220px; background: var(--ihr-grey-150); padding: 12px 16px 16px;
         display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
@@ -207,7 +217,7 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 
   <section>
     <h2>Live radio</h2>
-    <p class="sub">Search any iHeart station. Live radio has no duration, so the scrubber is replaced with a live indicator.</p>
+    <p class="sub">Search any iHeart station. Live radio has no duration, so there is no scrubber.</p>
     <div class="search" data-for="live">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>
@@ -334,7 +344,8 @@ function makeWidget(rootId, statusId, colourId) {
   const colourEl = document.getElementById(colourId);
   const w = {
     data: null, audio: null, ctx: null, analyser: null, src: null, freq: null,
-    hls: null, raf: 0, bars: [], smooth: [], playing: false, speed: 1, saved: false
+    hls: null, raf: 0, bars: [], smooth: [], barW: 0, ro: null,
+    playing: false, speed: 1, saved: false
   };
   INSTANCES.push(w);
   const q = (sel) => root.querySelector(sel);
@@ -345,7 +356,7 @@ function makeWidget(rootId, statusId, colourId) {
     const d = w.data; if (!d) return;
     const isLive = d.kind === 'live';
     root.innerHTML = `
-      <div class="widget">
+      <div class="widget${isLive ? ' live' : ''}">
         <div class="player">
           <div class="body">
             <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
@@ -359,7 +370,6 @@ function makeWidget(rootId, statusId, colourId) {
               <div class="stack">
                 ${isLive ? `
                   <div class="slider">
-                    <span class="live-badge"><span class="live-dot"></span>Live</span>
                     <div style="flex:1"></div><span class="t el">00:00</span>
                   </div>` : `
                   <div class="slider">
@@ -385,7 +395,7 @@ function makeWidget(rootId, statusId, colourId) {
               </div>
             </div>
           </div>
-          <div class="wave">${IDLE.map((h) => `<i style="height:${h}px"></i>`).join('')}</div>
+          <div class="wave"></div>
         </div>
         <div class="list">
           <h3>${esc(d.listTitle)}</h3>
@@ -401,11 +411,10 @@ function makeWidget(rootId, statusId, colourId) {
         </div>
       </div>`;
 
-    /* One bar per design value at any width. The design draws four bars per
-       value at 1280; here the bars simply flex, which keeps the silhouette
-       identical and the analyser mapping size-independent. */
-    w.bars = [...root.querySelectorAll('.wave i')];
-    w.smooth = new Array(w.bars.length).fill(0);
+    buildBars();
+    if (w.ro) w.ro.disconnect();
+    w.ro = new ResizeObserver(() => buildBars());
+    w.ro.observe(root);
 
     const art = q('.art');
     const paint = () => {
@@ -440,6 +449,26 @@ function makeWidget(rootId, statusId, colourId) {
     if (w.playing) { const pi = q('.pi'); if (pi) pi.src = 'assets/pause.svg'; loop(); }
     tick();
   }
+
+  /* The design keeps bars at 3px (350 frame) and 4px (1280 frame) and grows the
+     COUNT with width, so the strip is rebuilt whenever the widget resizes and
+     the 70 design heights are resampled across however many bars now fit. */
+  function buildBars() {
+    const wave = q('.wave'); if (!wave) return;
+    const width = wave.getBoundingClientRect().width;
+    if (!width) return;
+    const barW = width < 560 ? 3 : 4;
+    const pitch = barW + 2;
+    const n = Math.max(12, Math.floor((width + 2) / pitch));
+    if (n === w.bars.length && barW === w.barW) return;   /* nothing to redo */
+    w.barW = barW;
+    wave.style.setProperty('--bar-w', barW + 'px');
+    wave.innerHTML = Array.from({ length: n }, (_, i) =>
+      `<i style="height:${IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / n))]}px"></i>`).join('');
+    w.bars = [...wave.querySelectorAll('i')];
+    w.smooth = new Array(n).fill(0);
+  }
+  const idleAt = (i) => IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / w.bars.length))];
 
   function act(kind, btn) {
     const a = w.audio;
@@ -546,7 +575,7 @@ function makeWidget(rootId, statusId, colourId) {
       k += .12;
       w.bars.forEach((b, i) => {
         const cur = parseFloat(b.style.height) || 3;
-        b.style.height = (cur + (IDLE[i] - cur) * Math.min(1, k)).toFixed(1) + 'px';
+        b.style.height = (cur + (idleAt(i) - cur) * Math.min(1, k)).toFixed(1) + 'px';
       });
       if (k < 1) requestAnimationFrame(step);
     };
@@ -557,6 +586,7 @@ function makeWidget(rootId, statusId, colourId) {
      can only ever be called once per element, so reuse would silently mute it. */
   w.load = (data) => {
     cancelAnimationFrame(w.raf);
+    if (w.ro) { w.ro.disconnect(); w.ro = null; }
     if (w.hls) { w.hls.destroy(); w.hls = null; }
     if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }
     w.audio = null; w.analyser = null; w.src = null; w.playing = false; w.speed = 1;
