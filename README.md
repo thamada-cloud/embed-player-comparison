@@ -273,6 +273,13 @@ design's own waveform, read off the Figma frame, so the idle state matches the
 mock. On play they are driven by a Web Audio `AnalyserNode` reading the real
 stream, and on pause they ease back to the resting shape.
 
+**Bars rise from the bottom edge with rounded tops.** This is easy to get
+backwards and the first build did. Figma authors the bars as `items-start` with
+`rounded-bl`/`rounded-br`, inside a wrapper carrying `-scale-y-100`. Read the bar
+styling on its own and you produce the mirror image, bars hanging downward with
+rounded bottoms. The flip is baked into the CSS here rather than re-applied as a
+transform, so the bar heights stay directly readable.
+
 That only works because the browser is allowed to inspect the samples, which
 needs CORS on the audio itself. Both sources were checked before the build: the
 Omny podcast mp3 and the iHeart HLS stream each return
