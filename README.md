@@ -512,6 +512,58 @@ The live frames were revised after the first build and now differ structurally:
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
 
+### The hero card, a second design on the same page
+
+Frames 2512:113087 (podcast) and 2512:111965 (live radio), built alongside the
+first pair rather than replacing them, so the two designs can be compared on one
+page with the same content in both.
+
+What is different about it.
+
+- **The artwork is the background**, full bleed under the frames' own 70% black,
+  rather than a dominant colour swatch under 60%.
+- **One control.** A 64px brand red play button, `#c6002b`, centred on the card.
+  No scrubber, no skip, no speed, no save, info or share.
+- **The metadata is two lines at the top** beside a 40px thumbnail, and the two
+  type styles swap roles between the frames. Podcast leads with the episode at
+  12/16 Regular and puts the show under it at 14/18 SemiBold. Live radio leads
+  with the station at 14/18 SemiBold and puts its line under it at 12/16
+  Regular.
+- **The waveform is the same shape at a smaller scale**, 2 to 12 rather than 3
+  to 16, on 4px bars with a 1px gap. At the frame's 350 that is exactly 70 bars.
+- **One layout at every width.** Only the 350 frame exists for this design, so
+  the card holds that frame's 224px stage height rather than inventing a taller
+  one for wide viewports. The readout above each card says so instead of naming
+  a breakpoint it does not have.
+- **The podcast card carries the same 220px episode list** as the other design,
+  so that component is written once and used by both.
+
+Measured against the frame at 350: stage 224, top bar at y=16, thumbnail 40,
+play button 64 at `#c6002b` centred on both axes, waveform 12 tall flush to the
+bottom edge, list 220, card 444 overall.
+
+Two things the frames do not survive contact with.
+
+- **A station's artwork is a transparent PNG.** The frames stack white, then the
+  artwork, then 70% black, which is right for a podcast's opaque square. A
+  station logo is drawn for a white tile, so the same stack leaves most of the
+  card flat grey, which the mock never shows because the mock used an opaque
+  image. The base is the artwork's own mean colour for live radio instead, so
+  the card takes the station's brand colour where the logo does not cover.
+- **The contrast readout means something different here.** Text sits over a
+  photograph, not a flat colour, so the figure reported is the mean colour of
+  the whole picture under the 70% scrim, and the page says as much: a light
+  patch behind a word can still read worse than the average.
+
+Two class names from the first design leaked in during the build and both were
+caught by measuring rather than by looking. `.thumb` is the slider's drag
+handle, which is `position: absolute`, so the hero's thumbnail left the flex row
+and the text ran underneath it. And `.widget.live .art` gives a station's
+artwork a white plate and 4px of padding, correct for a 64px tile and wrong for
+a full bleed background, which is what made the live card grey even after the
+base colour was right. Its selector needed to outrank that one, not merely
+follow it.
+
 ### The buffering ring is iheart.com's spinner
 
 Geometry and timing come from `packages/accomplice/src/icons/loading` in

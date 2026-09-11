@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="56" height="56" viewBox="0 0 52.5 52.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Symmetric glyph, so it is centred geometrically on 26.25. The play triangle
+     sits 1.67px right of that on purpose, for optical centring; copying that
+     offset here put the pause visibly off centre in the white circle. -->
+<g id="Web Internal / Pause">
+<rect x="18.25" y="16.2056" width="5.25" height="20.0888" rx="1.75" fill="#FFFFFF"/>
+<rect x="29" y="16.2056" width="5.25" height="20.0888" rx="1.75" fill="#FFFFFF"/>
+</g>
+</svg>

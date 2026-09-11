@@ -22,7 +22,7 @@
 :root {
   --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-250: #dadfe3;
   --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
-  --ihr-red-550: #cc032e; --true-white: #fff;
+  --ihr-red-550: #cc032e; --ihr-red-600: #c6002b; --true-white: #fff;
   --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
   /* Overlay strength over the artwork colour. Was 70%. */
   --overlay-pct: .60;
@@ -143,6 +143,68 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
    so the wide override inside the query wins on order as well as specificity. */
 .widget.live.notrack .subtitle { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
 .ihr { position: absolute; right: 16px; top: 0; width: 25px; height: 26px; }
+
+/* ============================================================================
+   HERO CARD. Frames 2512:113087 (podcast) and 2512:111965 (live radio).
+   The artwork is the background, at any width, under the frames' own 70% black.
+   Only the 350 frame exists for this design, so the stage holds that frame's
+   224px height rather than inventing a taller one for wide viewports.
+   ==========================================================================*/
+.widget.hero { border-radius: var(--radius-widget); overflow: hidden; width: 100%;
+               display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10); }
+.stage { position: relative; height: 224px; width: 100%; overflow: hidden;
+         display: flex; flex-direction: column; justify-content: space-between;
+         padding-top: 16px; background: #fff; }
+/* The frames stack white, then the artwork, then 70% black. That holds for a
+   podcast, whose artwork is an opaque square. A station's artwork is not: the
+   API ships a transparent PNG drawn for a white tile, so the same stack leaves
+   most of the card as white under a scrim, a flat grey the mock never shows
+   because the mock used an opaque tile. The base is the artwork's own mean
+   colour for live radio instead, so the card takes the station's brand colour
+   where the logo does not cover. A deviation, and forced by the asset. */
+.widget.hero.live .stage { background: var(--dominant, #191b28); }
+/* background and padding are reset explicitly. The other design gives a live
+   station's .art a white plate and 4px of padding, which is right for a 64px
+   tile and wrong for a full bleed background: the white plate is what made the
+   live card render as flat grey under the scrim rather than taking the
+   station's colour. */
+.widget.hero .stage > .art { position: absolute; inset: 0; width: 100%; height: 100%;
+                object-fit: cover; border-radius: 0; box-shadow: none;
+                background: transparent; padding: 0; }
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.70); }
+.topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
+/* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
+   position:absolute, so reusing the name took this image out of the flex row
+   and let the two lines of text run underneath it. Second time a class name
+   from the other design has leaked in; the h- prefix keeps this card's names
+   to itself. */
+.topbar .h-thumb { width: 40px; height: 40px; border-radius: var(--radius-widget); object-fit: cover;
+                   flex: 0 0 auto; background: #fff; }
+/* Station logos are transparent PNGs drawn for a white tile, exactly as in the
+   other widget, and the live frame shows the thumb on white. */
+.widget.hero.live .topbar .h-thumb { object-fit: contain; padding: 3px; }
+.topbar .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 0; }
+.topbar .ihr { position: static; flex: 0 0 auto; width: 25px; height: 26px; }
+/* Two type styles, swapped between the two frames. The name line is the
+   SemiBold one at 14/18, the sub line the Regular one at 12/16. */
+.h-name { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
+          color: var(--ihr-grey-100); }
+.h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
+.hero-play {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  appearance: none; border: 0; cursor: pointer; background: var(--ihr-red-600);
+  border-radius: 999px; padding: 4px; display: flex; flex: 0 0 auto;
+  filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.12));
+}
+.hero-play img { width: 56px; height: 56px; display: block; }
+.hero-play:active { transform: translate(-50%, -50%) scale(.96); }
+/* The live frame nudges the button up by a pixel, which is in the frame as
+   top: calc(50% - 1px). Kept rather than tidied away. */
+.widget.hero.live .hero-play { top: calc(50% - 1px); }
+.stage .wave { position: relative; height: 12px; }
+/* The hero list sits on the card, not on the page, so it keeps square top
+   corners against the stage above it. */
+.widget.hero .list { border-radius: 0; }
 
 /* ---------- marquee ----------
    Text that does not fit still ellipsises. On a device with a real pointer it
@@ -296,7 +358,7 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
    Figma frames use 3px bars at 350 (70 of them, flexed) and 4px at 1280, so
    flexing a fixed 70 bars across a wide widget ballooned them to 15px, several
    times the design. Width is fixed here and the count is derived instead. */
-.wave { display: flex; gap: 2px; height: 16px; width: 100%; align-items: flex-end;
+.wave { display: flex; gap: var(--bar-gap, 2px); height: 16px; width: 100%; align-items: flex-end;
         opacity: .8; overflow: hidden; }
 .wave i { flex: 0 0 var(--bar-w, 3px); width: var(--bar-w, 3px); display: block;
           background: var(--ihr-grey-300); border-radius: 2px 2px 0 0; height: 3px;
@@ -377,6 +439,32 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
     <div class="shell"><div id="w-live"></div></div>
     <p class="status" id="s-live"></p>
     <div class="colourline" id="c-live"></div>
+  </section>
+
+  <section>
+    <div class="h2row"><h2>Podcast, hero card</h2><span class="gauge" id="g-podcast-hero"></span></div>
+    <p class="sub">A second design, frame 2512:113087. The show's own artwork is the background under
+       70% black, and one brand red play button sits in the middle of it.</p>
+    <div class="search" data-for="podcast-hero">
+      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell" data-nobreak><div id="w-podcast-hero"></div></div>
+    <p class="status" id="s-podcast-hero"></p>
+    <div class="colourline" id="c-podcast-hero"></div>
+  </section>
+
+  <section>
+    <div class="h2row"><h2>Live radio, hero card</h2><span class="gauge" id="g-live-hero"></span></div>
+    <p class="sub">Frame 2512:111965. Same card, no episode list, and the two metadata lines swap
+       weights so the station name leads.</p>
+    <div class="search" data-for="live-hero">
+      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
+      <div class="results" hidden></div>
+    </div>
+    <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
+    <p class="status" id="s-live-hero"></p>
+    <div class="colourline" id="c-live-hero"></div>
   </section>
 </main>
 
@@ -474,6 +562,9 @@ async function loadStation(id) {
     artist: (np && np.artist) || null,
     title: h.name,
     subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
+    /* The hero frame puts the station name on line one and its description on
+       line two, so it needs them apart, not joined. */
+    desc: h.description || '',
     art: h.logo || `https://i.iheart.com/v3/re/assets/images/${id}.png`,
     audio: url, hls: /\.m3u8/.test(url || ''),
     rows: []
@@ -485,6 +576,16 @@ const IDLE = [3,3,3,5,5,5,11,5,11,8,11,13,11,13,13,16,13,13,11,13,11,13,16,13,11
               13,13,11,13,16,13,13,11,13,8,11,5,11,11,13,11,5,11,5,11,5,8,5,5,11,5,5,3,5,3,3,5,
               3,3,3,3,3,3,3,3];
 const WAVE_MAX = 16;
+/* The hero frames draw the same waveform shape at a smaller scale, 2 to 12
+   rather than 3 to 16, on 4px bars set with justify-between. At 350 that is 70
+   bars of 4 in 350, so the gap is 1. Read off 2510:109552 and 2512:111980. */
+const IDLE_HERO = [2,2,2,4,4,4,8,4,8,6,8,10,8,10,10,12,10,10,8,10,8,10,12,10,8,8,10,10,8,6,
+                   10,10,8,10,12,10,10,8,10,6,8,4,8,8,10,8,4,8,4,8,4,6,4,4,8,4,4,2,4,2,2,4,
+                   2,2,2,2,2,2,2,2];
+const WAVE = {
+  bar:  { idle: IDLE,      max: 16, gap: 2, barW: (width) => width < 560 ? 3 : 4 },
+  hero: { idle: IDLE_HERO, max: 12, gap: 1, barW: () => 4 }
+};
 const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
 /* Every clipping line of text is written as a span inside its box so the span
    can be translated on hover while the box does the clipping. */
@@ -518,6 +619,25 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) =>
    station tile can be 78% white padding, so the background would win over the
    brand. Near-white and near-black are dropped first.
    ------------------------------------------------------------------------ */
+/* The hero card lays its text over the ARTWORK under a scrim, not over a flat
+   swatch, so the honest figure to report there is the picture's mean colour
+   under that scrim. It is an average: a light patch behind a word can still be
+   worse than the number says, which is what the readout says on the page. */
+function meanColour(img) {
+  const N = 48, c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  try { g.drawImage(img, 0, 0, N, N); } catch (e) { return null; }
+  let data;
+  try { data = g.getImageData(0, 0, N, N).data; } catch (e) { return null; }
+  let r = 0, gg = 0, b = 0, n = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 128) continue;
+    r += data[i]; gg += data[i + 1]; b += data[i + 2]; n++;
+  }
+  return n ? [Math.round(r / n), Math.round(gg / n), Math.round(b / n)] : null;
+}
+
 function dominantColour(img) {
   const N = 48, c = document.createElement('canvas');
   c.width = c.height = N;
@@ -547,6 +667,7 @@ function dominantColour(img) {
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
 
 const OVERLAY = 0.60;                 /* keep in step with --overlay-pct */
+const SCRIM = 0.70;                   /* the hero frames' own rgba(0,0,0,0.7) */
 const overlaid = (c) => c.map((v) => Math.round(v * (1 - OVERLAY)));
 
 /* WCAG 2.x relative luminance and contrast ratio. Both text styles in the
@@ -576,7 +697,16 @@ function overlayNeededFor(rgb, target) {
    ==========================================================================*/
 const INSTANCES = [];
 
-function makeWidget(rootId, statusId, colourId) {
+function makeWidget(rootId, statusId, colourId, variant) {
+  variant = variant || 'bar';
+  const wave = WAVE[variant];
+  /* The hero button is brand red, so its glyphs are the white cuts. play-white
+     is the export from these frames; the pause and stop are the same drawings
+     as the other widget with a white fill, since no pause state is drawn in
+     either hero frame. */
+  const GLYPH = variant === 'hero'
+    ? { play: 'assets/play-white.svg', pause: 'assets/pause-white.svg', stop: 'assets/stop-white.svg' }
+    : { play: 'assets/play.svg', pause: 'assets/pause.svg', stop: 'assets/stop.svg' };
   const root = document.getElementById(rootId);
   const statusEl = document.getElementById(statusId);
   const colourEl = document.getElementById(colourId);
@@ -618,9 +748,63 @@ function makeWidget(rootId, statusId, colourId) {
     w.bufTimer = setTimeout(() => { w.bufTimer = null; if (stuck()) setBuffering(true); }, BUFFER_DELAY);
   }
 
+  /* The episode list is the same component in both designs, 220 tall with the
+     rows clipped at the frame bound, so it is written once. */
+  function listMarkup(d) {
+    return `
+        <div class="list">
+          <h3>${esc(d.listTitle)}</h3>
+          <div class="rows">
+            ${d.rows.map((r, i) => `
+              <div class="row${i === 0 ? ' on' : ''}">
+                <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
+                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
+              </div>`).join('')}
+          </div>
+        </div>`;
+  }
+
+  /* The hero card, frames 2512:113087 (podcast) and 2512:111965 (live radio).
+     A different design, not a rearrangement of the first one: the artwork is
+     the full bleed background under a 70% black scrim rather than a dominant
+     colour swatch, the only control is one 64px brand red play button centred
+     on the card, and the metadata is two lines at the top beside a 40px thumb.
+     Note the two lines swap roles between the frames. Podcast leads with the
+     episode at 12/16 Regular and puts the show under it at 14/18 SemiBold;
+     live radio leads with the station at 14/18 SemiBold and puts its line
+     under it at 12/16 Regular. */
+  function heroMarkup(d, isLive) {
+    return `
+      <div class="widget hero${isLive ? ' live' : ''}">
+        <div class="stage">
+          <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+          <div class="scrim"></div>
+          <div class="topbar">
+            <img class="h-thumb" src="${esc(d.art)}" alt="">
+            <div class="meta">
+              ${isLive
+                ? `<p class="h-name mq">${mqs(d.title)}</p>
+                   <p class="h-sub mq">${mqs(d.desc || d.subtitle)}</p>`
+                : `<p class="h-sub mq">${mqs(d.title)}</p>
+                   <p class="h-name mq">${mqs(d.subtitle)}</p>`}
+            </div>
+            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+          </div>
+          <button class="hero-play" data-act="play" aria-label="Play">
+            <img class="pi" src="${GLYPH.play}" alt="">
+            <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
+          </button>
+          <div class="wave"></div>
+        </div>
+        ${isLive ? '' : listMarkup(d)}
+      </div>`;
+  }
+
   function render() {
     const d = w.data; if (!d) return;
     const isLive = d.kind === 'live';
+    if (variant === 'hero') { root.innerHTML = heroMarkup(d, isLive); return afterRender(); }
     root.innerHTML = `
       <div class="widget${isLive ? ' live' : ''}${isLive && !(d.track && d.artist) ? ' notrack' : ''}">
         <div class="player">
@@ -640,7 +824,7 @@ function makeWidget(rootId, statusId, colourId) {
                 <p class="subtitle mq">${mqs(d.subtitle)}</p>`}
             </div>
             <div class="controls-row">
-              <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="assets/play.svg" alt="">
+              <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="${GLYPH.play}" alt="">
                 <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
               </button>
               <div class="stack">
@@ -671,20 +855,13 @@ function makeWidget(rootId, statusId, colourId) {
           </div>
           <div class="wave"></div>
         </div>
-        ${isLive ? '' : `
-        <div class="list">
-          <h3>${esc(d.listTitle)}</h3>
-          <div class="rows">
-            ${d.rows.map((r, i) => `
-              <div class="row${i === 0 ? ' on' : ''}">
-                <img class="tile" src="${esc(r.art || d.art)}" alt="">
-                <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
-                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
-              </div>`).join('')}
-          </div>
-        </div>`}
+        ${isLive ? '' : listMarkup(d)}
       </div>`;
+    afterRender();
+  }
 
+  /* Everything that has to happen after either template is written. */
+  function afterRender() {
     buildBars();
     markOverflow(root);
     setBuffering(w.buffering);
@@ -694,21 +871,29 @@ function makeWidget(rootId, statusId, colourId) {
 
     const art = q('.art');
     const paint = () => {
-      const rgb = dominantColour(art);
+      /* The hero reads the whole picture, since the whole picture is the
+         backdrop. The bar widget reads a dominant swatch, since that swatch is
+         what it paints behind the text. */
+      const rgb = variant === 'hero' ? meanColour(art) : dominantColour(art);
       if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
       root.style.setProperty('--dominant', hex(rgb));
-      const bg = overlaid(rgb);
+      const pct = variant === 'hero' ? SCRIM : OVERLAY;
+      const bg = variant === 'hero'
+        ? rgb.map((v) => Math.round(v * (1 - SCRIM)))
+        : overlaid(rgb);
       const r = contrast(bg, TEXT_RGB);
       const aa = r >= 4.5, aaa = r >= 7;
-      const need = overlayNeededFor(rgb, 4.5);
+      const need = variant === 'hero' ? null : overlayNeededFor(rgb, 4.5);
       colourEl.innerHTML =
         `<span class="chip" style="background:${hex(rgb)}"></span>` +
         `<span class="chip" style="background:${hex(bg)}"></span>` +
-        `<span>${hex(rgb)} with ${Math.round(OVERLAY * 100)}% black → ${hex(bg)}</span>` +
+        `<span>${variant === 'hero' ? 'artwork average ' : ''}${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
         `<span class="ratio">${r.toFixed(2)} to 1</span>` +
         `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
         `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
-        (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : '');
+        (variant === 'hero'
+          ? `<span class="meta-note">average over the whole picture, so a light patch behind a word can still read worse</span>`
+          : (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : ''));
     };
     if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => colourEl.textContent = ''; }
 
@@ -733,7 +918,7 @@ function makeWidget(rootId, statusId, colourId) {
     }
     if (w.playing) {
       const pi = q('.pi');
-      if (pi) pi.src = d.kind === 'live' ? 'assets/stop.svg' : 'assets/pause.svg';
+      if (pi) pi.src = w.data.kind === 'live' ? GLYPH.stop : GLYPH.pause;
       loop();
     }
     tick();
@@ -743,27 +928,28 @@ function makeWidget(rootId, statusId, colourId) {
      COUNT with width, so the strip is rebuilt whenever the widget resizes and
      the 70 design heights are resampled across however many bars now fit. */
   function buildBars() {
-    const wave = q('.wave'); if (!wave) return;
-    const width = wave.getBoundingClientRect().width;
+    const el = q('.wave'); if (!el) return;
+    const width = el.getBoundingClientRect().width;
     if (!width) return;
-    const barW = width < 560 ? 3 : 4;
-    const pitch = barW + 2;
+    const barW = wave.barW(width);
+    const pitch = barW + wave.gap;
     const n = Math.max(12, Math.floor((width + 2) / pitch));
     /* Compare against the LIVE DOM, not cached state. Loading new content
        replaces the widget's markup, which leaves an empty .wave while w.bars
        still points at the old detached bars. Testing the cache meant that at an
        unchanged width the counts matched, the rebuild was skipped, and the
        waveform vanished on every content switch. */
-    if (n === wave.children.length && barW === w.barW) return;
+    if (n === el.children.length && barW === w.barW) return;
     w.barW = barW;
-    wave.style.setProperty('--bar-w', barW + 'px');
-    wave.innerHTML = Array.from({ length: n }, (_, i) =>
-      `<i style="height:${IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / n))]}px"></i>`).join('');
-    w.bars = [...wave.querySelectorAll('i')];
+    el.style.setProperty('--bar-w', barW + 'px');
+    el.style.setProperty('--bar-gap', wave.gap + 'px');
+    el.innerHTML = Array.from({ length: n }, (_, i) =>
+      `<i style="height:${wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / n))]}px"></i>`).join('');
+    w.bars = [...el.querySelectorAll('i')];
     w.smooth = new Array(n).fill(0);
     w.bands = null;                      /* bar count changed, so the bands must be rebuilt */
   }
-  const idleAt = (i) => IDLE[Math.min(IDLE.length - 1, Math.floor(i * IDLE.length / w.bars.length))];
+  const idleAt = (i) => wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / w.bars.length))];
 
   function act(kind, btn) {
     const a = w.audio;
@@ -854,7 +1040,7 @@ function makeWidget(rootId, statusId, colourId) {
        stops rather than pauses. */
     const stopper = !!(w.data && w.data.kind === 'live');
     const pi = q('.pi');
-    if (pi) pi.src = on ? (stopper ? 'assets/stop.svg' : 'assets/pause.svg') : 'assets/play.svg';
+    if (pi) pi.src = on ? (stopper ? GLYPH.stop : GLYPH.pause) : GLYPH.play;
     const pb = q('[data-act="play"]');
     if (pb) pb.setAttribute('aria-label', on ? (stopper ? 'Stop' : 'Pause') : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
@@ -905,6 +1091,9 @@ function makeWidget(rootId, statusId, colourId) {
   }
   function startNowPlaying() {
     clearInterval(w.npTimer);
+    /* The hero frames show the station and its line, never a track, so polling
+       for one would be two requests every five seconds that nothing reads. */
+    if (variant === 'hero') return;
     if (!w.data || w.data.kind !== 'live' || !w.data.stationId) return;
     if (document.hidden) return;              /* nothing to update, nobody looking */
     refreshNowPlaying();
@@ -972,8 +1161,9 @@ function makeWidget(rootId, statusId, colourId) {
       let peak = 0;
       for (let k = b[0]; k < b[1]; k++) if (w.freq[k] > peak) peak = w.freq[k];
       w.smooth[i] = w.smooth[i] * .55 + (peak / 255) * b[2] * .45;
-      const h = 3 + w.smooth[i] * (WAVE_MAX - 3) * .80;
-      w.bars[i].style.height = Math.max(3, Math.min(WAVE_MAX, h)).toFixed(1) + 'px';
+      const floor = wave.max === 16 ? 3 : 2;
+      const h = floor + w.smooth[i] * (wave.max - floor) * .80;
+      w.bars[i].style.height = Math.max(floor, Math.min(wave.max, h)).toFixed(1) + 'px';
     }
   }
   function settle() {
@@ -1011,7 +1201,8 @@ function makeWidget(rootId, statusId, colourId) {
    ------------------------------------------------------------------------ */
 function wireSearch(box, widget) {
   const input = box.querySelector('input'), list = box.querySelector('.results');
-  const isPodcast = box.dataset.for === 'podcast';
+  const isPodcast = box.dataset.for.startsWith('podcast');
+  const statusEl = document.getElementById('s-' + box.dataset.for);
   let timer, seq = 0;
 
   const close = () => { list.hidden = true; list.innerHTML = ''; };
@@ -1039,7 +1230,7 @@ function wireSearch(box, widget) {
         }).join('');
         list.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
           close(); input.blur();
-          const sEl = document.getElementById(box.dataset.for === 'podcast' ? 's-podcast' : 's-live');
+          const sEl = statusEl;
           sEl.textContent = 'Loading'; sEl.className = 'status';
           try {
             const data = isPodcast ? await loadPodcast(b.dataset.id) : await loadStation(b.dataset.id);
@@ -1061,8 +1252,10 @@ function wireSearch(box, widget) {
    ------------------------------------------------------------------------ */
 const wPod = makeWidget('w-podcast', 's-podcast', 'c-podcast');
 const wLive = makeWidget('w-live', 's-live', 'c-live');
-document.querySelectorAll('.search').forEach((b) =>
-  wireSearch(b, b.dataset.for === 'podcast' ? wPod : wLive));
+const wPodHero = makeWidget('w-podcast-hero', 's-podcast-hero', 'c-podcast-hero', 'hero');
+const wLiveHero = makeWidget('w-live-hero', 's-live-hero', 'c-live-hero', 'hero');
+const BY_SEARCH = { podcast: wPod, live: wLive, 'podcast-hero': wPodHero, 'live-hero': wLiveHero };
+document.querySelectorAll('.search').forEach((b) => wireSearch(b, BY_SEARCH[b.dataset.for]));
 
 /* ---------------------------------------------------------------------------
    Width readout. ResizeObserver on the shell rather than a window resize
@@ -1073,6 +1266,13 @@ document.querySelectorAll('.search').forEach((b) =>
 const WIDE_AT = 560;
 function gauge(shell, out) {
   const w = Math.round(shell.getBoundingClientRect().width);
+  /* The hero card has one layout at every width, so its readout reports the
+     width and stops there rather than naming a breakpoint it does not have. */
+  if (shell.hasAttribute('data-nobreak')) {
+    out.classList.remove('wide');
+    out.innerHTML = 'widget <b>' + w + '</b> px &middot; one layout at every width';
+    return;
+  }
   const wide = w >= WIDE_AT;
   out.classList.toggle('wide', wide);
   out.innerHTML = 'widget <b>' + w + '</b> px &middot; <span class="mode">' +
@@ -1096,10 +1296,16 @@ const showVw = () => { vw.textContent = Math.round(window.innerWidth); };
 addEventListener('resize', showVw); showVw();
 
 (async () => {
-  try { wPod.load(await loadPodcast(31090140)); }        /* Las Culturistas */
-  catch (e) { document.getElementById('s-podcast').textContent = 'Could not reach the iHeart API. ' + e.message; }
-  try { wLive.load(await loadStation(1469)); }           /* Z100 New York */
-  catch (e) { document.getElementById('s-live').textContent = 'Could not reach the iHeart API. ' + e.message; }
+  /* One fetch per source, shared by both designs, so the two cards are showing
+     the same content and the comparison is about the design alone. */
+  try {
+    const pod = await loadPodcast(31090140);             /* Las Culturistas */
+    wPod.load(pod); wPodHero.load(Object.assign({}, pod));
+  } catch (e) { document.getElementById('s-podcast').textContent = 'Could not reach the iHeart API. ' + e.message; }
+  try {
+    const live = await loadStation(1469);                /* Z100 New York */
+    wLive.load(live); wLiveHero.load(Object.assign({}, live));
+  } catch (e) { document.getElementById('s-live').textContent = 'Could not reach the iHeart API. ' + e.message; }
 })();
 </script>
 </body>
