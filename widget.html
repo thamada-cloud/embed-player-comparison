@@ -221,6 +221,10 @@ section.is-live > .band-note { color: #14532d; }
 .h-name { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
           color: var(--ihr-grey-100); }
 .h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
+/* The station line, under the track. Same size as the artist line above it and
+   deliberately dimmer, so two Regular 12/16 lines read as two things rather
+   than one block. */
+.h-station { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: rgba(255,255,255,.72); }
 /* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
    The row is the thing that is centred on the card, not the button: it is
    absolutely placed at the middle and lays its buttons out around the red one
@@ -817,19 +821,26 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    track takes the lines while there is one and the station line comes back when
    there is not. Identity is not lost either way, since both cards carry the
    station's own tile beside the text.
-   Design B has two lines, so the track takes the SemiBold one and the artist
-   the Regular one under it. Note that the design A frames weight this the other
-   way round, artist SemiBold over track Regular; reading order won here, the
-   song being what a listener asks first. Worth settling in the design file.
-   Design C has one line, so the two are joined. */
+   The station line stays, under the track, the way design A carries all three.
+   A card that swaps the station out for the song has told you what is on but
+   not where it is coming from, which for radio is half the point.
+   Design B has two drawn lines and takes a third: track in the SemiBold one,
+   artist under it, station under that in a dimmer tone so two Regular lines do
+   not read as one block. Note that the design A frames weight the first pair
+   the other way round, artist SemiBold over track Regular; reading order won
+   here, the song being what a listener asks first. Worth settling in the design
+   file. Design C has one drawn line and takes a second: the track and artist
+   joined on the first, the station on the second. */
 function heroLines(d) {
-  if (d.kind !== 'live') return { name: d.subtitle, sub: d.title };
-  if (d.track && d.artist) return { name: d.track, sub: d.artist };
-  return { name: d.title, sub: d.desc || d.subtitle };
+  if (d.kind !== 'live') return { name: d.subtitle, sub: d.title, station: null };
+  if (d.track && d.artist) return { name: d.track, sub: d.artist, station: d.subtitle };
+  return { name: d.title, sub: d.desc || d.subtitle, station: null };
 }
-function cLine(d) {
+function cLines(d) {
   if (d.kind !== 'live') return null;
-  return (d.track && d.artist) ? `${d.track} \u2022 ${d.artist}` : d.subtitle;
+  return (d.track && d.artist)
+    ? { name: `${d.track} \u2022 ${d.artist}`, station: d.subtitle }
+    : { name: d.subtitle, station: null };
 }
 
 /* Measured, never assumed. A line gets the marquee only when its text really
@@ -1033,8 +1044,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? `<p class="h-name mq">${mqs(heroLines(d).name)}</p>
-                   <p class="h-sub mq">${mqs(heroLines(d).sub)}</p>`
+                ? (() => { const L = heroLines(d); return `
+                   <p class="h-name mq">${mqs(L.name)}</p>
+                   <p class="h-sub mq">${mqs(L.sub)}</p>
+                   ${L.station ? `<p class="h-station mq">${mqs(L.station)}</p>` : ''}`; })()
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1096,7 +1109,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? `<p class="h-name mq">${mqs(cLine(d))}</p>`
+                ? (() => { const L = cLines(d); return `
+                   <p class="h-name mq">${mqs(L.name)}</p>
+                   ${L.station ? `<p class="h-station mq">${mqs(L.station)}</p>` : ''}`; })()
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1489,20 +1504,26 @@ function makeWidget(rootId, statusId, colourId, variant) {
     /* The artwork cards keep the same number of lines whether a track is on or
        not, so they are written in place. Only the bar card changes shape at that
        edge, gaining or losing a two line block and a type size with it. */
+    /* Every design gains or loses a line at this edge now, the artwork cards
+       gaining the station line under the track, so all of them re-render rather
+       than only the bar card. */
+    if (had !== has) { render(); return; }
+    if (!has) return;
     if (variant === 'bar') {
-      if (had !== has) { render(); return; }
-      if (!has) return;
       const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
       if (tr) tr.textContent = w.data.track;
       if (ar) ar.textContent = w.data.artist;
     } else if (variant === 'hero') {
-      const lines = heroLines(w.data);
-      const n = q('.h-name .mqi'), b = q('.h-sub .mqi');
-      if (n) n.textContent = lines.name;
-      if (b) b.textContent = lines.sub;
+      const L = heroLines(w.data);
+      const n = q('.h-name .mqi'), b = q('.h-sub .mqi'), st = q('.h-station .mqi');
+      if (n) n.textContent = L.name;
+      if (b) b.textContent = L.sub;
+      if (st && L.station) st.textContent = L.station;
     } else {
-      const n = q('.h-name .mqi');
-      if (n) n.textContent = cLine(w.data);
+      const L = cLines(w.data);
+      const n = q('.h-name .mqi'), st = q('.h-station .mqi');
+      if (n) n.textContent = L.name;
+      if (st && L.station) st.textContent = L.station;
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */

@@ -669,10 +669,18 @@ All three designs now poll and all three show the track, each in the lines it
 has.
 
 - **A** keeps its three lines, track, artist, station.
-- **B** has two, so the track takes the SemiBold line and the artist the Regular
-  one under it, and the station line comes back when nothing is on air.
-- **C** has one, so the two are joined with a bullet, falling back to the
-  station line.
+- **B** has two drawn lines and takes a third, track in the SemiBold one, artist
+  under it, station under that.
+- **C** has one drawn line and takes a second, the track and artist joined with
+  a bullet on the first, the station on the second.
+
+The station line stays under the track rather than being replaced by it. A card
+that swaps the station out for the song has told you what is on but not where it
+is coming from, which for radio is half the point. The extra line is dimmer than
+the artist line above it, so two Regular 12/16 lines read as two things rather
+than one block. B's top bar grows from 40 to 54 to hold it, measured with no
+overlap against the control row or the waveform, and C's stays at 48 since its
+tile is taller than the text.
 
 Identity survives either way, since both cards carry the station's own tile
 beside the text.
@@ -683,10 +691,12 @@ song being what a listener asks first, so B emphasises the track. That is a
 decision rather than a reading of any frame.
 
 Verified against a stubbed endpoint so the state is deterministic rather than
-whatever Z100 happens to be doing: with a track, A reads Espresso / Sabrina
-Carpenter / Z100, B reads Espresso over Sabrina Carpenter, C reads Espresso
-bullet Sabrina Carpenter. A track change reaches all three. With nothing on air,
-B falls back to Z100 over its description and C to the joined station line.
+whatever Z100 happens to be doing. With a track, all three carry the station
+line last: A reads Espresso, Sabrina Carpenter, Z100; B the same three lines;
+C reads Espresso bullet Sabrina Carpenter over the station line. A track change
+reaches all three. With nothing on air, B falls back to Z100 over its
+description and C to the joined station line, both losing the third line rather
+than showing an empty one.
 
 ### Design C, the third set
 
