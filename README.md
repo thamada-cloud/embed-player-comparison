@@ -669,14 +669,20 @@ All three designs now poll and all three show the track, each in the lines it
 has.
 
 - **A** keeps its three lines, track, artist, station.
-- **B and C read identically**, track in the SemiBold line, artist under it,
-  station under that. C's own live frame drew a single joined line and was built
-  that way first; one metadata layout across the two artwork cards is worth more
-  than that detail, since it leaves the designs differing in the things being
-  compared rather than in how a song is written out. Verified identical, the
-  same three lines at 14/18 SemiBold, 12/16 Regular and 12/16 Regular dimmed.
-  C keeps its own 48px tile, which is a top bar difference rather than a
-  metadata one.
+- **B and C read identically**, and the weights come from frame 2548:133528,
+  the only frame that draws an artwork card with a track on it. The track is the
+  **Regular** 14/18 and the artist the **SemiBold** one under it, the same
+  weighting the design A frames use, with the station line at 12/16 Regular in
+  full white. An earlier pass had the track in the SemiBold slot on a reading
+  order argument and dimmed the station line to 72%. The frame disagrees with
+  both, and the frame wins.
+
+  With nothing on air both fall back to the station's name at 14/18 SemiBold
+  over its description at 12/16 Regular, which is 2512:111965.
+
+  Two differences between the cards are real and stay. B's metadata column is
+  `gap-[2px]` and C's is flush with no gap at all, and B's tile is 40px against
+  C's 48. Both are in their own frames.
 
 The station line stays under the track rather than being replaced by it. A card
 that swaps the station out for the song has told you what is on but not where it

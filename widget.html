@@ -222,13 +222,20 @@ section.is-live > .band-note { color: #14532d; }
 .topbar .ihr { position: static; flex: 0 0 auto; width: 25px; height: 26px; }
 /* Two type styles, swapped between the two frames. The name line is the
    SemiBold one at 14/18, the sub line the Regular one at 12/16. */
+/* Three type styles, straight off frame 2548:133528, which is the only frame
+   that draws an artwork card with a track on it.
+   The track is the REGULAR 14/18 and the artist the SemiBold one under it, the
+   same weighting the design A frames use. An earlier pass put the track in the
+   SemiBold slot on a reading-order argument; the frame disagrees, and the frame
+   wins. The station line is 12/16 Regular in full white, not dimmed. */
+.h-track { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 400;
+           color: var(--ihr-grey-100); }
 .h-name { margin: 0; font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
           color: var(--ihr-grey-100); }
 .h-sub { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--true-white); }
-/* The station line, under the track. Same size as the artist line above it and
-   deliberately dimmer, so two Regular 12/16 lines read as two things rather
-   than one block. */
-.h-station { margin: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: rgba(255,255,255,.72); }
+/* B's meta column is gap-[2px] in 2512:111965. C's is flush, no gap at all, in
+   2548:133528. */
+.widget.c .topbar .meta { gap: 0; }
 /* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
    The row is the thing that is centred on the card, not the button: it is
    absolutely placed at the middle and lays its buttons out around the red one
@@ -837,6 +844,20 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    Note that the design A frames weight the first pair the other way round,
    artist SemiBold over track Regular; reading order won here, the song being
    what a listener asks first. Worth settling in the design file. */
+/* The live block for both artwork cards, in the order and the weights frame
+   2548:133528 draws: track Regular, artist SemiBold, station line under them.
+   With nothing on air it falls back to the station's own name and description,
+   which is what 2512:111965 draws. */
+function liveMeta(d) {
+  const L = heroLines(d);
+  return L.station
+    ? `<p class="h-track mq">${mqs(L.name)}</p>
+       <p class="h-name mq">${mqs(L.sub)}</p>
+       <p class="h-sub mq">${mqs(L.station)}</p>`
+    : `<p class="h-name mq">${mqs(L.name)}</p>
+       <p class="h-sub mq">${mqs(L.sub)}</p>`;
+}
+
 function heroLines(d) {
   if (d.kind !== 'live') return { name: d.subtitle, sub: d.title, station: null };
   if (d.track && d.artist) return { name: d.track, sub: d.artist, station: d.subtitle };
@@ -1100,10 +1121,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? (() => { const L = heroLines(d); return `
-                   <p class="h-name mq">${mqs(L.name)}</p>
-                   <p class="h-sub mq">${mqs(L.sub)}</p>
-                   ${L.station ? `<p class="h-station mq">${mqs(L.station)}</p>` : ''}`; })()
+                ? liveMeta(d)
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1165,10 +1183,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             <img class="h-thumb" src="${esc(d.art)}" alt="">
             <div class="meta">
               ${isLive
-                ? (() => { const L = heroLines(d); return `
-                   <p class="h-name mq">${mqs(L.name)}</p>
-                   <p class="h-sub mq">${mqs(L.sub)}</p>
-                   ${L.station ? `<p class="h-station mq">${mqs(L.station)}</p>` : ''}`; })()
+                ? liveMeta(d)
                 : `<p class="h-sub mq">${mqs(d.title)}</p>
                    <p class="h-name mq">${mqs(d.subtitle)}</p>`}
             </div>
@@ -1589,18 +1604,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
       if (tr) tr.textContent = w.data.track;
       if (ar) ar.textContent = w.data.artist;
-    } else if (variant === 'hero') {
-      const L = heroLines(w.data);
-      const n = q('.h-name .mqi'), b = q('.h-sub .mqi'), st = q('.h-station .mqi');
-      if (n) n.textContent = L.name;
-      if (b) b.textContent = L.sub;
-      if (st && L.station) st.textContent = L.station;
     } else {
+      /* With a track the three lines are track, artist, station; the classes
+         carry the weights, so the writer only has to keep the order. */
       const L = heroLines(w.data);
-      const n = q('.h-name .mqi'), b = q('.h-sub .mqi'), st = q('.h-station .mqi');
-      if (n) n.textContent = L.name;
-      if (b) b.textContent = L.sub;
-      if (st && L.station) st.textContent = L.station;
+      const tr = q('.h-track .mqi'), n = q('.h-name .mqi'), b = q('.h-sub .mqi');
+      if (tr) tr.textContent = L.name;
+      if (n) n.textContent = L.sub;
+      if (b) b.textContent = L.station;
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
