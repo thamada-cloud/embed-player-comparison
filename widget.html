@@ -133,8 +133,11 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   }
   .art { width: 132px; height: 132px; align-self: start; }
   .meta { padding-top: 5px; }
-  .title { font-size: 20px; line-height: 24px; letter-spacing: -.4px; }
-  .subtitle { font-size: 14px; line-height: 18px; }
+  /* Straight off frame 2526:135975: title 16/24 SemiBold, subtitle 14/18
+     Regular, both at -0.2 letter spacing. An earlier pass guessed 20/24 and
+     -0.4, which made the podcast title noticeably larger than the design. */
+  .title { font-size: 16px; line-height: 24px; letter-spacing: -.2px; }
+  .subtitle { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
   /* The live frames keep the now-playing block at 14/18 and the station line
      at 12/16 at BOTH sizes, so the wide rules must not scale them up. */
   .widget.live .titles .title { font-size: 14px; line-height: 18px; letter-spacing: -.2px; }
@@ -332,8 +335,11 @@ async function loadStation(id) {
     kind: 'live', stationId: id,
     /* Three lines, per the updated live frames: track, artist, then the
        station line. No list, so no rows. */
-    track: (np && np.track) || 'Live',
-    artist: (np && np.artist) || h.name,
+    /* Left null when the station reports nothing playing. The widget then
+       shows only the station line rather than repeating the station name on
+       the artist row. */
+    track: (np && np.track) || null,
+    artist: (np && np.artist) || null,
     title: h.name,
     subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
     art: h.logo || `https://i.iheart.com/v3/re/assets/images/${id}.png`,
@@ -438,10 +444,11 @@ function makeWidget(rootId, statusId, colourId) {
             <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
             <div class="meta">
               ${isLive ? `
+                ${d.track && d.artist ? `
                 <div class="titles">
-                  <p class="title np-track">${esc(d.track || 'Live')}</p>
-                  <p class="title np-artist">${esc(d.artist || d.title)}</p>
-                </div>
+                  <p class="title np-track">${esc(d.track)}</p>
+                  <p class="title np-artist">${esc(d.artist)}</p>
+                </div>` : ''}
                 <p class="subtitle">${esc(d.subtitle)}</p>` : `
                 <p class="title">${esc(d.title)}</p>
                 <p class="subtitle">${esc(d.subtitle)}</p>`}
@@ -649,11 +656,18 @@ function makeWidget(rootId, statusId, colourId) {
     if (on && w.data.kind === 'live' && w.data.stationId) {
       const refresh = async () => {
         const np = await nowPlaying(w.data.stationId);
-        if (!np || !w.playing) return;
-        w.data.track = np.track; w.data.artist = np.artist;
+        if (!w.playing) return;
+        const had = !!(w.data.track && w.data.artist);
+        w.data.track = (np && np.track) || null;
+        w.data.artist = (np && np.artist) || null;
+        const has = !!(w.data.track && w.data.artist);
+        /* Gaining or losing track data changes how many lines the block has,
+           so that edge needs a re-render rather than a text swap. */
+        if (had !== has) { render(); return; }
+        if (!has) return;
         const tr = q('.np-track'), ar = q('.np-artist');
-        if (tr) tr.textContent = np.track;
-        if (ar) ar.textContent = np.artist;
+        if (tr) tr.textContent = w.data.track;
+        if (ar) ar.textContent = w.data.artist;
       };
       refresh();
       w.npTimer = setInterval(refresh, 25000);

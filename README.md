@@ -243,6 +243,12 @@ holds 132px, and type does the same. An earlier version scaled it continuously
 in `cqw`, which produced sizes appearing in neither frame and read as wrong at
 every width in between.
 
+**Podcast type comes off frame 2526:135975**, which is worth stating because it
+is easy to guess wrong: title 16/24 SemiBold and subtitle 14/18 Regular at the
+wide size, both at -0.2 letter spacing, and 14/18 with 12/16 at the narrow size.
+An earlier pass assumed 20/24 and -0.4 for the wide title, which made it
+noticeably larger than the design.
+
 **Waveform bars keep the design's width and grow in COUNT.** Figma uses 3px bars
 at 350 and 4px at 1280, so flexing a fixed 70 bars across a wide widget ballooned
 them to 15px, several times the design. The bar width is now fixed and the count
@@ -398,6 +404,11 @@ The live frames were revised after the first build and now differ structurally:
 - **Three metadata lines, not two.** Track title in Regular 14/18, artist in
   SemiBold 14/18, then the station line in Regular 12/16. Note the weighting is
   the reverse of the podcast, where the title is the SemiBold one.
+- **One line when nothing is playing.** Talk stations return an empty track
+  history (KFI, WOR and WTAM all do), so the two now-playing lines are dropped
+  entirely and only the station line shows. Falling back to the station name on
+  the artist row just repeated what the line below already said. Gaining or
+  losing a track re-renders, since it changes how many lines the block has.
 - **Now playing is real.** Those two lines come from
   `/v3/live-meta/stream/{id}/trackHistory`, and refresh every 25 seconds while
   the station is playing, because the track changes while you listen.
