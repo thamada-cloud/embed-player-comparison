@@ -47,6 +47,23 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
 section > h2 { font-size: 13px; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .06em; }
 section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450); max-width: 80ch; }
 
+/* ---------- width gauge ----------
+   The widget lays itself out from its OWN width, not the window's, so the
+   readout reports the shell width (what the container query actually reads)
+   next to the window width. They differ by the page gutters and the 1320
+   max-width, which is exactly the thing that is otherwise invisible. */
+.h2row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 10px; margin: 0 0 2px; }
+.h2row h2 { margin: 0; }
+.gauge {
+  font-size: 11.5px; letter-spacing: 0; text-transform: none; font-weight: 400;
+  color: var(--ihr-grey-450); font-variant-numeric: tabular-nums;
+  border: 1px solid var(--ihr-grey-250); border-radius: 999px; padding: 2px 9px; background: #fff;
+}
+.gauge b { font-weight: 600; color: var(--ihr-grey-600); }
+.gauge .mode { font-weight: 600; }
+.gauge.wide .mode { color: var(--ihr-red-550); }
+.hint .vw { font-variant-numeric: tabular-nums; }
+
 /* ---------- search ---------- */
 .search { position: relative; margin-bottom: 12px; max-width: 460px; }
 .search input {
@@ -246,11 +263,12 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 <header>
   <div class="brand">Audio Widget Prototype <span>from Figma, Audio Widgets</span></div>
   <div class="hint">Resize the window: each widget lays itself out from its own width. Search to load any iHeart podcast or station.</div>
+  <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
 </header>
 
 <main>
   <section>
-    <h2>Podcast</h2>
+    <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast"></span></div>
     <p class="sub">Search any iHeart podcast. The newest episode loads and plays, and the header colour comes from that show's artwork.</p>
     <div class="search" data-for="podcast">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
@@ -262,7 +280,7 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
   </section>
 
   <section>
-    <h2>Live radio</h2>
+    <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live"></span></div>
     <p class="sub">Search any iHeart station. Live radio has no duration, so there is no scrubber.</p>
     <div class="search" data-for="live">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
@@ -792,6 +810,31 @@ const wPod = makeWidget('w-podcast', 's-podcast', 'c-podcast');
 const wLive = makeWidget('w-live', 's-live', 'c-live');
 document.querySelectorAll('.search').forEach((b) =>
   wireSearch(b, b.dataset.for === 'podcast' ? wPod : wLive));
+
+/* ---------------------------------------------------------------------------
+   Width readout. ResizeObserver on the shell rather than a window resize
+   listener, because the shell is the container query's container and it also
+   changes when the page gutters or the 1320 max-width kick in, which a window
+   listener alone would report a frame late.
+   ------------------------------------------------------------------------ */
+const WIDE_AT = 560;
+function gauge(shell, out) {
+  const w = Math.round(shell.getBoundingClientRect().width);
+  const wide = w >= WIDE_AT;
+  out.classList.toggle('wide', wide);
+  out.innerHTML = 'widget <b>' + w + '</b> px &middot; <span class="mode">' +
+    (wide ? 'wide' : 'compact') + '</span> &middot; ' +
+    (wide ? 'compact below ' : 'wide at ') + WIDE_AT;
+}
+document.querySelectorAll('section').forEach((sec) => {
+  const shell = sec.querySelector('.shell'), out = sec.querySelector('.gauge');
+  if (!shell || !out) return;
+  new ResizeObserver(() => gauge(shell, out)).observe(shell);
+  gauge(shell, out);
+});
+const vw = document.getElementById('vw');
+const showVw = () => { vw.textContent = Math.round(window.innerWidth); };
+addEventListener('resize', showVw); showVw();
 
 (async () => {
   try { wPod.load(await loadPodcast(31090140)); }        /* Las Culturistas */
