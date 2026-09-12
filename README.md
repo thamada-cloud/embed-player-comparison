@@ -778,9 +778,15 @@ differently and filled differently.
 - Content is the show's own description, HTML stripped, or the station's line.
 - Playback continues behind it, and Escape closes whichever drawer is open.
 
-Design C keeps its status line instead. It has no info frame of its own and
-already uses a drawer for its episodes, and stacking one drawer over another is
-not something any frame describes.
+Design C has the same drawer, frame 2562:371764, and is the only card carrying
+two of them. They cover the same space, so opening one closes the other rather
+than stacking. In practice a person cannot reach the second button anyway, since
+the open drawer covers it, which is the drawer doing its job; the exclusion is
+there for the keyboard path. Escape closes whichever is open.
+
+Design C's drawer is clipped by its own card, so it shows less of the
+description than A and B do, 234px of card against their 400. That is the frame,
+which draws a 400px drawer inside a 263px card.
 
 ### Clicking the card plays and pauses it, on the artwork designs
 

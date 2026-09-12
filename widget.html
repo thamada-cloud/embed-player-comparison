@@ -1280,6 +1280,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             </div>`}
           ${isLive ? '' : sheetMarkup(d)}
         </div>
+        ${infoMarkup(d)}
       </div>`;
   }
 
@@ -1559,7 +1560,15 @@ function makeWidget(rootId, statusId, colourId, variant) {
        the episode list being the only list this card has, and it is written as
        a toggle so the closed state stays the frame's own. */
     if (kind === 'list') {
-      const card = root.querySelector('.widget'), sheet = root.querySelector('.sheet');
+      /* Design C is the only card with both drawers. They cover the same space,
+         so opening one closes the other rather than stacking. */
+      const info = root.querySelector('.widget');
+      if (info && info.classList.contains('info-open')) {
+        info.classList.remove('info-open');
+        const isheet = root.querySelector('.info-sheet');
+        if (isheet) isheet.setAttribute('aria-hidden', 'true');
+      }
+      const card = root.querySelector('.widget'), sheet = root.querySelector('.sheet:not(.info-sheet)');
       if (card && sheet) {
         const opening = !card.classList.contains('sheet-open');
         card.classList.toggle('sheet-open', opening);
@@ -1571,7 +1580,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         }
         /* Focus follows the sheet, since it covers the controls underneath and
            a keyboard would otherwise be tabbing through a hidden player. */
-        const target = opening ? root.querySelector('.sheet-close') : opener;
+        const target = opening ? sheet.querySelector('.sheet-close') : opener;
         if (target) target.focus({ preventScroll: true });
       }
     }
@@ -1581,6 +1590,11 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (kind === 'info') {
       const card = root.querySelector('.widget'), sheet = root.querySelector('.info-sheet');
       if (card && sheet) {
+        if (card.classList.contains('sheet-open')) {
+          card.classList.remove('sheet-open');
+          const esheet = root.querySelector('.sheet:not(.info-sheet)');
+          if (esheet) esheet.setAttribute('aria-hidden', 'true');
+        }
         const opening = !card.classList.contains('info-open');
         card.classList.toggle('info-open', opening);
         sheet.setAttribute('aria-hidden', String(!opening));
