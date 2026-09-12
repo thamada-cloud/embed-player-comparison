@@ -1345,87 +1345,6 @@ resolves against the github.io host.
 
 - The iHeart logo sits in the same corner on all three designs, 16px from the card's right edge and 16px from its top. On the bar card the anchor is absolutely positioned against `.body`. On the artwork cards it used to be the last flex item in `.topbar`, which put it 24px in and vertically centred against the top bar, so it drifted as the text block grew. It is now absolute against `.topbar` as well. The top bar takes the same 16px of right padding the bar card's `.body` takes, because `.meta` already carries its own right padding, which is the whole of what keeps any design's lines off the logo. That padding is 33px, the logo's 25 plus 8 of clearance, so all three designs truncate their text at the same point, 49px in from the card's right edge, 8px clear of the logo.
 
-## Widget in a publisher slot, `host-page.html`
-
-A prototype card judged on its own tells you nothing about whether it survives the
-box a publisher actually gives it. `host-page.html` puts any of the eight players
-into that box and lets you swap between them without the page around them changing.
-
-The slot geometry is measured, not guessed. A real article on variety.com was loaded
-in headless Chrome and the widget's own container read off it at four viewports:
-
-| viewport | rail width | iframe |
-| --- | --- | --- |
-| 1440 | 352 | 352 x 300 |
-| 1024 | 306.7 | 306.7 x 300 |
-| 768 | 221.3 | 221.3 x 300 |
-| 390 | 350 | 350 x 300 |
-
-Those come out of a 9 column grid with a 32px gap inside a 1160px wrapper with 20px
-gutters. The article spans 6 columns and the rail spans 3, the grid applies from 768
-up and the rail stacks below the article under that, and the widget module sits 48px
-clear of whatever is above it. `host-page.html` reproduces all of those numbers and
-is verified against the table above at each of the four widths.
-
-The rest of the page is built to the same measurements rather than approximated:
-
-| piece | measured |
-| --- | --- |
-| article column | 736 wide, 0 64px padding, 1px #595959 rule down its right |
-| reading column | 479, centred in the 607 that padding leaves |
-| lede image | 607 wide at 3:2 |
-| rail list item | flex, 16px 0 padding, 1px #bbb rule, 128 thumb at 3:2, 16 gap, 184 of text |
-| rail module | white, 1px black rule under it, 48 clear of the next |
-| headline | 34/40 weight 500 at 0.68 tracking |
-| body copy | IBM Plex Serif 18/30 |
-| rail module heads | 21/25 weight 700 at 0.63 tracking |
-| rail item heads | 14/18 weight 500 at 0.7 tracking |
-
-Two deliberate departures, both about not passing this off as the real thing. The
-host's headline face is licensed, so Archivo stands in at the same sizes, weights and
-tracking, and IBM Plex Serif is used for body copy because that is genuinely what the
-real page uses and it is openly licensed. The wordmark, headlines, copy and
-photography are original or openly licensed rather than lifted: the photographs come
-from picsum.photos, which serves Unsplash-licensed images, at the aspect ratios the
-real page uses. No host text, imagery, branding or licensed typeface is reproduced.
-
-### What the slot reveals
-
-The iframe height is a hard 300. Measured inside the frame at 352 wide:
-
-| card | height | fits 300 |
-| --- | --- | --- |
-| A podcast | 400 | no, clipped by 100 |
-| A live | 180 | yes |
-| B podcast | 444 | no, clipped by 144 |
-| B live | 224 | yes |
-| C podcast | 234 | yes |
-| C live | 234 | yes |
-
-Design A and design B put the episode list under the podcast card, and the list is
-what runs past the slot. Design C is the only one of the three whose podcast card
-fits the slot as the host sizes it today.
-
-### Fitting the slot to the card
-
-An iframe cannot resize itself, so the card reports the height it needs and the host
-decides what to do with it. `embed.html` posts `{ type: 'widget-height', design, mode,
-height }` to its parent whenever the card's measured height changes, watched with a
-ResizeObserver so it keeps up with artwork arriving, the episode list filling in, a
-control row appearing on play and a drawer opening. `host-page.html` listens, checks
-the message came from its own frame and that the height is in a sane band, and sets
-the slot to it.
-
-The harness has a **Slot height** control with the two cases side by side:
-
-- **Fit to the widget**, the default. Every card gets the height it asks for, and
-  nothing is cut off.
-- **Fixed 300, as shipped**, which is what the real host hardcodes. The readout then
-  names the gap, for example `352 x 300, card wants 444, clipped by 144`.
-
-The two shipping embeds are cross-origin and report nothing, so they stay at 300 in
-both modes, which is exactly what they get on the real page.
-
 ## Shared widget code, `widget-core.css` and `widget-core.js`
 
 The widget was lifted out of `widget.html` into these two files so that the prototype
@@ -1442,14 +1361,15 @@ One card, no chrome, sized by whatever iframe holds it. Query parameters pick wh
 
     embed.html?design=a|b|c&mode=podcast|live
 
-This is what `host-page.html` points its slot at for the six prototypes. The two
+This is what `host-home.html` points its slot at for the six prototypes. The two
 shipping options point at iheart.com directly, so what renders there is the production
 player rather than a rebuild of it.
 
 ## Widget in a homepage rail, `host-home.html`
 
-The same idea as `host-page.html` but for the homepage, which is a different slot with
-a different budget. Built from Figma frame `2566:86936` in the Audio Widgets file, which
+The widget dropped into a real publisher rail, so it can be judged at the size and in
+the position a host actually gives it rather than on a blank canvas. Built from Figma
+frame `2566:86936` in the Audio Widgets file, which
 is a web capture of the live homepage at a 1728 viewport, cross-checked against the
 homepage itself read in headless Chrome. The two agree.
 
@@ -1476,8 +1396,25 @@ exactly as it ships, pointed at iheart.com, and puts the swappable prototype slo
 directly beneath it, marked with a red rule and a Prototype flag so the two stacked
 players cannot be confused. That makes the comparison a vertical one on a real page.
 
-The slot height control works as it does on the article page, with the fixed case set to
-this page's 150 rather than 300.
+### Fitting the slot to the card
+
+An iframe cannot resize itself, so the card reports the height it needs and the host
+decides what to do with it. `embed.html` posts `{ type: 'widget-height', design, mode,
+height }` to its parent whenever the card's measured height changes, watched with a
+ResizeObserver so it keeps up with artwork arriving, the episode list filling in, a
+control row appearing on play and a drawer opening. `host-home.html` listens, checks the
+message came from its own frame and that the height is in a sane band, and sets the slot
+to it.
+
+The harness has a **Slot height** control with the two cases side by side:
+
+- **Fit to the widget**, the default. Every card gets the height it asks for, and nothing
+  is cut off.
+- **Fixed 150, as shipped**, which is what the real host hardcodes. The readout then names
+  the gap, for example `352 x 150, card wants 444, clipped by 294`.
+
+The two shipping embeds are cross-origin and report nothing, so they stay at 150 in both
+modes, which is exactly what they get on the real page.
 
 ## The scrubber is the accomplice Slider
 
