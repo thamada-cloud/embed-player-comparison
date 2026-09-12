@@ -759,6 +759,29 @@ C the same. A track change reaches all three. With nothing on air, B falls back 
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 
+### The info button opens a drawer on designs A and B
+
+Frame 2562:285883. The same Drawer component as design C's episode list, mounted
+differently and filled differently.
+
+- **It covers the CARD, not the stage.** The frame draws it over all 400px, the
+  player and the episode list together, so it is a child of `.widget` rather
+  than of `.stage`. Measured: it matches the card's own box exactly on all four
+  cards, sitting at offset 0 when open and at the card's full height when
+  closed.
+- **The header grows to fit the title.** 80 tall where the title wraps to two
+  lines, 64 where it fits on one, which is the difference between a podcast's
+  show name and a station's. It wraps rather than ellipsising, unlike the
+  episode drawer's header.
+- **The body is a paragraph**, 16/24 with -0.5 tracking in black, not a list of
+  rows. It scrolls when the description is long.
+- Content is the show's own description, HTML stripped, or the station's line.
+- Playback continues behind it, and Escape closes whichever drawer is open.
+
+Design C keeps its status line instead. It has no info frame of its own and
+already uses a drawer for its episodes, and stacking one drawer over another is
+not something any frame describes.
+
 ### Clicking the card plays and pauses it, on the artwork designs
 
 Designs B and C toggle from anywhere on the card, the way a video player does.

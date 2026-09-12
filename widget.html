@@ -124,6 +124,7 @@ section.is-live > .band-note { color: #14532d; }
 .shell { container-type: inline-size; width: 100%; }
 .widget {
   border-radius: var(--radius-widget); overflow: hidden; width: 100%;
+  position: relative;                      /* the info drawer covers the card */
   display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10);
 }
 .player {
@@ -383,6 +384,18 @@ section.is-live > .band-note { color: #14532d; }
 .sheet-close:hover { background: rgba(0,0,0,.08); }
 .sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; }
 .sheet-body .rows { gap: 2px; }
+
+/* The info drawer, frame 2562:285883. Same component, mounted over the whole
+   card rather than over the stage, so its own rule sets the cover. */
+.info-sheet { z-index: 4; border-radius: var(--radius-widget); }
+.widget.info-open .info-sheet {
+  transform: translateY(0); visibility: visible;
+  transition: transform .28s ease, visibility 0s;
+}
+/* The title wraps to two lines here rather than ellipsising, which is what
+   takes the header from 64 to 80. */
+.info-sheet .sheet-head h3 { white-space: normal; overflow: visible; text-overflow: clip; }
+.info-body { margin: 0; font-size: 16px; line-height: 24px; letter-spacing: -.5px; color: #000; }
 
 /* ---------- marquee ----------
    Text that does not fit still ellipsises. On a device with a real pointer it
@@ -763,6 +776,9 @@ async function loadPodcast(id) {
        the same episode rather than a hard coded one that goes stale. */
     showId: id, episodeId: eps[0].id, showSlug: show.slug || 'podcast',
     title: first.title, subtitle: show.title,
+    /* The info drawer's paragraph. Shows carry HTML in their description, so it
+       is stripped rather than injected. */
+    infoTitle: show.title, infoBody: String(show.description || '').replace(/<[^>]*>/g, '').trim(),
     art: show.imageUrl, audio: first.mediaUrl, hls: false,
     listTitle: 'Episodes',
     rows: eps.map((e) => ({
@@ -825,6 +841,7 @@ async function loadStation(id) {
     artist: (np && np.artist) || null,
     title: h.name,
     subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
+    infoTitle: h.name, infoBody: h.description || '',
     /* The hero frame puts the station name on line one and its description on
        line two, so it needs them apart, not joined. */
     desc: h.description || '',
@@ -1192,6 +1209,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           </div>
         </div>
         ${isLive ? '' : listMarkup(d)}
+        ${infoMarkup(d)}
       </div>`;
   }
 
@@ -1261,6 +1279,26 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <div class="wave"></div>
             </div>`}
           ${isLive ? '' : sheetMarkup(d)}
+        </div>
+      </div>`;
+  }
+
+  /* The info drawer, frame 2562:285883. The same Drawer component as the
+     episode one and mounted differently: this one is a child of the CARD rather
+     than of the stage, since the frame draws it over all 400px, the player and
+     the episode list together.
+     Two differences inside. The header is 80 tall rather than 64 because its
+     title wraps to two lines rather than ellipsising, and the body is a
+     paragraph at 16/24 with -0.5 tracking in black, not a list of rows. */
+  function infoMarkup(d) {
+    return `
+      <div class="sheet info-sheet" aria-hidden="true">
+        <div class="sheet-head">
+          <h3>${esc(d.infoTitle || d.subtitle)}</h3>
+          <button class="sheet-close" data-act="info" aria-label="Close information"><img src="assets/sheet-close.svg" alt=""></button>
+        </div>
+        <div class="sheet-body">
+          <p class="info-body">${esc(d.infoBody || 'No description available.')}</p>
         </div>
       </div>`;
   }
@@ -1344,6 +1382,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="wave"></div>
         </div>
         ${isLive ? '' : listMarkup(d)}
+        ${infoMarkup(d)}
       </div>`;
     afterRender();
   }
@@ -1439,9 +1478,13 @@ function makeWidget(rootId, statusId, colourId, variant) {
     root.onkeydown = (e) => {
       if (e.key !== 'Escape') return;
       const card = root.querySelector('.widget');
-      if (card && card.classList.contains('sheet-open')) {
+      if (!card) return;
+      if (card.classList.contains('sheet-open')) {
         e.stopPropagation();
         act('list', root.querySelector('[data-act="list"]'));
+      } else if (card.classList.contains('info-open')) {
+        e.stopPropagation();
+        act('info', root.querySelector('[data-act="info"]:not(.sheet-close)'));
       }
     };
     const track = q('.track');
@@ -1532,7 +1575,23 @@ function makeWidget(rootId, statusId, colourId, variant) {
         if (target) target.focus({ preventScroll: true });
       }
     }
-    if (kind === 'info') status(w.data.subtitle);
+    /* Info opens the drawer on designs A and B. Design C has no info frame of
+       its own and already uses a drawer for its episodes, so it keeps the
+       status line rather than stacking one drawer on another. */
+    if (kind === 'info') {
+      const card = root.querySelector('.widget'), sheet = root.querySelector('.info-sheet');
+      if (card && sheet) {
+        const opening = !card.classList.contains('info-open');
+        card.classList.toggle('info-open', opening);
+        sheet.setAttribute('aria-hidden', String(!opening));
+        const opener = root.querySelector('[data-act="info"]:not(.sheet-close)');
+        if (opener) opener.setAttribute('aria-pressed', String(opening));
+        const target = opening ? sheet.querySelector('.sheet-close') : opener;
+        if (target) target.focus({ preventScroll: true });
+      } else {
+        status(w.data.subtitle);
+      }
+    }
     if (kind === 'share') status('Share sheet would open here.');
   }
 
