@@ -223,7 +223,14 @@ a.thumb-link:hover { opacity: .92; }
    which drew this state at 12/16. Declared here, ahead of the container query,
    so the wide override inside the query wins on order as well as specificity. */
 .widget.live.notrack .subtitle { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600; }
-.ihr { position: absolute; right: 16px; top: 0; width: 25px; height: 26px; }
+.ihr { width: 25px; height: 26px; display: block; }
+/* The logo is a link home, so the ANCHOR carries the position rather than the
+   image. Leaving the absolute positioning on the image left the anchor with a
+   zero sized box in the flow, which is a link nobody can click. */
+.ihr-link { position: absolute; right: 16px; top: 0; display: block; line-height: 0; color: inherit; }
+.topbar .ihr-link { position: static; flex: 0 0 auto; }
+.ihr-link:hover { opacity: .85; }
+.ihr-link:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px; }
 
 /* ============================================================================
    HERO CARD. Frames 2512:113087 (podcast) and 2512:111965 (live radio).
@@ -276,7 +283,7 @@ a.thumb-link:hover { opacity: .92; }
    2px there, this is a deliberate step past them, and it applies to the two
    artwork cards only: design A's live block and both podcast pairs keep the 2. */
 .widget.hero.live .topbar .meta { gap: 0; }
-.topbar .ihr { position: static; flex: 0 0 auto; width: 25px; height: 26px; }
+.topbar .ihr { width: 25px; height: 26px; }
 /* Two type styles, swapped between the two frames. The name line is the
    SemiBold one at 14/18, the sub line the Regular one at 12/16. */
 /* The live block, identical across all three designs after the revision:
@@ -1245,7 +1252,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
+               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
           </div>
           <div class="hero-controls">
             ${isLive ? `
@@ -1309,7 +1317,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
+               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
           </div>
           <div class="hero-controls">
             ${isLive ? `
@@ -1410,7 +1419,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="body">
             <a class="art-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous"></a>
-            <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
+            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
+               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
             <div class="col">
             <div class="meta">
               ${isLive ? `

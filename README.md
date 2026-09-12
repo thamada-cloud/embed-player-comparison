@@ -836,6 +836,7 @@ Each line goes to the page it names.
 | Artist line | the artist page |
 | Track line | the song page |
 | Live radio, artwork and station line | the station page |
+| The iHeart logo | iheart.com |
 
 Confirmed by clicking through on the bar card: the episode line opens
 `"Yumming My Yuck" (w/ Carly Rae Jepsen)`, the show line and the artwork both
