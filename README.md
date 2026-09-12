@@ -1445,3 +1445,36 @@ One card, no chrome, sized by whatever iframe holds it. Query parameters pick wh
 This is what `host-page.html` points its slot at for the six prototypes. The two
 shipping options point at iheart.com directly, so what renders there is the production
 player rather than a rebuild of it.
+
+## Widget in a homepage rail, `host-home.html`
+
+The same idea as `host-page.html` but for the homepage, which is a different slot with
+a different budget. Built from Figma frame `2566:86936` in the Audio Widgets file, which
+is a web capture of the live homepage at a 1728 viewport, cross-checked against the
+homepage itself read in headless Chrome. The two agree.
+
+| piece | measured |
+| --- | --- |
+| wrapper | 1160, centred, 0 20px padding |
+| grid | 9 columns, 32px gap: main spans 6 at 736, rail spans 3 at 352 |
+| main column | 32 of right padding plus a 1px rule, so 703 of content |
+| hero lead | 703 with 32 of side padding, 639 image at 3:2 |
+| hero pair | 416 and 255 inside the 703, 32 apart |
+| rail modules | 352, 48 clear of each other |
+| widget module | 21/25 700 head at 0.63 track, 8, a 1px black rule, 24, iframe, 12, a 14/18 500 credit |
+| the iframe | **352 x 150** |
+
+That last row is the finding. The homepage gives the widget **half** the height an
+article page gives it, 150 against 300, in an otherwise identical module. None of the
+six prototype cards fits 150: the shortest is design A live at 180.
+
+### Where the prototype sits
+
+The homepage's shipping iHeart module is titled **Strictly Business** and lives in the
+second block's rail, below a long vertical news list. `host-home.html` keeps that module
+exactly as it ships, pointed at iheart.com, and puts the swappable prototype slot
+directly beneath it, marked with a red rule and a Prototype flag so the two stacked
+players cannot be confused. That makes the comparison a vertical one on a real page.
+
+The slot height control works as it does on the article page, with the fixed case set to
+this page's 150 rather than 300.

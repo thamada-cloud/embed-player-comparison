@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Widget in a publisher homepage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------------------
+   A stand-in for a publisher homepage that carries the iHeart widget in its
+   right rail, built to the measurements of a real one.
+
+   The numbers come from two sources that agree with each other: the Figma frame
+   2566:86936, which is a web capture of the live homepage at a 1728 viewport,
+   and the homepage itself read in headless Chrome.
+
+     wrapper        1160, centred, 0 20px padding, so 1120 of content
+     grid           9 columns, 32px gap: main spans 6 (736), rail spans 3 (352)
+     main column    33 of right padding, the last pixel of it a rule, so the
+                    content inside it is 703 wide
+     hero lead      703, with 32 of side padding and a 639 image at 3:2
+     hero pair      416 and 255 inside the 703, 32 apart
+     rail modules   352, 48 clear of each other
+     rail tease     128 thumb at 3:2, 16 gap, 184 of text
+     widget module  head 21/25 700 at 0.63 track, 8 under it, a 1px black rule,
+                    24, then the iframe, then 12 and a 14/18 500 credit line
+     the iframe     352 x 150
+
+   That last number is the one worth noticing. The homepage gives the widget
+   HALF the height the article pages give it: 150 against 300.
+
+   Two deliberate departures, both about not passing this off as the real thing.
+   The publication's headline face is licensed, so Archivo stands in at the same
+   sizes, weights and tracking, while IBM Plex Serif is genuinely what the real
+   page sets body copy in and is openly licensed. The wordmark, the headlines
+   and the photography are original or openly licensed rather than lifted: the
+   photographs come from picsum.photos, which serves Unsplash-licensed images,
+   at the aspect ratios the real page uses.
+   ------------------------------------------------------------------------ */
+
+:root {
+  --wrap: 1160px;
+  --gutter: 20px;
+  --gap: 32px;
+  --col-rule: #595959;
+  --item-rule: #bbb;
+  --hair: #e6e6e6;
+  --img-bg: #f7f7f7;
+  --soft: #595959;
+  --ui: 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --body: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #fff; color: #000; font-family: var(--ui); }
+img { display: block; max-width: 100%; background: var(--img-bg); }
+a { color: inherit; text-decoration: none; }
+
+/* --- harness bar. Not part of the replica, and dressed so it cannot be
+       mistaken for it. ------------------------------------------------------ */
+.harness {
+  position: sticky; top: 0; z-index: 60;
+  background: #12141a; color: #fff;
+  padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  font-size: 13px; line-height: 1.3;
+}
+.harness .who { font-weight: 700; letter-spacing: .2px; }
+.harness .who span { font-weight: 400; opacity: .65; margin-left: 8px; }
+.harness label { opacity: .75; }
+.harness select {
+  font: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px;
+  border: 1px solid #3a3f4a; background: #1c2029; color: #fff;
+}
+.harness .slotsize { margin-left: auto; opacity: .75; font-variant-numeric: tabular-nums; }
+.harness .slotsize b { color: #ffd166; font-weight: 600; }
+.harness a.jump { color: #9ec5ff; }
+
+/* --- masthead ------------------------------------------------------------ */
+.topad { border-bottom: 1px solid var(--hair); }
+.topad .box { display: flex; justify-content: center; padding: 24px var(--gutter); }
+.utility { border-bottom: 1px solid var(--hair); }
+.utility .bar {
+  max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter);
+  height: 40px; display: flex; align-items: center; gap: 24px;
+  font-size: 14px; line-height: 18px; letter-spacing: 1.2px;
+}
+.utility .right { margin-left: auto; display: flex; gap: 24px; align-items: center; }
+.utility a:hover { text-decoration: underline; }
+.subscribe { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+             border: 1px solid #000; padding: 6px 14px; }
+.brandrow { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter);
+            height: 74px; display: flex; align-items: center; justify-content: center; }
+.wordmark { font-weight: 700; font-size: 40px; line-height: 1; letter-spacing: 2px;
+            text-transform: uppercase; }
+.mainnav { border-top: 1px solid var(--hair); border-bottom: 2px solid #000; }
+.mainnav .bar {
+  max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter);
+  height: 44px; display: flex; align-items: center; justify-content: center; gap: 32px;
+  font-size: 14px; line-height: 18px; font-weight: 600; letter-spacing: 1px;
+}
+.mainnav a:hover { color: var(--soft); }
+
+/* --- shared shell -------------------------------------------------------- */
+.wrapper { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
+.block { margin-top: 48px; }
+@media (min-width: 768px) {
+  .block { display: grid; grid-template-columns: repeat(9, 1fr); gap: var(--gap); }
+  .main { grid-column: span 6; padding-right: 32px; border-right: 1px solid var(--col-rule); }
+  .rail { grid-column: span 3; }
+}
+@media (max-width: 767px) { .block { margin-top: 32px; } }
+
+/* --- teases -------------------------------------------------------------- */
+.kicker { display: block; font-size: 14px; line-height: 18px; font-weight: 700;
+          letter-spacing: .7px; margin-bottom: 4px; }
+.byline { font-size: 14px; line-height: 19px; color: var(--soft); letter-spacing: .4px;
+          margin: 8px 0 0; }
+/* display:block, because these teases are anchors wrapping block content. An
+   inline anchor does not establish a block box, so its side padding never
+   reached the image inside and the lead ran the full 703 rather than the 639
+   the frame draws. */
+.card { display: block; }
+.card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.card h3 { margin: 0; font-weight: 700; letter-spacing: .2px; }
+.card:hover h3 { text-decoration: underline; }
+
+/* the lead, 703 with 32 of side padding */
+.lead { padding: 0 32px 32px; border-bottom: 1px solid var(--item-rule); }
+.lead h2 { font-size: 32px; line-height: 36px; font-weight: 700; letter-spacing: .3px;
+           margin: 0 0 16px; }
+.lead .dek { font-family: var(--body); font-size: 18px; line-height: 26px; margin: 16px 0 0; }
+
+/* the pair below it: 416 and 255, 32 apart */
+.pair { display: grid; grid-template-columns: 416fr 255fr; gap: 32px; margin-top: 32px; }
+.pair .big h3 { font-size: 22px; line-height: 26px; margin-top: 12px; }
+.stack-list { display: flex; flex-direction: column; }
+.stack-list .card { padding: 16px 0; border-bottom: 1px solid var(--item-rule); }
+.stack-list .card:first-child { padding-top: 0; }
+.stack-list .card h3 { font-size: 17px; line-height: 20px; }
+
+/* a wide tease with the image beside the text */
+.wide { display: flex; gap: 24px; padding: 32px 0; border-bottom: 1px solid var(--item-rule); }
+.wide img { flex: 0 0 300px; width: 300px; aspect-ratio: 3 / 2; object-fit: cover; }
+.wide h3 { font-size: 22px; line-height: 26px; }
+.wide .dek { font-family: var(--body); font-size: 16px; line-height: 24px;
+             color: #222; margin: 10px 0 0; }
+
+/* --- rail ---------------------------------------------------------------- */
+.rail-module + .rail-module { margin-top: 48px; }
+.module-title { font-size: 21px; line-height: 25px; font-weight: 700; letter-spacing: .63px;
+                margin: 0 0 24px; padding: 0 0 8px; border-bottom: 1px solid #000; }
+.tease-list { list-style: none; margin: 0; padding: 0; }
+.tease { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--item-rule); }
+.tease:last-child { border-bottom: 0; }
+.tease .thumb { flex: 0 0 128px; width: 128px; aspect-ratio: 3 / 2; object-fit: cover; }
+.tease h3 { font-size: 14px; line-height: 18px; font-weight: 500; letter-spacing: .7px; margin: 0; }
+.tease .kicker { font-size: 11px; line-height: 14px; letter-spacing: 1px;
+                 text-transform: uppercase; color: var(--soft); margin-bottom: 5px; }
+.tease:hover h3 { text-decoration: underline; }
+.readmore { display: block; text-align: right; font-size: 14px; line-height: 18px;
+            font-weight: 600; letter-spacing: .7px; margin-top: 16px; }
+
+.adslot { background: var(--img-bg); border: 1px solid var(--hair); display: flex;
+          align-items: center; justify-content: center; color: #9a9a9a;
+          font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+.ad-728x90 { width: 728px; max-width: 100%; height: 90px; }
+.ad-300x250 { width: 300px; height: 250px; margin: 0 auto; }
+
+/* --- the widget modules -------------------------------------------------- */
+/* Both of these are the host's own module shape. The first is the one that
+   ships on the homepage today, pointed at iheart.com; the second is the slot
+   under test, sitting directly beneath it. */
+.iheart-slot .slot-frame { width: 100%; height: var(--slot-h, 150px); border: 0;
+                           display: block; background: var(--img-bg);
+                           transition: height .18s ease; }
+@media (prefers-reduced-motion: reduce) { .iheart-slot .slot-frame { transition: none; } }
+.iheart-slot .shipped-frame { width: 100%; height: 150px; border: 0; display: block;
+                              background: var(--img-bg); }
+.iheart-slot .credit { font-size: 14px; line-height: 18px; font-weight: 500;
+                       letter-spacing: .7px; margin: 12px 0 0; }
+body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
+/* The module under test wears a quiet marker so nobody mistakes which of the
+   two stacked players is the prototype. */
+.under-test .module-title { border-bottom-color: #c8102e; }
+.under-test .flag { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px;
+                    text-transform: uppercase; color: #c8102e; display: block; margin-bottom: 4px; }
+
+.footer { margin-top: 64px; border-top: 2px solid #000; }
+.footer .bar { max-width: var(--wrap); margin: 0 auto; padding: 28px var(--gutter);
+               font-size: 12px; line-height: 18px; color: var(--soft); letter-spacing: .4px; }
+</style>
+</head>
+<body>
+
+<div class="harness">
+  <div class="who">Prototype harness <span>homepage stand-in, the slot is measured</span></div>
+  <label for="pick">Widget in slot</label>
+  <select id="pick">
+    <optgroup label="Live today">
+      <option value="ship-podcast">iHeart embed, podcast</option>
+      <option value="ship-live">iHeart embed, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design A bar card">
+      <option value="a-podcast" selected>Design A, podcast</option>
+      <option value="a-live">Design A, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design B hero card">
+      <option value="b-podcast">Design B, podcast</option>
+      <option value="b-live">Design B, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design C">
+      <option value="c-podcast">Design C, podcast</option>
+      <option value="c-live">Design C, live radio</option>
+    </optgroup>
+  </select>
+  <label for="fit">Slot height</label>
+  <select id="fit">
+    <option value="fit" selected>Fit to the widget</option>
+    <option value="fixed">Fixed 150, as shipped</option>
+  </select>
+  <label><input type="checkbox" id="bounds"> Show slot bounds</label>
+  <a class="jump" href="#slot">Jump to slot</a>
+  <a class="jump" href="host-page.html">Article rail</a>
+  <div class="slotsize">Slot <b id="slotsize">352 x 150</b></div>
+</div>
+
+<div class="topad"><div class="box"><div class="adslot ad-728x90">Advertisement</div></div></div>
+
+<header class="masthead">
+  <div class="utility"><div class="bar">
+    <a href="#">Got a Tip?</a><a href="#">Newsletters</a>
+    <span class="right"><a href="#">Sign In</a><a class="subscribe" href="#">Subscribe</a></span>
+  </div></div>
+  <div class="brandrow"><div class="wordmark">The Colophon</div></div>
+  <nav class="mainnav"><div class="bar">
+    <a href="#">Film</a><a href="#">TV</a><a href="#">What To Watch</a><a href="#">Music</a>
+    <a href="#">Business</a><a href="#">Awards</a><a href="#">Tech</a><a href="#">Global</a>
+  </div></nav>
+</header>
+
+<div class="wrapper">
+
+  <!-- ===== top block: hero grid plus the first rail ===== -->
+  <div class="block">
+    <div class="main">
+      <a class="card lead" href="#">
+        <span class="kicker">Top Story</span>
+        <h2>Publishers Are Quietly Rebuilding the Audio Player, and Readers Have Opinions</h2>
+        <img src="https://picsum.photos/seed/colo-lead/1280/854" alt="" loading="lazy">
+        <p class="dek">Embedded players have become a standard fixture of the article page. What
+          they should look like once they get there is still an open question.</p>
+        <p class="byline">By A Staff Writer</p>
+      </a>
+
+      <div class="pair">
+        <a class="card big" href="#">
+          <img src="https://picsum.photos/seed/colo-b1/840/560" alt="" loading="lazy">
+          <span class="kicker" style="margin-top:12px">Business</span>
+          <h3 style="margin-top:0">Inside the Deal That Reshaped a Podcast Network</h3>
+          <p class="byline">By A Staff Writer</p>
+        </a>
+        <div class="stack-list">
+          <a class="card" href="#"><span class="kicker">Film</span>
+            <h3>A Streaming Service Reverses Course on Its Interface Redesign</h3>
+            <p class="byline">By A Staff Writer</p></a>
+          <a class="card" href="#"><span class="kicker">Awards</span>
+            <h3>Why Award Season Moved Three Weeks Earlier This Year</h3>
+            <p class="byline">By A Staff Writer</p></a>
+          <a class="card" href="#"><span class="kicker">TV</span>
+            <h3>The Quiet Return of the Half Hour Comedy</h3>
+            <p class="byline">By A Staff Writer</p></a>
+        </div>
+      </div>
+
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w1/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Music</span>
+          <h3>Ratings Are Up, and Nobody Can Agree on Why</h3>
+          <p class="dek">Three networks, three explanations, and a measurement standard that
+            nobody involved seems willing to defend in public.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+    </div>
+
+    <aside class="rail">
+      <div class="rail-module"><div class="adslot ad-300x250">Advertisement</div></div>
+      <section class="rail-module">
+        <h2 class="module-title">Most Popular</h2>
+        <ul class="tease-list">
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-mp1/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Film</span>The Long Argument Over What Counts as a Listen</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-mp2/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">TV</span>A Festival Lineup That Says More Than Its Organisers Intended</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-mp3/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Business</span>The Quiet Economics of the Second Screen</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-mp4/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Music</span>Why Every Player Looks the Same Until You Measure One</h3></a></li>
+        </ul>
+      </section>
+      <div class="rail-module"><div class="adslot ad-300x250">Advertisement</div></div>
+    </aside>
+  </div>
+
+  <!-- ===== second block: the rail that carries the widget ===== -->
+  <div class="block">
+    <div class="main">
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w2/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Tech</span>
+          <h3>The Slot Does Not Adapt to the Player</h3>
+          <p class="dek">A rail module is handed a fixed width and a fixed height by a template
+            nobody has revisited in years. Everything else follows from that.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w3/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Global</span>
+          <h3>Three Widths, One Design, and No Redraw In Between</h3>
+          <p class="dek">On a wide desktop the rail is 352 across. On a tablet it is closer to
+            221. Below that it stops being a rail at all.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w4/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Film</span>
+          <h3>What a Player Owes the Page It Lands On</h3>
+          <p class="dek">Announce itself, or stay quiet until asked. The designs disagree, and
+            the disagreement is the interesting part.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w5/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Business</span>
+          <h3>Half the Height, Twice the Argument</h3>
+          <p class="dek">The same module gets 300 pixels on an article page and 150 here. Nobody
+            can say when that was decided, or by whom.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w6/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Awards</span>
+          <h3>An Interface Nobody Defends and Everybody Ships</h3>
+          <p class="dek">Template decisions outlive the teams that made them, and the rail is
+            where you can see it happening.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w7/600/400" alt="" loading="lazy">
+        <div><span class="kicker">TV</span>
+          <h3>Measuring the Box Before Drawing the Thing Inside It</h3>
+          <p class="dek">The cheapest way to avoid shipping a player that only works in the file
+            it was drawn in.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+      <a class="card wide" href="#">
+        <img src="https://picsum.photos/seed/colo-w8/600/400" alt="" loading="lazy">
+        <div><span class="kicker">Music</span>
+          <h3>What Artwork Does to a Design That Sits on Top of It</h3>
+          <p class="dek">Some of it is dark, some is nearly white, and a good deal of it has text
+            baked in already.</p>
+          <p class="byline">By A Staff Writer</p></div>
+      </a>
+    </div>
+
+    <aside class="rail">
+      <section class="rail-module">
+        <h2 class="module-title">Latest News</h2>
+        <ul class="tease-list">
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-ln1/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Awards</span>A Ceremony Trims Its Run Time and Nobody Notices</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-ln2/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Music</span>The Station Logo Problem Everyone Works Around</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-ln3/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">TV</span>Two Networks, One Time Slot, and a Standoff</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-ln4/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Business</span>A Licensing Deal That Took Four Years to Sign</h3></a></li>
+          <li><a class="tease" href="#">
+            <img class="thumb" src="https://picsum.photos/seed/colo-ln5/250/167" alt="" loading="lazy">
+            <h3><span class="kicker">Film</span>The Rerelease Strategy That Keeps Working</h3></a></li>
+        </ul>
+        <a class="readmore" href="#">Read More &rsaquo;</a>
+      </section>
+
+      <!-- The module that ships on the homepage today. -->
+      <section class="rail-module iheart-slot">
+        <h2 class="module-title">Strictly Business</h2>
+        <iframe class="shipped-frame" title="iHeart podcast embed, shipping today"
+                src="https://www.iheart.com/podcast/1119-strictly-business-30950719/?embed=true"
+                allow="autoplay" scrolling="no" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <p class="credit">An iHeartRadio Podcast</p>
+      </section>
+
+      <!-- The slot under test, directly below it. -->
+      <section class="rail-module iheart-slot under-test" id="slot">
+        <h2 class="module-title"><span class="flag">Prototype</span><span id="slot-title">Las Culturistas</span></h2>
+        <iframe class="slot-frame" id="slot-frame" title="Audio player, prototype"
+                allow="autoplay" scrolling="no" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <p class="credit" id="slot-credit">An iHeartRadio Podcast</p>
+      </section>
+
+      <div class="rail-module"><div class="adslot ad-300x250">Advertisement</div></div>
+    </aside>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="bar">A layout stand-in built for widget testing, measured from a real homepage.
+    Not affiliated with, and not a copy of, any publication. Wordmark, headlines and copy are
+    original; photography is openly licensed placeholder imagery.</div>
+</footer>
+
+<script>
+/* The eight things that can go in the slot. The two shipping entries point at
+   iheart.com itself, so what renders is the production player rather than a
+   rebuild of it. The six prototypes point at embed.html, which runs the same
+   widget code the prototype page runs. */
+const SHOW_ID = 31090140;      /* Las Culturistas, the show the prototypes carry */
+const STATION_ID = 1469;       /* Z100 New York */
+/* The slug in an iHeart embed URL is cosmetic and the trailing id resolves the
+   content, so a single x stands in where the real slug adds nothing. */
+const SOURCES = {
+  'ship-podcast': { src: `https://www.iheart.com/podcast/x-${SHOW_ID}/?embed=true`,
+                    title: 'Las Culturistas', credit: 'An iHeartRadio Podcast' },
+  'ship-live':    { src: `https://www.iheart.com/live/station-${STATION_ID}/?embed=true`,
+                    title: 'Z100 New York', credit: 'Live on iHeartRadio' }
+};
+['a', 'b', 'c'].forEach((d) => {
+  SOURCES[d + '-podcast'] = { src: `embed.html?design=${d}&mode=podcast`,
+                              title: 'Las Culturistas', credit: 'An iHeartRadio Podcast' };
+  SOURCES[d + '-live']    = { src: `embed.html?design=${d}&mode=live`,
+                              title: 'Z100 New York', credit: 'Live on iHeartRadio' };
+});
+
+const pick = document.getElementById('pick');
+const frame = document.getElementById('slot-frame');
+const titleEl = document.getElementById('slot-title');
+const creditEl = document.getElementById('slot-credit');
+
+/* ---------------------------------------------------------------------------
+   Slot height. The homepage hardcodes 150, which is half what the article pages
+   give the same widget and less than every one of the six cards needs. An
+   iframe cannot size itself, so the card inside reports the height it wants and
+   this page decides. Fitting is the default; the shipped 150 is one control
+   away, because the difference between the two is the thing worth looking at.
+   Only the prototypes can report, being served from this origin. The shipping
+   embeds are cross-origin and stay at 150, which is what they get for real.
+   ------------------------------------------------------------------------ */
+const FIXED_H = 150;
+const fitSel = document.getElementById('fit');
+let requested = null;         /* the last height this card asked for, if any */
+
+function applyHeight() {
+  const h = (fitSel.value === 'fit' && requested) ? requested : FIXED_H;
+  document.documentElement.style.setProperty('--slot-h', h + 'px');
+  readSize();
+}
+
+addEventListener('message', (e) => {
+  /* Only the slot's own frame, and only the message shape this page asked for.
+     Anything else on the bus is ignored rather than trusted. */
+  if (e.source !== frame.contentWindow) return;
+  const d = e.data;
+  if (!d || d.type !== 'widget-height') return;
+  const h = Number(d.height);
+  if (!Number.isFinite(h) || h < 40 || h > 1600) return;
+  requested = Math.round(h);
+  applyHeight();
+});
+
+fitSel.addEventListener('change', applyHeight);
+
+function show(key) {
+  const s = SOURCES[key] || SOURCES['a-podcast'];
+  /* A new card has its own height. Forgetting the old one matters: a taller
+     card leaving the slot must not leave the slot tall for the next one. */
+  requested = null;
+  applyHeight();
+  frame.src = s.src;
+  titleEl.textContent = s.title;
+  creditEl.textContent = s.credit;
+  try { history.replaceState(null, '', '?w=' + key); } catch (e) { /* file:// */ }
+}
+pick.addEventListener('change', () => show(pick.value));
+
+/* The slot's real size, read off the element rather than assumed, and saying
+   what the card asked for when that differs from what it got. */
+const sizeOut = document.getElementById('slotsize');
+const readSize = () => {
+  const b = frame.getBoundingClientRect();
+  const got = Math.round(b.height);
+  let text = Math.round(b.width) + ' x ' + got;
+  if (requested && requested !== got) {
+    text += requested > got ? ', card wants ' + requested + ', clipped by ' + (requested - got)
+                            : ', card wants ' + requested + ', ' + (got - requested) + ' spare';
+  }
+  sizeOut.textContent = text;
+};
+addEventListener('resize', readSize);
+if (window.ResizeObserver) new ResizeObserver(readSize).observe(frame);
+
+document.getElementById('bounds').addEventListener('change', (e) => {
+  document.body.classList.toggle('show-bounds', e.target.checked);
+});
+
+/* Deep linkable, so a specific design in the slot can be handed to someone. */
+const linked = new URLSearchParams(location.search).get('w');
+if (linked && SOURCES[linked]) pick.value = linked;
+show(pick.value);
+readSize();
+</script>
+</body>
+</html>
