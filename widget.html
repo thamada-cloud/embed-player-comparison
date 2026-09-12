@@ -149,17 +149,19 @@ section.is-live > .band-note { color: #14532d; }
 .art-link { grid-area: art; align-self: center; display: block; line-height: 0; border-radius: var(--radius-widget); }
 .art { width: 64px; height: 64px; border-radius: var(--radius-widget);
        box-shadow: var(--shadow-01); object-fit: cover; background: #222; }
-/* text-decoration only. `color: inherit` on a.meta outranked the .meta rule
-   that sets the header text to grey-100, so the anchor took the page's own dark
-   colour instead and every line on the bar card turned near black. The image
-   links can inherit safely, since they carry no text. */
-a.meta, a.thumb-link, a.art-link { text-decoration: none; }
+/* Colour is never touched on a text link. Setting `color: inherit` on the
+   metadata block once outranked the .meta rule that paints the header text
+   grey-100, and every line on the bar card turned near black. The image links
+   can inherit safely, since they carry no text. */
+a.line-link, a.thumb-link, a.art-link { text-decoration: none; }
 a.thumb-link, a.art-link { color: inherit; }
-a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
-a.meta:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
+a.line-link { color: inherit; }
+a.line-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+a.line-link:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
   outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px;
 }
-a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
+a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
+a.thumb-link:hover { opacity: .92; }
 /* Station logos are transparent PNGs drawn for a white tile. Left on the dark
    header the artwork bleeds into the background and the mark loses its edges,
    so live radio gets the white plate the design gives it. */
@@ -429,7 +431,7 @@ a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
 .mq { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 @media (hover: hover) and (pointer: fine) {
   .mq.over:hover { text-overflow: clip; }
-  .mq.over:hover > .mqi {
+  .mq.over:hover .mqi {
     display: inline-block; will-change: transform;
     animation: marquee var(--mq-dur, 6s) linear infinite;
   }
@@ -440,7 +442,7 @@ a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
   100%     { transform: translateX(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mq.over:hover > .mqi { animation: none; }
+  .mq.over:hover .mqi { animation: none; }
 }
 
 /* Wide layout. The artwork spans the full height beside BOTH the text and the
@@ -925,12 +927,13 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    With nothing on air it falls back to the station's own name and description. */
 function liveMeta(d) {
   const L = heroLines(d);
+  const link = (t) => lineLink(stationUrl(d), t);
   return L.station
-    ? `<p class="h-station mq">${mqs(L.station)}</p>
+    ? `<p class="h-station mq">${link(L.station)}</p>
        <p class="h-name mq">${mqs(L.sub)}</p>
        <p class="h-track mq">${mqs(L.name)}</p>`
-    : `<p class="h-name mq">${mqs(L.name)}</p>
-       <p class="h-sub mq">${mqs(L.sub)}</p>`;
+    : `<p class="h-name mq">${link(L.name)}</p>
+       <p class="h-sub mq">${link(L.sub)}</p>`;
 }
 
 function heroLines(d) {
@@ -1195,12 +1198,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="topbar">
             <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="h-thumb" src="${esc(d.art)}" alt=""></a>
-            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
+            <div class="meta">
               ${isLive
                 ? liveMeta(d)
-                : `<p class="h-ep mq">${mqs(d.title)}</p>
-                   <p class="h-show mq">${mqs(d.subtitle)}</p>`}
-            </a>
+                : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
+                   <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
+            </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
           <div class="hero-controls">
@@ -1259,12 +1262,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="topbar">
             <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="h-thumb" src="${esc(d.art)}" alt=""></a>
-            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
+            <div class="meta">
               ${isLive
                 ? liveMeta(d)
-                : `<p class="h-ep mq">${mqs(d.title)}</p>
-                   <p class="h-show mq">${mqs(d.subtitle)}</p>`}
-            </a>
+                : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
+                   <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
+            </div>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
           <div class="hero-controls">
@@ -1368,15 +1371,15 @@ function makeWidget(rootId, statusId, colourId, variant) {
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous"></a>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
             <div class="col">
-            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
+            <div class="meta">
               ${isLive ? `
-                <p class="subtitle mq">${mqs(d.subtitle)}</p>
+                <p class="subtitle mq">${lineLink(stationUrl(d), d.subtitle)}</p>
                 ${d.track && d.artist ? `
                 <p class="title np-artist mq">${mqs(d.artist)}</p>
                 <p class="title np-track mq">${mqs(d.track)}</p>` : ''}` : `
-                <p class="title mq">${mqs(d.title)}</p>
-                <p class="subtitle mq">${mqs(d.subtitle)}</p>`}
-            </a>
+                <p class="title mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
+                <p class="subtitle mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
+            </div>
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="${GLYPH.play}" alt="">
                 <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
@@ -1988,16 +1991,27 @@ addEventListener('resize', showVw); showVw();
    what resolves the content, checked rather than assumed: a URL with the slug
    replaced by a single x returns the right episode and the right station. The
    real show slug is used where the API gives one anyway. */
-/* Where the artwork and the metadata point. The same ids the embeds are built
-   from, so the link lands on the thing that is playing rather than on a search
-   result: the episode page for a podcast, the station page for live radio. The
-   slug is cosmetic here as it is everywhere else on iheart.com. */
+/* Where each piece of the metadata points, built from the same ids the embeds
+   use so a link lands on the content rather than on a search result. The slug
+   is cosmetic here as it is everywhere else on iheart.com.
+   Each line goes to the page it names: the episode line to the episode, the
+   show line to the show. The artwork is the show's, so it goes to the show,
+   which is where a podcast tile leads on iheart.com itself. Live radio has one
+   destination, so every part of it points at the station. */
+const showUrl = (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/`;
+const episodeUrl = (d) => `${showUrl(d)}episode/episode-${d.episodeId}/`;
+const stationUrl = (d) => `https://www.iheart.com/live/station-${d.stationId}/`;
+/* The artwork's destination, and the fallback for anything unlabelled. */
 function contentUrl(d) {
   if (!d) return null;
-  return d.kind === 'live'
-    ? `https://www.iheart.com/live/station-${d.stationId}/`
-    : `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/episode/episode-${d.episodeId}/`;
+  return d.kind === 'live' ? stationUrl(d) : showUrl(d);
 }
+/* A metadata line that is also a link. The anchor sits inside the paragraph so
+   the clickable area is the text rather than the whole line box, and so the
+   paragraph keeps the clipping and the marquee. */
+const lineLink = (href, text, aria) =>
+  `<a class="line-link" href="${esc(href)}" target="_blank" rel="noopener"` +
+  (aria ? ` aria-label="${esc(aria)}"` : '') + `>${mqs(text)}</a>`;
 
 const embedUrl = {
   podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}` +

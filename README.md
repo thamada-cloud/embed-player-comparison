@@ -790,13 +790,30 @@ which draws a 400px drawer inside a 263px card.
 
 ### The artwork and the metadata link to iHeart
 
-On all three designs, the artwork tile and the metadata block are real anchors
-to the thing that is playing, opening in a new tab. The episode page for a
-podcast, the station page for live radio, built from the same ids the embeds
-use, so the link lands on the content rather than on a search result.
+On all three designs, the artwork and each metadata line are real anchors,
+opening in a new tab, built from the same ids the embeds use so a link lands on
+the content rather than on a search result.
+
+Each line goes to the page it names.
+
+| What is clicked | Where it goes |
+| --- | --- |
+| Episode line | the episode page |
+| Show line | the show page |
+| Podcast artwork | the show page, since that is the show's own tile and it is where a podcast tile leads on iheart.com |
+| Live radio, any part | the station page |
+
+Confirmed by clicking through on the bar card: the episode line opens
+`"Yumming My Yuck" (w/ Carly Rae Jepsen)`, and the show line and the artwork
+both open `Las Culturistas with Matt Rogers and Bowen Yang | iHeart`.
 
 They are anchors rather than click handlers, so a middle click, a cmd click and
 a keyboard both work, and the focus ring is there for the keyboard.
+
+The anchor sits inside the paragraph rather than around it, so the clickable
+area is the text and the paragraph keeps its clipping and its marquee. That
+does mean the marquee's own rule had to stop using a child combinator, since
+there is now an anchor between the line and its span.
 
 Only `text-decoration` is reset on the text link. Adding `color: inherit`
 alongside it outranked the `.meta` rule that sets the header text to grey-100,
