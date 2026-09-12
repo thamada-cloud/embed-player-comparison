@@ -693,7 +693,11 @@ a.thumb-link:hover { opacity: .92; }
 /* Now playing is signalled by the title turning brand red, not by a filled
    row. The filled bar read as a selection state rather than playback. */
 .row.on { background: none; }
-.row.on .row-meta b { color: var(--ihr-red-550); }
+/* Brand red, which is its own token rather than a step on the red scale:
+   accomplice names #C6002B `brandRed`, and that is red600. This line used
+   red550 (#CC032E), a neighbouring value that reads as the same colour and is
+   not the brand one. */
+.row.on .row-meta b { color: var(--ihr-red-600); }
 .tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
         background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
         filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }

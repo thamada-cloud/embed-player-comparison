@@ -30,6 +30,11 @@
   --sp-0: 0px;    --sp-2: 2px;    --sp-4: 4px;    --sp-6: 6px;   --sp-8: 8px;
   --sp-12: 12px;  --sp-16: 16px;  --sp-24: 24px;  --sp-28: 28px; --sp-32: 32px;
   --sp-48: 48px;
+  /* brandRed is a named token in themes/default/theme-tokens.ts, sitting beside
+     brandBlack, brandGray and brandWhite, and its value is the same as red600.
+     Named separately here because the intent is "the brand colour", not "the
+     600 step", and those two could diverge. */
+  --ihr-brand-red: #c6002b;
   --ihr-gray-200: #e6eaed; --ihr-gray-300: #a9afb2; --ihr-gray-400: #717277;
   --ihr-gray-500: #3f4447; --ihr-blue-400: #3ca2dd; --border-2: 2px;
   --rad-1: 1.25px; --rad-2: 2.5px; --rad-5: 5px; --rad-6: 6px;
@@ -854,7 +859,8 @@ a.thumb-link:hover { opacity: .92; }
 /* Now playing is signalled by the title turning brand red, not by a filled
    row. The filled bar read as a selection state rather than playback. */
 .row.on { background: none; }
-.row.on .row-meta b { color: var(--ihr-red-550); }
+/* brandRed on the loaded episode. */
+.row.on .row-meta b { color: var(--ihr-brand-red); }
 .tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
         background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
         filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }

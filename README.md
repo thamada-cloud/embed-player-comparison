@@ -1593,3 +1593,17 @@ The 14 left out are Amazon Music, YouTube Music, Pocket Casts, Radio.net, Live36
 Pandora, SiriusXM, Global Player, Audacy, BBC Sounds, Substack, Streema, Radio Garden and
 Radio France. They stay in `players.js` with their reasons, so the registry is still the
 record of what was tried and why it failed; only the grid stops showing them.
+
+## The loaded episode is brand red
+
+The episode currently loaded carries `.on` in the list, and its title is painted brand
+red so it is findable at a glance among the rest.
+
+The colour is `#C6002B`, which accomplice names **`brandRed`** in
+`themes/default/theme-tokens.ts`, beside `brandBlack`, `brandGray` and `brandWhite`. It
+happens to equal `red600`, but it is named separately in the accomplice build because the
+intent is "the brand colour" rather than "the 600 step", and those two are free to
+diverge later.
+
+This line previously used `red550` (`#CC032E`), a neighbouring value on the red scale
+that reads as the same colour at a glance and is not the brand one.
