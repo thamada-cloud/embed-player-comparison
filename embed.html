@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio widget, single card</title>
+<!-- One prototype card and nothing else, so it can be dropped into a real
+     embed slot on a host page and judged at the size that slot gives it.
+     The card itself is the same code the prototype page runs, loaded from the
+     same two files, so the two can never drift apart. -->
+<link rel="stylesheet" href="widget-core.css">
+<style>
+  /* An embed fills the frame it is given. No page gutters, no max width, no
+     chrome: whatever the host sized the iframe to is the whole budget. */
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { display: block; }
+  .shell { width: 100%; max-width: none; }
+  /* The status line and the colour readout belong to the prototype page's
+     instrumentation, not to an embed. They stay in the DOM because the widget
+     code writes to them, and they are simply not shown. */
+  .status, .colourline { display: none; }
+</style>
+</head>
+<body>
+<div class="shell" id="slot"></div>
+
+<script>
+/* Which card to build, read from the query string. The root id is what the
+   shared widget code keys off, so the id decides the design and the content
+   type together, exactly as it does on the prototype page. */
+const ROOTS = {
+  'a-podcast': 'w-podcast',      'a-live': 'w-live',
+  'b-podcast': 'w-podcast-hero', 'b-live': 'w-live-hero',
+  'c-podcast': 'w-podcast-c',    'c-live': 'w-live-c'
+};
+const q = new URLSearchParams(location.search);
+const design = (q.get('design') || 'a').toLowerCase();
+const mode = (q.get('mode') || 'podcast').toLowerCase();
+const key = design + '-' + mode;
+const root = ROOTS[key] || ROOTS['a-podcast'];
+const id = root.replace(/^w-/, '');
+/* Written before the widget script runs, because that script builds whatever
+   roots it finds at load. */
+document.getElementById('slot').innerHTML =
+  `<div id="${root}"></div><p class="status" id="s-${id}"></p>` +
+  `<div class="colourline" id="c-${id}"></div>`;
+document.title = 'Audio widget, design ' + design.toUpperCase() + ', ' + mode;
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
+<script src="widget-core.js"></script>
+</body>
+</html>

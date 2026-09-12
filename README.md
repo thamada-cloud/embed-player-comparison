@@ -1344,3 +1344,67 @@ Re-verified on the live URL signed out, which is the state a participant is in.
 resolves against the github.io host.
 
 - The iHeart logo sits in the same corner on all three designs, 16px from the card's right edge and 16px from its top. On the bar card the anchor is absolutely positioned against `.body`. On the artwork cards it used to be the last flex item in `.topbar`, which put it 24px in and vertically centred against the top bar, so it drifted as the text block grew. It is now absolute against `.topbar` as well. The top bar takes the same 16px of right padding the bar card's `.body` takes, because `.meta` already carries its own right padding, which is the whole of what keeps any design's lines off the logo. That padding is 33px, the logo's 25 plus 8 of clearance, so all three designs truncate their text at the same point, 49px in from the card's right edge, 8px clear of the logo.
+
+## Widget in a publisher slot, `host-page.html`
+
+A prototype card judged on its own tells you nothing about whether it survives the
+box a publisher actually gives it. `host-page.html` puts any of the eight players
+into that box and lets you swap between them without the page around them changing.
+
+The slot geometry is measured, not guessed. A real article on variety.com was loaded
+in headless Chrome and the widget's own container read off it at four viewports:
+
+| viewport | rail width | iframe |
+| --- | --- | --- |
+| 1440 | 352 | 352 x 300 |
+| 1024 | 306.7 | 306.7 x 300 |
+| 768 | 221.3 | 221.3 x 300 |
+| 390 | 350 | 350 x 300 |
+
+Those come out of a 9 column grid with a 32px gap inside a 1160px wrapper with 20px
+gutters. The article spans 6 columns and the rail spans 3, the grid applies from 768
+up and the rail stacks below the article under that, and the widget module sits 48px
+clear of whatever is above it. `host-page.html` reproduces all of those numbers and
+is verified against the table above at each of the four widths.
+
+Everything that is not a layout measurement is original: the wordmark, the headlines,
+the body copy and the rail modules are written for this page. No host text, imagery
+or licensed typeface is reproduced, and none is needed, because what is under test is
+the widget in the slot rather than the page around it.
+
+### What the slot reveals
+
+The iframe height is a hard 300. Measured inside the frame at 352 wide:
+
+| card | height | fits 300 |
+| --- | --- | --- |
+| A podcast | 400 | no, clipped by 100 |
+| A live | 180 | yes |
+| B podcast | 444 | no, clipped by 144 |
+| B live | 224 | yes |
+| C podcast | 234 | yes |
+| C live | 234 | yes |
+
+Design A and design B put the episode list under the podcast card, and the list is
+what runs past the slot. Design C is the only one of the three whose podcast card
+fits the slot as the host sizes it today.
+
+## Shared widget code, `widget-core.css` and `widget-core.js`
+
+The widget was lifted out of `widget.html` into these two files so that the prototype
+page and the single card page cannot drift apart. Both pages load the same CSS and the
+same JS.
+
+The JS builds whatever widget roots it finds in the page rather than six fixed ids, so
+`embed.html` gets exactly one card and makes one API call instead of two. The width
+slider and the window width readout are skipped when their controls are absent.
+
+## Single card page, `embed.html`
+
+One card, no chrome, sized by whatever iframe holds it. Query parameters pick which:
+
+    embed.html?design=a|b|c&mode=podcast|live
+
+This is what `host-page.html` points its slot at for the six prototypes. The two
+shipping options point at iheart.com directly, so what renders there is the production
+player rather than a rebuild of it.

@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Widget in a publisher page</title>
+<style>
+/* ---------------------------------------------------------------------------
+   A stand-in for a publisher article page that carries the iHeart widget in
+   its right rail.
+
+   The layout numbers below are measured from a real article on variety.com in
+   headless Chrome, not guessed, because the only thing this page is for is
+   judging the widget at the size and in the position a real host gives it:
+
+     wrapper        max-width 1160, padding 0 20px, centred
+     grid           9 columns, 32px gap, from 768 up
+     article        spans 6 columns
+     rail           spans 3 columns, so 352px wide at a 1440 viewport
+     widget slot    the rail's full width, 48px clear of the module above it
+     the iframe     width 100%, height fixed at 300
+
+   Everything that is not a layout measurement is original: the wordmark, the
+   headlines, the body copy, the rail modules. None of the host's text, images,
+   photography or licensed typefaces are reproduced here, and none are needed,
+   because what is under test is the widget in the slot rather than the page
+   around it.
+   ------------------------------------------------------------------------ */
+
+:root {
+  --wrap: 1160px;
+  --gutter: 20px;
+  --gap: 32px;
+  --ink: #111;
+  --ink-soft: #555;
+  --rule: #e2e2e2;
+  --accent: #0b57d0;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --serif: Georgia, 'Times New Roman', serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #fff; color: var(--ink); font-family: var(--sans); }
+
+/* --- the harness bar. Not part of the replica, and dressed so it cannot be
+       mistaken for it. ------------------------------------------------------ */
+.harness {
+  position: sticky; top: 0; z-index: 60;
+  background: #12141a; color: #fff;
+  padding: 10px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  font-size: 13px; line-height: 1.3;
+}
+.harness .who { font-weight: 700; letter-spacing: .2px; }
+.harness .who span { font-weight: 400; opacity: .65; margin-left: 8px; }
+.harness label { opacity: .7; }
+.harness select {
+  font: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px;
+  border: 1px solid #3a3f4a; background: #1c2029; color: #fff;
+}
+.harness .slotsize { margin-left: auto; opacity: .7; font-variant-numeric: tabular-nums; }
+.harness .slotsize b { color: #ffd166; font-weight: 600; }
+.harness a.jump { color: #9ec5ff; }
+
+/* --- masthead ----------------------------------------------------------- */
+.masthead { border-bottom: 1px solid var(--rule); }
+.masthead .bar {
+  max-width: var(--wrap); margin: 0 auto; padding: 18px var(--gutter);
+  display: flex; align-items: center; gap: 20px;
+}
+.wordmark {
+  font-family: var(--serif); font-weight: 700; font-size: 30px; letter-spacing: -.5px;
+  text-transform: uppercase;
+}
+.masthead nav { display: flex; gap: 18px; font-size: 13px; font-weight: 600;
+                text-transform: uppercase; letter-spacing: .6px; color: var(--ink-soft); }
+.masthead nav a { color: inherit; text-decoration: none; }
+.masthead nav a:hover { color: var(--ink); }
+.masthead .sub {
+  margin-left: auto; font-size: 12px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; border: 1px solid var(--ink); padding: 7px 14px; border-radius: 2px;
+}
+
+/* --- the leaderboard strip, which is why the rail starts where it does --- */
+.leader { background: #f4f4f4; border-bottom: 1px solid var(--rule); }
+.leader .box {
+  max-width: var(--wrap); margin: 0 auto; padding: 16px var(--gutter);
+  display: flex; justify-content: center;
+}
+
+/* --- the two column shell ------------------------------------------------ */
+.wrapper {
+  max-width: var(--wrap); margin: 32px auto 0; padding: 0 var(--gutter);
+}
+@media (min-width: 768px) {
+  .wrapper { display: grid; grid-template-columns: repeat(9, 1fr); gap: var(--gap); }
+  .article { grid-column: span 6; }
+  .rail { grid-column: span 3; }
+}
+@media (max-width: 767px) { .wrapper { margin-top: 24px; } }
+
+/* --- article ------------------------------------------------------------- */
+.kicker { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+          color: #c8102e; margin: 0 0 10px; }
+.article h1 { font-family: var(--serif); font-size: 40px; line-height: 1.12; margin: 0 0 14px;
+              letter-spacing: -.4px; }
+.standfirst { font-size: 18px; line-height: 1.5; color: var(--ink-soft); margin: 0 0 20px; }
+.byline { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--rule);
+          border-bottom: 1px solid var(--rule); padding: 12px 0; margin: 0 0 24px; }
+.byline b { color: var(--ink); }
+.lede { width: 100%; aspect-ratio: 16 / 9; background:
+        linear-gradient(135deg, #d9dee6 0%, #b9c2cf 55%, #97a3b4 100%);
+        border-radius: 2px; display: flex; align-items: flex-end; }
+.lede span { font-size: 12px; color: #3c4756; padding: 10px 12px; }
+.article p { font-family: var(--serif); font-size: 18px; line-height: 1.62; margin: 20px 0; }
+.pullquote { font-family: var(--serif); font-size: 24px; line-height: 1.4; font-style: italic;
+             border-left: 3px solid var(--ink); padding-left: 18px; margin: 28px 0; }
+.inline-ad { background: #f4f4f4; border: 1px solid var(--rule); margin: 28px 0;
+             display: flex; justify-content: center; padding: 16px; }
+
+/* --- rail ---------------------------------------------------------------- */
+.rail { margin-top: 40px; }
+@media (min-width: 768px) { .rail { margin-top: 0; } }
+.rail-module + .rail-module { margin-top: 48px; }
+.module-title {
+  font-size: 21px; line-height: 25px; font-weight: 700; letter-spacing: .63px;
+  margin: 0 0 24px; padding: 0 0 8px; border-bottom: 1px solid var(--ink);
+}
+.popular { list-style: none; margin: 0; padding: 0; }
+.popular li { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.popular .n { font-family: var(--serif); font-size: 26px; line-height: 1; color: #bbb; font-weight: 700; }
+.popular p { margin: 0; font-size: 15px; line-height: 1.35; font-weight: 600; }
+
+/* Ad placeholders, sized to the real slots so the rail's rhythm is honest. */
+.adslot { background: #f4f4f4; border: 1px solid var(--rule); display: flex;
+          align-items: center; justify-content: center; color: #9a9a9a;
+          font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.ad-300x250 { width: 300px; height: 250px; margin: 0 auto; }
+.ad-970x250 { width: 100%; max-width: 970px; height: 250px; }
+.ad-inline { width: 100%; max-width: 580px; height: 300px; }
+
+/* --- the widget slot, the whole point of the page ----------------------- */
+/* Same shape the host uses: a titled section, the iframe at the rail's full
+   width and a fixed 300 tall, and a one line credit under it. */
+.iheart-slot { background: #fff; }
+.iheart-slot .slot-frame {
+  width: 100%; height: 300px; border: 0; display: block; background: #f4f4f4;
+}
+.iheart-slot .credit {
+  font-size: 14px; line-height: 18px; font-weight: 500; letter-spacing: .7px;
+  margin: 12px 0 0; color: var(--ink);
+}
+/* Only while the harness is asked to draw it: the slot's own bounds, so a card
+   that overflows 300px or fails to fill the width is visible rather than
+   guessed at. */
+body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; outline-offset: 0; }
+
+.footer { margin-top: 64px; border-top: 1px solid var(--rule); }
+.footer .bar { max-width: var(--wrap); margin: 0 auto; padding: 28px var(--gutter);
+               font-size: 12px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div class="harness">
+  <div class="who">Prototype harness <span>the page below is a stand-in, the slot is measured</span></div>
+  <label for="pick">Widget in slot</label>
+  <select id="pick">
+    <optgroup label="Live today">
+      <option value="ship-podcast" selected>iHeart embed, podcast</option>
+      <option value="ship-live">iHeart embed, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design A bar card">
+      <option value="a-podcast">Design A, podcast</option>
+      <option value="a-live">Design A, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design B hero card">
+      <option value="b-podcast">Design B, podcast</option>
+      <option value="b-live">Design B, live radio</option>
+    </optgroup>
+    <optgroup label="Prototype, design C">
+      <option value="c-podcast">Design C, podcast</option>
+      <option value="c-live">Design C, live radio</option>
+    </optgroup>
+  </select>
+  <label><input type="checkbox" id="bounds"> Show slot bounds</label>
+  <a class="jump" href="#slot">Jump to slot</a>
+  <div class="slotsize">Slot <b id="slotsize">352 x 300</b></div>
+</div>
+
+<header class="masthead">
+  <div class="bar">
+    <div class="wordmark">The Colophon</div>
+    <nav>
+      <a href="#">Film</a><a href="#">TV</a><a href="#">Music</a>
+      <a href="#">Business</a><a href="#">Awards</a>
+    </nav>
+    <div class="sub">Subscribe</div>
+  </div>
+</header>
+
+<div class="leader"><div class="box"><div class="adslot ad-970x250">Advertisement</div></div></div>
+
+<div class="wrapper">
+  <article class="article">
+    <p class="kicker">Music &middot; Analysis</p>
+    <h1>Publishers Are Quietly Rebuilding the Audio Player, and Readers Have Opinions</h1>
+    <p class="standfirst">Embedded players have become a standard fixture of the article page.
+       What they should look like once they get there is still an open question.</p>
+    <p class="byline">By <b>A Staff Writer</b> &middot; Plus additional reporting &middot; 8 min read</p>
+
+    <div class="lede"><span>Placeholder artwork. No licensed photography is used on this page.</span></div>
+
+    <p>The audio player sitting in the right rail of an article is one of the least examined
+       pieces of a modern publishing page. It arrives as an iframe, it is handed a fixed
+       width and a fixed height by a template nobody has revisited in years, and it is
+       expected to make sense to a reader who came for the article and was not thinking
+       about listening to anything at all.</p>
+
+    <p>That constraint is the interesting part. A player designed in isolation can be any
+       size it likes. A player designed for this slot gets 352 pixels across on a wide
+       desktop, rather less on a tablet, and a hard 300 pixels of height regardless. Every
+       decision about artwork, metadata and transport controls has to survive that budget.</p>
+
+    <blockquote class="pullquote">The slot does not adapt to the player. The player adapts to
+       the slot, or it gets clipped.</blockquote>
+
+    <p>The rail narrows before it disappears. At a tablet width the same three column span
+       resolves to roughly 221 pixels, which is narrower than most players are ever tested
+       at, and below the tablet breakpoint the rail stops being a rail at all and stacks
+       underneath the article at close to full width.</p>
+
+    <div class="inline-ad"><div class="adslot ad-inline">Advertisement</div></div>
+
+    <p>What that means in practice is that a design has to be legible at three quite
+       different widths without a redraw, and has to do it while sitting on whatever artwork
+       the show happens to have uploaded. Some of that artwork is dark, some is nearly white,
+       and a good deal of it has text baked into it already.</p>
+
+    <p>The players in the selector at the top of this page are the same code running in the
+       same iframe, swapped in place. The surrounding page does not change between them, which
+       is the only way to see which one actually holds up in the space it is given.</p>
+
+    <p>Scroll position matters too. The slot sits well down the rail, below the first
+       advertisement and the most read list, which means a reader reaches it having already
+       committed to the article. Whether a player should announce itself at that point or
+       stay quiet until asked is exactly the sort of question the designs disagree about.</p>
+
+    <p>None of this is settled. It is, however, measurable, and measuring it in the slot
+       rather than on a blank canvas is the cheapest way to avoid shipping a player that
+       only works in the file it was drawn in.</p>
+  </article>
+
+  <aside class="rail">
+    <div class="rail-module">
+      <div class="adslot ad-300x250">Advertisement</div>
+    </div>
+
+    <div class="rail-module">
+      <h3 class="module-title">Most Read</h3>
+      <ol class="popular">
+        <li><span class="n">1</span><p>A Streaming Service Reverses Course on Its Interface Redesign</p></li>
+        <li><span class="n">2</span><p>Inside the Deal That Reshaped a Podcast Network</p></li>
+        <li><span class="n">3</span><p>Why Award Season Moved Three Weeks Earlier This Year</p></li>
+        <li><span class="n">4</span><p>The Quiet Return of the Half Hour Comedy</p></li>
+        <li><span class="n">5</span><p>Ratings Are Up, and Nobody Can Agree on Why</p></li>
+      </ol>
+    </div>
+
+    <!-- The slot under test. -->
+    <section class="rail-module iheart-slot" id="slot">
+      <h3 class="module-title" id="slot-title">Las Culturistas</h3>
+      <iframe class="slot-frame" id="slot-frame" title="Audio player"
+              allow="autoplay" scrolling="no" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <p class="credit" id="slot-credit">An iHeartRadio Podcast</p>
+    </section>
+
+    <div class="rail-module">
+      <div class="adslot ad-300x250">Advertisement</div>
+    </div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <div class="bar">A layout stand-in built for widget testing. Not affiliated with any publisher.</div>
+</footer>
+
+<script>
+/* The eight things that can go in the slot. The two shipping entries point at
+   iheart.com itself, so what renders is the production player rather than a
+   rebuild of it. The six prototypes point at embed.html, which runs the same
+   widget code the prototype page runs. */
+const SHOW_ID = 31090140;      /* Las Culturistas, the show the prototypes carry */
+const STATION_ID = 1469;       /* Z100 New York */
+/* The slug in an iHeart embed URL is cosmetic and the trailing id resolves the
+   content, so a single x stands in where the real slug adds nothing. */
+const SOURCES = {
+  'ship-podcast': { src: `https://www.iheart.com/podcast/x-${SHOW_ID}/?embed=true`,
+                    title: 'Las Culturistas', credit: 'An iHeartRadio Podcast' },
+  'ship-live':    { src: `https://www.iheart.com/live/station-${STATION_ID}/?embed=true`,
+                    title: 'Z100 New York', credit: 'Live on iHeartRadio' }
+};
+['a','b','c'].forEach((d) => {
+  SOURCES[d + '-podcast'] = { src: `embed.html?design=${d}&mode=podcast`,
+                              title: 'Las Culturistas', credit: 'An iHeartRadio Podcast' };
+  SOURCES[d + '-live']    = { src: `embed.html?design=${d}&mode=live`,
+                              title: 'Z100 New York', credit: 'Live on iHeartRadio' };
+});
+
+const pick = document.getElementById('pick');
+const frame = document.getElementById('slot-frame');
+const titleEl = document.getElementById('slot-title');
+const creditEl = document.getElementById('slot-credit');
+
+function show(key) {
+  const s = SOURCES[key] || SOURCES['ship-podcast'];
+  /* Swapping src rather than reloading the page, and reassigning it even when
+     it has not changed, so a card always starts from a clean state and no two
+     players can ever be left running at once. */
+  frame.src = s.src;
+  titleEl.textContent = s.title;
+  creditEl.textContent = s.credit;
+  try { history.replaceState(null, '', '?w=' + key); } catch (e) { /* file:// */ }
+}
+pick.addEventListener('change', () => show(pick.value));
+
+/* The slot's real measured size, read from the element rather than assumed, so
+   the readout stays honest when the window is resized across a breakpoint. */
+const sizeOut = document.getElementById('slotsize');
+const readSize = () => {
+  const b = frame.getBoundingClientRect();
+  sizeOut.textContent = Math.round(b.width) + ' x ' + Math.round(b.height);
+};
+addEventListener('resize', readSize);
+if (window.ResizeObserver) new ResizeObserver(readSize).observe(frame);
+
+document.getElementById('bounds').addEventListener('change', (e) => {
+  document.body.classList.toggle('show-bounds', e.target.checked);
+});
+
+/* Deep linkable, so a specific design in the slot can be handed to someone. */
+const wanted = new URLSearchParams(location.search).get('w');
+if (wanted && SOURCES[wanted]) pick.value = wanted;
+show(pick.value);
+readSize();
+</script>
+</body>
+</html>
