@@ -885,10 +885,11 @@ average hides rather than a change of grade.
 Frames 2533:85625 (podcast) and 2533:91574 (live radio). Design B's card again,
 with two differences that change how it behaves rather than how it looks.
 
-- **The controls are on at rest.** Design B reveals them on play; design C has
-  them from the start. The live frame settles this rather than my guessing it:
-  it is drawn idle, play button untouched, with its three icons already on
-  screen.
+- **The controls appear on play**, as in design B. An earlier build had them on
+  at rest, generalised from C's live frame, which is drawn idle with its icons
+  showing. C's own podcast idle frame, 2533:85718, says otherwise: top bar, one
+  centred play button, waveform, and nothing else, no control row, no scrubber
+  and no list button. Idle is now exactly that, on both C cards.
 - **A list button over the scrubber**, right aligned, 8px above it, opening a
   drawer. Frame 2533:85717 settles what it opens: a Drawer instance the same 358
   by 263 box as the player, at 0,0, so it slides up OVER the card and covers it

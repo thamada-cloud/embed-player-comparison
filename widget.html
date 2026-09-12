@@ -292,7 +292,12 @@ a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
            font-size: 14px; font-weight: 600; letter-spacing: -.4px; color: var(--true-white); }
 .h-btn:hover { background: rgba(255,255,255,.14); }
 .h-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
-.widget.hero:not(.playing):not(.c) .h-btn { display: none; }
+/* Every artwork card now reveals its controls on play, design C included. Its
+   own idle frame, 2533:85718, agrees: that card is drawn with the top bar, one
+   centred play button and the waveform, no control row, no scrubber and no list
+   button. An earlier build read C's live frame, which is drawn idle with its
+   icons showing, and generalised from it. */
+.widget.hero:not(.playing) .h-btn { display: none; }
 /* The live frame keeps a speed button at opacity 0 on the left. It is a
    spacer: two icons sit to the right of the red button and only one to the
    left, so without it the red button would not be centred. Kept as the frame
@@ -311,7 +316,7 @@ a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
    in a column with the frame's 4px gap; live radio has no duration and so
    never gets one. */
 .hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.widget.hero:not(.playing):not(.c) .slider { display: none; }
+.widget.hero:not(.playing) .slider { display: none; }
 .widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
 /* 7px, not the other design's 12. The frame's slider row is 16 tall, which is
    exactly enough for the 12px controller, and 12px of padding would have made
