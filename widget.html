@@ -642,6 +642,7 @@ a.thumb-link:hover { opacity: .92; }
 .row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
        border-radius: var(--radius-widget); cursor: pointer; }
 .row:hover { background: rgba(0,0,0,.05); }
+.row:focus-visible { outline: 2px solid var(--ihr-red-550); outline-offset: -2px; }
 /* Now playing is signalled by the title turning brand red, not by a filled
    row. The filled bar read as a selection state rather than playback. */
 .row.on { background: none; }
@@ -854,6 +855,9 @@ async function loadPodcast(id) {
     infoTitle: show.title, infoBody: String(show.description || '').replace(/<[^>]*>/g, '').trim(),
     art: show.imageUrl, audio: first.mediaUrl, hls: false,
     listTitle: 'Episodes',
+    /* Which row reads as playing. It starts on the episode the widget loads and
+       moves when another is chosen. */
+    currentEpisodeId: eps[0].id,
     rows: eps.map((e) => ({
       id: e.id, title: e.title,
       sub: new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
@@ -1224,8 +1228,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
         <div class="list">
           <h3>${esc(d.listTitle)}</h3>
           <div class="rows">
-            ${d.rows.map((r, i) => `
-              <div class="row${i === 0 ? ' on' : ''}">
+            ${d.rows.map((r) => `
+              <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
+                   data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
+                   aria-label="Play ${esc(r.title)}">
                 <img class="tile" src="${esc(r.art || d.art)}" alt="">
                 <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
                 ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
@@ -1403,8 +1409,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
         </div>
         <div class="sheet-body">
           <div class="rows">
-            ${d.rows.map((r, i) => `
-              <div class="row${i === 0 ? ' on' : ''}">
+            ${d.rows.map((r) => `
+              <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
+                   data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
+                   aria-label="Play ${esc(r.title)}">
                 <img class="tile" src="${esc(r.art || d.art)}" alt="">
                 <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
                 ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
@@ -1564,6 +1572,13 @@ function makeWidget(rootId, statusId, colourId, variant) {
     /* A sheet that covers the player needs a keyboard way out, which the frame
        has no opinion about and a person on a keyboard certainly does. */
     root.onkeydown = (e) => {
+      /* A row is a button in all but tag name, so it answers to the keys one. */
+      const row = e.target.closest && e.target.closest('.row[data-act="row"]');
+      if (row && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        act('row', row);
+        return;
+      }
       if (e.key !== 'Escape') return;
       const card = root.querySelector('.widget');
       if (!card) return;
@@ -1642,6 +1657,16 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
     if (kind === 'save') { w.saved = !w.saved; btn.setAttribute('aria-pressed', String(w.saved));
       status(w.saved ? 'Saved to your library.' : ''); }
+    if (kind === 'row') {
+      /* Chosen from inside design C's drawer, the drawer has done its job and
+         gets out of the way so the card it just changed can be seen. */
+      const card = root.querySelector('.widget');
+      if (card && card.classList.contains('sheet-open') && btn.closest('.sheet')) {
+        act('list', root.querySelector('[data-act="list"].h-btn'));
+      }
+      selectEpisode(btn.dataset.ep);
+      return;
+    }
     /* The list button only exists in design C, where the frame shows it above
        the scrubber with no list under the card. What it opens is an inference,
        the episode list being the only list this card has, and it is written as
@@ -1694,6 +1719,42 @@ function makeWidget(rootId, statusId, colourId, variant) {
       }
     }
     if (kind === 'share') status('Share sheet would open here.');
+  }
+
+  /* Choosing an episode from the list.
+     The list endpoint does not carry mediaUrl, only the single episode one
+     does, which is the same trap the search path hit: a row knows enough to be
+     drawn and not enough to be played, so the audio is fetched on the way.
+     The media element is kept rather than replaced. createMediaElementSource
+     can only be called once per element, so a fresh element would need a fresh
+     analyser and the waveform would stop reading the audio. */
+  async function selectEpisode(id) {
+    const d = w.data;
+    if (!id || !d || d.kind !== 'podcast') return;
+    if (String(id) === String(d.currentEpisodeId) && w.playing) return;
+    status('Loading episode');
+    try {
+      const ep = await jget(`${API}/v3/podcast/episodes/${id}`).then((x) => x.episode);
+      if (!ep || !ep.mediaUrl) throw new Error('that episode has no audio');
+      if (w.playing) setPlaying(false);
+      d.title = ep.title;
+      d.episodeId = ep.id;
+      d.currentEpisodeId = ep.id;
+      d.audio = ep.mediaUrl;
+      d.hls = false;
+      /* The card keeps the SHOW's artwork, which is what the frames draw. Only
+         the rows carry per episode images. */
+      ensureAudio();
+      w.audio.src = ep.mediaUrl;
+      w.audio.load();
+      /* A different episode starts at its own beginning. */
+      w.audio.currentTime = 0;
+      render();
+      status('');
+      setPlaying(true);
+    } catch (e) {
+      status('Could not load that episode. ' + e.message, true);
+    }
   }
 
   function ensureAudio() {

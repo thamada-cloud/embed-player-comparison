@@ -800,6 +800,24 @@ C the same. A track change reaches all three. With nothing on air, B falls back 
 description and C to the joined station line, both losing the third line rather
 than showing an empty one.
 
+### An episode row plays that episode
+
+Clicking a row loads and plays it, on all three designs and in design C's
+drawer, and the red now-playing title moves with it. Enter or Space does the
+same from the keyboard, since a row is a button in all but tag name.
+
+The list endpoint carries no `mediaUrl`, only the single episode one does, which
+is the same trap the search path hit: a row knows enough to be drawn and not
+enough to be played, so the audio is fetched on the way.
+
+The media element is kept rather than replaced. `createMediaElementSource` can
+only be called once per element, so a fresh element would need a fresh analyser
+and the waveform would stop reading the audio. Checked after two episode
+switches: the bars are still moving.
+
+A row chosen from inside design C's drawer closes the drawer, since it has done
+its job and the card it just changed is underneath it.
+
 ### The info button opens a drawer on designs A and B
 
 Frame 2562:285883. The same Drawer component as design C's episode list, mounted
