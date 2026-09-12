@@ -788,6 +788,24 @@ Design C's drawer is clipped by its own card, so it shows less of the
 description than A and B do, 234px of card against their 400. That is the frame,
 which draws a 400px drawer inside a 263px card.
 
+### The artwork and the metadata link to iHeart
+
+On all three designs, the artwork tile and the metadata block are real anchors
+to the thing that is playing, opening in a new tab. The episode page for a
+podcast, the station page for live radio, built from the same ids the embeds
+use, so the link lands on the content rather than on a search result.
+
+They are anchors rather than click handlers, so a middle click, a cmd click and
+a keyboard both work, and the focus ring is there for the keyboard. The anchor
+takes the grid slot on the bar card so the image keeps its own box, and colour
+and underline are inherited away: measured before and after, every artwork and
+metadata box is the same size it was.
+
+On the two artwork designs this coexists with click-to-play, since the card's
+own click handler already skips anchors. The big background image stays the play
+surface; it is the 40 or 48px tile that carries the link. Verified: clicking the
+tile opens the tab and leaves playback untouched.
+
 ### Clicking the card plays and pauses it, on the artwork designs
 
 Designs B and C toggle from anywhere on the card, the way a video player does.

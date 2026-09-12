@@ -143,8 +143,18 @@ section.is-live > .band-note { color: #14532d; }
   grid-template-areas: "art meta" "controls controls";
   column-gap: 12px; row-gap: 16px; align-items: center;
 }
-.art { grid-area: art; width: 64px; height: 64px; border-radius: var(--radius-widget);
-       box-shadow: var(--shadow-01); object-fit: cover; background: #222; align-self: center; }
+/* The artwork and the metadata are links to the thing that is playing. The
+   anchor takes the grid slot so the image keeps its own box, and it inherits
+   colour and loses the underline so the card looks exactly as it did. */
+.art-link { grid-area: art; align-self: center; display: block; line-height: 0; border-radius: var(--radius-widget); }
+.art { width: 64px; height: 64px; border-radius: var(--radius-widget);
+       box-shadow: var(--shadow-01); object-fit: cover; background: #222; }
+a.meta, a.thumb-link, a.art-link { color: inherit; text-decoration: none; }
+a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
+a.meta:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
+  outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px;
+}
+a.meta:hover .mqi, a.thumb-link:hover { opacity: .92; }
 /* Station logos are transparent PNGs drawn for a white tile. Left on the dark
    header the artwork bleeds into the background and the mark loses its edges,
    so live radio gets the white plate the design gives it. */
@@ -366,7 +376,10 @@ section.is-live > .band-note { color: #14532d; }
   transform: translateY(100%); visibility: hidden;
   transition: transform .28s ease, visibility 0s linear .28s;
 }
-.widget.sheet-open .sheet {
+/* :not(.info-sheet), because the info drawer also carries the .sheet class and
+   was therefore being opened by the episodes flag as well. It sits on a higher
+   layer, so pressing the list button showed the information instead. */
+.widget.sheet-open .sheet:not(.info-sheet) {
   transform: translateY(0); visibility: visible;
   transition: transform .28s ease, visibility 0s;
 }
@@ -435,7 +448,8 @@ section.is-live > .band-note { color: #14532d; }
        title. Counting the 5 as part of the gap pushed everything down. */
     column-gap: 16px; row-gap: 16px; align-items: start;
   }
-  .art { width: 132px; height: 132px; align-self: start; }
+  .art { width: 132px; height: 132px; }
+  .art-link { align-self: start; }
   /* .body .meta, not .meta. This 5px is the bar card's own top offset against
      its 132px artwork, and unscoped it also reached the artwork cards, whose
      .meta sits in .topbar. There it added 5px to a 36px text block beside a
@@ -1169,13 +1183,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
           <div class="scrim"></div>
           <div class="topbar">
-            <img class="h-thumb" src="${esc(d.art)}" alt="">
-            <div class="meta">
+            <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="h-thumb" src="${esc(d.art)}" alt=""></a>
+            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
               ${isLive
                 ? liveMeta(d)
                 : `<p class="h-ep mq">${mqs(d.title)}</p>
                    <p class="h-show mq">${mqs(d.subtitle)}</p>`}
-            </div>
+            </a>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
           <div class="hero-controls">
@@ -1232,13 +1247,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
           <div class="scrim"></div>
           <div class="topbar">
-            <img class="h-thumb" src="${esc(d.art)}" alt="">
-            <div class="meta">
+            <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="h-thumb" src="${esc(d.art)}" alt=""></a>
+            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
               ${isLive
                 ? liveMeta(d)
                 : `<p class="h-ep mq">${mqs(d.title)}</p>
                    <p class="h-show mq">${mqs(d.subtitle)}</p>`}
-            </div>
+            </a>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
           </div>
           <div class="hero-controls">
@@ -1338,10 +1354,11 @@ function makeWidget(rootId, statusId, colourId, variant) {
       <div class="widget${isLive ? ' live' : ''}${isLive && !(d.track && d.artist) ? ' notrack' : ''}">
         <div class="player">
           <div class="body">
-            <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+            <a class="art-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous"></a>
             <img class="ihr" src="assets/ihr-logo.svg" alt="iHeart">
             <div class="col">
-            <div class="meta">
+            <a class="meta" href="${esc(contentUrl(d))}" target="_blank" rel="noopener">
               ${isLive ? `
                 <p class="subtitle mq">${mqs(d.subtitle)}</p>
                 ${d.track && d.artist ? `
@@ -1349,7 +1366,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <p class="title np-track mq">${mqs(d.track)}</p>` : ''}` : `
                 <p class="title mq">${mqs(d.title)}</p>
                 <p class="subtitle mq">${mqs(d.subtitle)}</p>`}
-            </div>
+            </a>
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="${GLYPH.play}" alt="">
                 <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
@@ -1961,6 +1978,17 @@ addEventListener('resize', showVw); showVw();
    what resolves the content, checked rather than assumed: a URL with the slug
    replaced by a single x returns the right episode and the right station. The
    real show slug is used where the API gives one anyway. */
+/* Where the artwork and the metadata point. The same ids the embeds are built
+   from, so the link lands on the thing that is playing rather than on a search
+   result: the episode page for a podcast, the station page for live radio. The
+   slug is cosmetic here as it is everywhere else on iheart.com. */
+function contentUrl(d) {
+  if (!d) return null;
+  return d.kind === 'live'
+    ? `https://www.iheart.com/live/station-${d.stationId}/`
+    : `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/episode/episode-${d.episodeId}/`;
+}
+
 const embedUrl = {
   podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}` +
                   `/episode/episode-${d.episodeId}/?embed=true`,
