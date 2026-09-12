@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Embed Player Gallery</title>
-<link rel="stylesheet" href="shared.css?v=20260912201254">
+<link rel="stylesheet" href="shared.css?v=20260912201625">
 <style>
 /* ---------- gallery layout, this page only ---------- */
 main { background: var(--stage); padding: 20px 20px 80px; }
@@ -94,9 +94,9 @@ section { margin: 0; }
   <div class="ctrl">
     <label>Columns</label>
     <div class="seg" id="colSeg">
-      <button data-cols="1" aria-pressed="true">1</button>
+      <button data-cols="1" aria-pressed="false">1</button>
       <button data-cols="2" aria-pressed="false">2</button>
-      <button data-cols="3" aria-pressed="false">3</button>
+      <button data-cols="3" aria-pressed="true">3</button>
     </div>
   </div>
 
@@ -128,7 +128,7 @@ section { margin: 0; }
   </div>
 </main>
 
-<script src="players.js?v=20260912201254"></script>
+<script src="players.js?v=20260912201625"></script>
 <script>
 /* ============================================================================
    GALLERY
@@ -151,7 +151,7 @@ const state = {
   mode: 'podcast',   /* 'live' or 'podcast' */
   show: 'sysk',      /* which podcast, when mode is 'podcast' */
   theme: 'light',
-  cols: 1
+  cols: 3
 };
 
 /* The mode key actually handed to the registry. Live ignores the show picker. */
@@ -256,7 +256,11 @@ function build() {
   grid.className = 'grid';
   grid.dataset.cols = state.cols;
 
-  PLAYERS.forEach((p) => {
+  /* Blocked players are left out of the grid entirely rather than rendered as a
+     reason. Blocking is per MODE, not per player, so this is filtered on every
+     build rather than once: a service can be fine for podcasts and refuse the
+     frame for live. The count under the header already counted this way. */
+  PLAYERS.filter((p) => !resolveEntry(p, effectiveMode()).blocked).forEach((p) => {
     const c = cardFor(p);
     const wrap = c.querySelector('.frame-wrap');
     if (wrap) {

@@ -1578,3 +1578,18 @@ assuming rather than reading.
 Three things stay bespoke because accomplice has no equivalent: the waveform, the artwork
 scrim, and the card shell itself. accomplice's `Player` is the site's fixed 6.4rem bottom
 bar, which is the wrong shape for an embed card.
+
+## Gallery defaults
+
+The gallery opens at **three columns** rather than one, and **blocked players are no
+longer rendered at all** rather than shown as a card saying why they cannot be embedded.
+That takes the grid from 43 cards to 29.
+
+Blocking is per MODE, not per player, so the filter runs on every build rather than once:
+a service can serve a podcast fine and refuse the frame for live radio. The loaded count
+under the header already counted this way, so it needed no change.
+
+The 14 left out are Amazon Music, YouTube Music, Pocket Casts, Radio.net, Live365,
+Pandora, SiriusXM, Global Player, Audacy, BBC Sounds, Substack, Streema, Radio Garden and
+Radio France. They stay in `players.js` with their reasons, so the registry is still the
+record of what was tried and why it failed; only the grid stops showing them.
