@@ -38,12 +38,18 @@ body {
 header {
   background: #fff; border-bottom: 1px solid var(--ihr-grey-250);
   padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+  /* Stays put while the page scrolls, so the width control is reachable from
+     any card rather than only from the top. z-index 5 clears the drawers, which
+     sit at 3 and 4 inside a card. */
+  position: sticky; top: 0; z-index: 5;
 }
 .brand { font-weight: 600; }
 .brand span { font-weight: 400; font-size: 12px; color: var(--ihr-grey-450); margin-left: 8px; }
 .hint { font-size: 12px; color: var(--ihr-grey-450); }
 
 main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid; gap: 34px; }
+/* Anything scrolled to lands below the sticky bar rather than under it. */
+section, .band { scroll-margin-top: 92px; }
 section > h2 { font-size: 13px; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .06em; }
 section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450); max-width: 80ch; }
 

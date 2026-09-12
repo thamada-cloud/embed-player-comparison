@@ -553,6 +553,15 @@ The live frames were revised after the first build and now differ structurally:
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
 
+### The top bar sticks
+
+It stays put while the page scrolls, so the width control is reachable from any
+card rather than only from the top. It sits above the drawers, which live at 3
+and 4 inside a card against the bar's 5, checked by asking the page what is
+actually painted where an open drawer meets the bar. Sections carry a
+`scroll-margin-top` so anything scrolled to lands below the bar rather than
+under it.
+
 ### A slider at the top sets every player's width
 
 Dragging it caps the four prototypes and the two shipping embeds together,
