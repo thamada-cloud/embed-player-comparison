@@ -815,6 +815,13 @@ area is the text and the paragraph keeps its clipping and its marquee. That
 does mean the marquee's own rule had to stop using a child combinator, since
 there is now an anchor between the line and its span.
 
+A hovered line underlines, and the underline is declared on the span as well as
+on the anchor. A line that overflows turns its span into an inline-block the
+moment it is hovered, so the marquee can translate it, and an inline-block does
+not draw its ancestor's text decoration. Declared only on the anchor, the
+underline vanished at exactly the moment it was asked for, on every line long
+enough to marquee, which is most of them.
+
 Only `text-decoration` is reset on the text link. Adding `color: inherit`
 alongside it outranked the `.meta` rule that sets the header text to grey-100,
 so the anchor took the page's own dark colour and every line on the bar card

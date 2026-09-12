@@ -156,7 +156,14 @@ section.is-live > .band-note { color: #14532d; }
 a.line-link, a.thumb-link, a.art-link { text-decoration: none; }
 a.thumb-link, a.art-link { color: inherit; }
 a.line-link { color: inherit; }
-a.line-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+/* The underline goes on the SPAN, not only on the anchor. A hovered line that
+   overflows turns its span into an inline-block so the marquee can translate it,
+   and an inline-block does not draw its ancestor's text decoration, so the
+   underline vanished at the very moment it was asked for. Declaring it on both
+   covers the lines that marquee and the lines that do not. */
+a.line-link:hover, a.line-link:hover .mqi {
+  text-decoration: underline; text-underline-offset: 2px;
+}
 a.line-link:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
   outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px;
 }
