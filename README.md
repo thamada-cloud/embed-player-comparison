@@ -1478,3 +1478,45 @@ players cannot be confused. That makes the comparison a vertical one on a real p
 
 The slot height control works as it does on the article page, with the fixed case set to
 this page's 150 rather than 300.
+
+## The scrubber is the accomplice Slider
+
+The progress bar in all three designs is now the design system's Slider, which is what
+the Storybook **Seek Bar** story renders. It was rebuilt from
+`packages/accomplice/src/components/slider/slider.css.ts` in the `iheartradio/web`
+monorepo rather than eyeballed off the Storybook page, so the values are the
+component's own.
+
+| | before | now, from the component |
+| --- | --- | --- |
+| track line | 2px, fixed | 2px, and 3px from 1025 up (the `large` breakpoint) |
+| hit area | a padded box, 26 on A and 16 on B and C | `min-height: 16` on all three, with the line drawn by `::before` |
+| line colour | grey250 on A, grey450 on B and C | grey450 on all three |
+| line radius | 6px | 6px (`radius[6]`, 0.6rem on a 10px rem base) |
+| fill | red550 only | red550, **red400** while the track is hovered, **red650** while dragging |
+| thumb | 12px, always visible | 12px, same two states, and **hidden until hover or drag** |
+| preview | none | the segment from the playhead to where a click would land |
+
+Three notes on the port.
+
+**The colour pairs are `lightDark()` in the original.** These cards are dark surfaces in
+every state, so they take the dark half of each pair: grey450 for the line, grey250 for
+the preview.
+
+**`1.2rem` is 12px, not 19.2.** accomplice sets a 10px rem base, which its own space
+scale confirms, where `space[12]` is `1.2rem`. So the thumb stays the 12px the Figma
+frames draw.
+
+**The hero's separate scrubber geometry is gone.** It existed because the old track was a
+padded box whose padding had to be tuned per design. The component separates the hit area
+from the line, so one rule now serves all three.
+
+### What it cost
+
+Nothing in layout. The slider row was not the binding constraint in any of the three
+cards, so all six keep their exact heights: 400, 180, 444, 224, 234, 234.
+
+Design A's hit area does drop from 26 to 16, which is the component's own `min-height`.
+That takes it below the WCAG 2.2 target size minimum of 24, where it previously cleared
+it by 2. B and C were already at 16 and are unchanged. Raising it would mean departing
+from the component.

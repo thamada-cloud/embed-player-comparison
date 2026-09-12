@@ -472,7 +472,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <div class="slider">
                 <span class="t el">00:00</span>
                 <div class="track">
-                  <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                  <div class="elapsed" style="width:0"></div><div class="preview" style="left:0;width:0"></div><div class="thumb" style="left:0"></div>
                 </div>
                 <span class="t dur">--:--</span>
               </div>`}
@@ -544,7 +544,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <div class="slider">
                   <span class="t el">00:00</span>
                   <div class="track">
-                    <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                    <div class="elapsed" style="width:0"></div><div class="preview" style="left:0;width:0"></div><div class="thumb" style="left:0"></div>
                   </div>
                   <span class="t dur">--:--</span>
                 </div>
@@ -636,7 +636,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
                   <div class="slider">
                     <span class="t el">00:00</span>
                     <div class="track">
-                      <div class="elapsed" style="width:0"></div><div class="thumb" style="left:0"></div>
+                      <div class="elapsed" style="width:0"></div><div class="preview" style="left:0;width:0"></div><div class="thumb" style="left:0"></div>
                     </div>
                     <span class="t dur">--:--</span>
                   </div>`}
@@ -774,17 +774,62 @@ function makeWidget(rootId, statusId, colourId, variant) {
     };
     const track = q('.track');
     if (track) {
+      const elapsed = q('.elapsed'), thumbEl = q('.thumb'), preview = q('.preview');
+      /* The component drives itself off data attributes rather than classes,
+         and the stylesheet here reads the same ones, so the states line up with
+         the original: data-hovered on the track, data-dragging on the fill and
+         the thumb. */
+      const setDragging = (on) => {
+        [elapsed, thumbEl].forEach((el) => {
+          if (!el) return;
+          if (on) el.setAttribute('data-dragging', ''); else el.removeAttribute('data-dragging');
+        });
+      };
+      const pct = (ev) => {
+        const r = track.getBoundingClientRect();
+        return r.width ? Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) : 0;
+      };
       const seek = (ev) => {
         if (!w.audio || !isFinite(w.audio.duration)) return;
-        const r = track.getBoundingClientRect();
-        w.audio.currentTime = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * w.audio.duration;
+        w.audio.currentTime = pct(ev) * w.audio.duration;
         tick();
       };
+      /* The preview is the segment between where playback is and where a click
+         would land, drawn only while hovering AHEAD of the thumb and not
+         dragging, which is the condition the component uses.
+         What is stored is the hovered VALUE, not the pixels: the component
+         derives left and width from slider state on every render, so the span
+         shrinks as playback advances and closes when playback reaches it.
+         Storing the drawn span instead was wrong, and blanked the preview on
+         the first timeupdate after the mouse stopped moving. */
+      const clearPreview = () => { w.previewAt = null; drawPreview(); };
+      const showPreview = (ev) => {
+        if (!w.audio || !isFinite(w.audio.duration) || !w.audio.duration) return clearPreview();
+        if (elapsed && elapsed.hasAttribute('data-dragging')) return clearPreview();
+        w.previewAt = pct(ev) * 100;
+        drawPreview();
+      };
+      track.addEventListener('pointerenter', () => track.setAttribute('data-hovered', ''));
+      track.addEventListener('pointerleave', () => {
+        track.removeAttribute('data-hovered'); clearPreview();
+      });
+      track.addEventListener('pointermove', showPreview);
       track.addEventListener('pointerdown', (ev) => {
-        track.setPointerCapture(ev.pointerId); seek(ev);
+        track.setPointerCapture(ev.pointerId);
+        setDragging(true); clearPreview(); seek(ev);
         const mv = (e2) => seek(e2);
-        const up = () => { track.removeEventListener('pointermove', mv); track.removeEventListener('pointerup', up); };
-        track.addEventListener('pointermove', mv); track.addEventListener('pointerup', up);
+        const up = () => {
+          setDragging(false);
+          /* A touch drag never fired an enter, and leaves no pointer behind to
+             fire a leave, so the hovered state is cleared by hand on release
+             for any pointer that is not a mouse. */
+          track.removeEventListener('pointermove', mv);
+          track.removeEventListener('pointerup', up);
+          track.removeEventListener('pointercancel', up);
+        };
+        track.addEventListener('pointermove', mv);
+        track.addEventListener('pointerup', up);
+        track.addEventListener('pointercancel', up);
       });
     }
     if (w.playing) {
@@ -1100,6 +1145,20 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const fmt = (s) => !isFinite(s) ? '--:--' :
     (Math.floor(s / 60) < 10 ? '0' : '') + Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
 
+  /* Redrawn from the stored hover value and wherever playback now is, so the
+     span always runs from the thumb to the hovered point and closes itself
+     when playback catches up. */
+  function drawPreview() {
+    const pv = q('.preview'); if (!pv) return;
+    const a = w.audio;
+    if (w.previewAt == null || !a || !isFinite(a.duration) || !a.duration) {
+      pv.style.width = '0%'; return;
+    }
+    const now = Math.min(1, a.currentTime / a.duration) * 100;
+    pv.style.left = now + '%';
+    pv.style.width = Math.max(0, w.previewAt - now) + '%';
+  }
+
   function tick() {
     const a = w.audio, el = q('.el'); if (!el) return;
     el.textContent = fmt(a ? a.currentTime : 0);
@@ -1109,6 +1168,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
       const p = Math.min(1, a.currentTime / a.duration) * 100;
       e.style.width = p + '%'; th.style.left = p + '%';
     }
+    drawPreview();
   }
 
   /* Low frequencies carry nearly all the energy in speech and music, so a

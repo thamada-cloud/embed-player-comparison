@@ -11,7 +11,8 @@
 :root {
   --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-200: #e6eaed; --ihr-grey-250: #dadfe3;
   --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
-  --ihr-red-550: #cc032e; --ihr-red-600: #c6002b; --true-white: #fff;
+  --ihr-red-400: #e22c3a; --ihr-red-550: #cc032e; --ihr-red-600: #c6002b;
+  --ihr-red-650: #b30027; --true-white: #fff;
   --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
   /* Overlay strength over the artwork colour. Was 70%. */
   --overlay-pct: .60;
@@ -367,16 +368,11 @@ a.thumb-link:hover { opacity: .92; }
 .hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .widget.hero:not(.playing) .slider { display: none; }
 .widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
-/* 7px, not the other design's 12. The frame's slider row is 16 tall, which is
-   exactly enough for the 12px controller, and 12px of padding would have made
-   the bottom block 10px taller than the frame. */
-/* background-COLOR, never the shorthand. `background` resets background-clip,
-   and the clip is what keeps the 2px line inside the padding that gives the
-   scrubber a touch target: setting the shorthand painted the whole 16px box
-   grey and swallowed the red elapsed fill. */
-.widget.hero .track { padding: 7px 0; background-color: var(--ihr-grey-450); }
-.widget.hero .elapsed { top: 7px; }
-.widget.hero .thumb { top: 8px; }
+/* The hero card used to carry its own smaller scrubber geometry, and its own
+   track colour, because the old track was a padded box whose padding had to be
+   tuned per design. The accomplice Slider separates the hit area from the line,
+   so one rule now serves all three and the hero override is gone: the 16px
+   min-height it wanted is the component's own default. */
 .stage .wave { position: relative; height: 12px; }
 .widget.c .stage .wave { height: 24px; }
 /* The hero list sits on the card, not on the page, so it keeps square top
@@ -589,16 +585,64 @@ a.thumb-link:hover { opacity: .92; }
 .play-btn:active { transform: scale(.96); }
 .stack { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
 
-.slider { display: flex; gap: 12px; align-items: center; width: 100%; }
+/* ---------- the scrubber, which is the accomplice Slider ----------
+   This is the component the design system's Seek Bar story renders, rebuilt
+   from packages/accomplice/src/components/slider/slider.css.ts in the web
+   monorepo rather than eyeballed off the Storybook page, so the numbers are the
+   component's own:
+
+     root        flex row, 12 gap, centred, 100% wide
+     track       position relative, min-height 16, and a ::before line rather
+                 than a padded box, so the hit area and the line are separate
+                 things instead of one trick
+     track size  2px, and 3px from 1025 up, which is the large breakpoint
+     line        6px radius, centred on the track with top 50% and a translate
+     fill        red550, red400 while the track is hovered, red650 while dragging
+     preview     the segment between the thumb and where a click would land,
+                 drawn only while hovering ahead of the current position
+     thumb       12px, red550 with the same two states, elevation1 shadow, and
+                 HIDDEN until the track is hovered or the thumb is dragging,
+                 which is the component's onlyThumbOnHover default
+
+   The colour pairs are lightDark() in the original. These cards are dark
+   surfaces in every state, so they take the dark half of each pair: grey450
+   for the line, grey250 for the preview. 1.2rem reads as 12px because
+   accomplice sets a 10px rem base, which its own space scale confirms, where
+   space[12] is 1.2rem. */
+.slider { display: flex; flex-direction: row; position: relative; gap: 12px;
+          justify-content: center; align-items: center; width: 100%; max-width: 100%; }
 .slider .t { font-size: 12px; line-height: 16px; color: var(--true-white); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .track {
-  box-sizing: content-box; flex: 1 1 0; min-width: 0; height: 2px;
-  border-radius: var(--radius-widget); background: var(--ihr-grey-250);
-  background-clip: content-box; padding: 12px 0; position: relative; cursor: pointer; touch-action: none;
+  --track-size: 2px;
+  position: relative; flex: 1 1 0; min-width: 0; width: 100%; min-height: 16px;
+  cursor: pointer; touch-action: none;
 }
-.elapsed { position: absolute; left: 0; top: 12px; height: 2px; background: var(--ihr-red-550); border-radius: var(--radius-widget); }
-.thumb { position: absolute; top: 13px; width: 12px; height: 12px; margin: -6px 0 0 -6px;
-         border-radius: 999px; background: var(--ihr-red-550); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+@media screen and (min-width: 1025px) { .track { --track-size: 3px; } }
+.track::before {
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  left: 0; width: 100%; max-width: 100%; height: var(--track-size);
+  border-radius: 6px; background: var(--ihr-grey-450);
+}
+/* Fill and preview share the line's geometry, which is why it is factored out
+   in the original too. */
+.elapsed, .preview {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  height: var(--track-size); max-width: 100%; border-radius: 6px;
+}
+.elapsed { left: 0; width: 0; background: var(--ihr-red-550); }
+.track[data-hovered] .elapsed:not([data-dragging]) { background: var(--ihr-red-400); }
+.elapsed[data-dragging] { background: var(--ihr-red-650); }
+.preview { width: 0; background: var(--ihr-grey-250); }
+.thumb {
+  position: absolute; top: 50%; left: 0; width: 12px; height: 12px;
+  margin: -6px 0 0 -6px; border-radius: 50%; background: var(--ihr-red-550);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15); forced-color-adjust: none;
+  display: none;
+}
+.track[data-hovered] .thumb, .thumb[data-dragging] { display: block; }
+.track[data-hovered] .thumb:not([data-dragging]) { background: var(--ihr-red-400); }
+.thumb[data-dragging] { background: var(--ihr-red-650); }
+.thumb[data-focus-visible] { outline: 2px solid blue; }
 
 .btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
 /* Live has a single control group and the frame puts it at x=0, so it is left
