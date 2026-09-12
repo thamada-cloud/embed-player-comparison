@@ -1648,3 +1648,43 @@ scoping to stay correct.
 Design B is unaffected, since its episode list sits under the card rather than behind a
 button, and design C's live card has no list button because live radio has no episodes.
 Card heights are unchanged at every width.
+
+## Tooltips on the icon buttons
+
+Every button on the card shows an accomplice Tooltip on hover and on keyboard focus,
+built from `components/tooltip/tooltip.css.ts` and `tooltip.tsx`:
+
+| | value |
+| --- | --- |
+| surface | `lightDark(gray600, brandWhite)`, so **white** on these dark cards |
+| text | `lightDark(brandWhite, gray600)`, so **`#27292D`** |
+| border | 1px `gray350` `#96979F` |
+| radius | `radius[2]`, 2.5px |
+| shadow | `elevation1` |
+| padding | `space[4]` `space[8]`, so 4 by 8 |
+| type | 10 / 14, weight 400, `letterSpacing[0]` |
+| offset | 4, with the arrow 16 x 8 on the path `M0 0 L8 8 L16 0` |
+| motion | in over 200ms from an 8px offset, out over 100ms eased |
+
+**The label is `attr(aria-label)`, not a second attribute.** The tooltip text and the
+accessible name are therefore the same string by construction and cannot drift apart. It
+also means the tooltip follows state for free, because those labels are already kept
+current: the play button reads Play, Pause or Stop, and the list button reads Show
+episodes or Hide episodes.
+
+Only the buttons ON the card carry one. The drawer's close button sits on white, where a
+white bubble would be invisible, and it is excluded by selector rather than by accident.
+
+### Two deviations, stated rather than buried
+
+**The arrow is a data URI, not an `<svg>`.** The component renders a real element; a
+pseudo-element has nowhere to put one, so the same path is inlined as a background image.
+The geometry is the component's, the delivery is not.
+
+**One tooltip is right-anchored.** react-aria shifts an overlay back inside the viewport
+when it would overhang, and a pseudo-element has no such machinery. Design C's list
+button sits flush right, always 32px from the card edge, so any bubble wider than 64px
+overhangs at every width rather than only at narrow ones, and "Show episodes" is 83. That
+one anchors its right edge to the button's, which is where react-aria would put it
+anyway. The arrow stays centred on the button. Checked at 352 and 1280: nothing else
+overhangs in any design.

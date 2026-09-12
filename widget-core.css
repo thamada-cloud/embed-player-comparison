@@ -36,7 +36,7 @@
      600 step", and those two could diverge. */
   --ihr-brand-red: #c6002b;
   --ihr-gray-200: #e6eaed; --ihr-gray-300: #a9afb2; --ihr-gray-400: #717277;
-  --ihr-gray-500: #3f4447; --ihr-blue-400: #3ca2dd; --border-2: 2px;
+  --ihr-gray-350: #96979f; --ihr-gray-500: #3f4447; --ihr-blue-400: #3ca2dd; --border-2: 2px;
   --rad-1: 1.25px; --rad-2: 2.5px; --rad-5: 5px; --rad-6: 6px;
   /* 99rem on accomplice's 10px base, written out so it does not follow THIS
      page's root size. Fully round either way, but the number should be theirs. */
@@ -808,6 +808,96 @@ a.thumb-link:hover { opacity: .92; }
 }
 .icon-btn:focus-visible:not(:active), .h-btn:focus-visible:not(:active),
 .play-btn:focus-visible:not(:active), .hero-play:focus-visible:not(:active) { transform: scale(1); }
+
+/* ---------- accomplice Tooltip ----------
+   From components/tooltip/tooltip.css.ts and tooltip.tsx. The text is
+   attr(aria-label) rather than a second attribute, so the tooltip and the
+   accessible name are the same string by construction and cannot drift. The
+   labels are already kept current as state changes, so the play button reads
+   Play, Pause or Stop without any extra wiring.
+
+   The colours are lightDark(gray600, brandWhite) for the surface and
+   lightDark(brandWhite, gray600) for the text. These cards are dark surfaces,
+   so the tooltip takes the dark half of each: a white bubble with gray600 text.
+   That is also why only the buttons ON the card carry one. The drawer's close
+   button sits on white, where a white bubble would be invisible, and it is
+   excluded by selector rather than by accident.
+
+   One deviation, stated rather than hidden: the component renders its arrow as
+   an <svg> with the path M0 0 L8 8 L16 0. There is no element to put that in
+   here, so the same path is inlined as a data URI on a pseudo-element. The
+   geometry is the component's; the delivery is not. */
+.icon-btn, .h-btn, .play-btn, .hero-play { position: relative; }
+.icon-btn[aria-label]::after, .h-btn[aria-label]::after,
+.play-btn[aria-label]::after, .hero-play[aria-label]::after {
+  content: attr(aria-label);
+  position: absolute; bottom: calc(100% + 11px); left: 50%;
+  background-color: var(--true-white); color: var(--ihr-grey-600);
+  border: 1px solid var(--ihr-gray-350); border-radius: var(--rad-2);
+  box-shadow: var(--elevation1);
+  padding: var(--sp-4) var(--sp-8);
+  font-size: var(--fs-10); line-height: var(--lh-14);
+  letter-spacing: var(--ls-0); font-weight: 400;
+  white-space: nowrap; forced-color-adjust: none;
+}
+.icon-btn[aria-label]::before, .h-btn[aria-label]::before,
+.play-btn[aria-label]::before, .hero-play[aria-label]::before {
+  content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%;
+  width: var(--sp-16); height: var(--sp-8);
+  background: no-repeat center/16px 8px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 0 L8 8 L16 0' fill='%23ffffff' stroke='%23ffffff' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+/* Shared rest and motion. The component enters over 200ms from an 8px offset
+   and leaves over 100ms, reversed and eased out. */
+.icon-btn[aria-label]::after, .h-btn[aria-label]::after,
+.play-btn[aria-label]::after, .hero-play[aria-label]::after,
+.icon-btn[aria-label]::before, .h-btn[aria-label]::before,
+.play-btn[aria-label]::before, .hero-play[aria-label]::before {
+  opacity: 0; pointer-events: none; z-index: 6;
+  transform: translateX(-50%) translateY(var(--sp-8));
+  transition: opacity 100ms ease-out, transform 100ms ease-out;
+}
+.icon-btn[aria-label]:hover::after, .h-btn[aria-label]:hover::after,
+.play-btn[aria-label]:hover::after, .hero-play[aria-label]:hover::after,
+.icon-btn[aria-label]:hover::before, .h-btn[aria-label]:hover::before,
+.play-btn[aria-label]:hover::before, .hero-play[aria-label]:hover::before,
+.icon-btn[aria-label]:focus-visible::after, .h-btn[aria-label]:focus-visible::after,
+.play-btn[aria-label]:focus-visible::after, .hero-play[aria-label]:focus-visible::after,
+.icon-btn[aria-label]:focus-visible::before, .h-btn[aria-label]:focus-visible::before,
+.play-btn[aria-label]:focus-visible::before, .hero-play[aria-label]:focus-visible::before {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+/* A hidden spacer is still a button. It has no label and no tooltip, but say so
+   rather than rely on it. */
+.h-btn.spacer::after, .h-btn.spacer::before { content: none; }
+/* The component positions its overlay with react-aria, which shifts a tooltip
+   back inside the viewport when it would overhang. There is no such machinery
+   in a pseudo-element, and one button needs it: design C's list button sits
+   flush to the right of its row, always 32px from the card's edge, so a centred
+   bubble wider than 64px overhangs at EVERY width rather than only at narrow
+   ones. "Show episodes" is 83. So that one anchors its right edge to the
+   button's instead of centring, which is the same thing react-aria would end up
+   doing. The arrow stays centred on the button, as it does there too. */
+.list-row .h-btn[aria-label]::after {
+  left: auto; right: 0;
+  transform: translateX(0) translateY(var(--sp-8));
+}
+.list-row .h-btn[aria-label]:hover::after,
+.list-row .h-btn[aria-label]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .list-row .h-btn[aria-label]::after { transform: translateX(0) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
+  .play-btn[aria-label]::after, .hero-play[aria-label]::after,
+  .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
+  .play-btn[aria-label]::before, .hero-play[aria-label]::before {
+    transition: opacity 100ms; transform: translateX(-50%) translateY(0);
+  }
+}
 
 /* size `icon`: padding space[4], aspect-ratio 1/1, radius[999]. */
 .icon-btn, .h-btn { padding: var(--sp-4); aspect-ratio: 1 / 1; background: transparent; }
