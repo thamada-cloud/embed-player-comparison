@@ -234,7 +234,15 @@ a.thumb-link:hover { opacity: .92; }
    image. Leaving the absolute positioning on the image left the anchor with a
    zero sized box in the flow, which is a link nobody can click. */
 .ihr-link { position: absolute; right: 16px; top: 0; display: block; line-height: 0; color: inherit; }
-.topbar .ihr-link { position: static; flex: 0 0 auto; }
+/* The artwork cards park the logo in the card's top right corner, the same
+   place the bar card puts it, rather than letting it ride the top bar's flex
+   row and drift down as the text block grows. The top bar is the containing
+   block and spans the full width, so right 16 and top 0 land 16 from the card's
+   right edge and 16 from its top, which is exactly the bar card's inset. */
+.topbar .ihr-link { right: 16px; top: 0; }
+/* Room for it, so a long line does not run underneath: 16 to the logo, its 25,
+   then 8 of clearance. */
+.widget.hero .topbar { padding-right: 49px; }
 .ihr-link:hover { opacity: .85; }
 .ihr-link:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px; }
 

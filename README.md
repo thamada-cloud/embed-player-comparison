@@ -1342,3 +1342,5 @@ https://thamada-cloud.github.io/embed-player-comparison/
 Re-verified on the live URL signed out, which is the state a participant is in.
 86 checks, 0 blanks. Twitch renders there, confirming its `parent=` frame policy
 resolves against the github.io host.
+
+- The iHeart logo sits in the same corner on all three designs, 16px from the card's right edge and 16px from its top. On the bar card the anchor is absolutely positioned against `.body`. On the artwork cards it used to be the last flex item in `.topbar`, which put it 24px in and vertically centred against the top bar, so it drifted as the text block grew. It is now absolute against `.topbar` as well, with the top bar carrying 49px of right padding so a long line cannot run beneath it.
