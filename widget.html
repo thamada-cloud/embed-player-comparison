@@ -850,7 +850,12 @@ async function nowPlaying(id) {
     if (r.status === 404 || r.status === 410 || r.status === 424) { NO_META.add(id); return null; }
     if (!r.ok || r.status === 204) return null;
     const d = await r.json();
-    return d && d.title ? { track: d.title, artist: d.artist || null } : null;
+    /* artistId and trackId come with the track, and are what the artist and
+       song links are built from. */
+    return d && d.title
+      ? { track: d.title, artist: d.artist || null,
+          artistId: d.artistId || null, trackId: d.trackId || null }
+      : null;
   } catch (e) { return null; }
 }
 const NO_META = new Set();
@@ -872,6 +877,8 @@ async function loadStation(id) {
        the artist row. */
     track: (np && np.track) || null,
     artist: (np && np.artist) || null,
+    artistId: (np && np.artistId) || null,
+    trackId: (np && np.trackId) || null,
     title: h.name,
     subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
     infoTitle: h.name, infoBody: h.description || '',
@@ -937,8 +944,8 @@ function liveMeta(d) {
   const link = (t) => lineLink(stationUrl(d), t);
   return L.station
     ? `<p class="h-station mq">${link(L.station)}</p>
-       <p class="h-name mq">${mqs(L.sub)}</p>
-       <p class="h-track mq">${mqs(L.name)}</p>`
+       <p class="h-name mq">${maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart')}</p>
+       <p class="h-track mq">${maybeLink(trackUrl(d), L.name, 'Open this song on iHeart')}</p>`
     : `<p class="h-name mq">${link(L.name)}</p>
        <p class="h-sub mq">${link(L.sub)}</p>`;
 }
@@ -1382,8 +1389,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
               ${isLive ? `
                 <p class="subtitle mq">${lineLink(stationUrl(d), d.subtitle)}</p>
                 ${d.track && d.artist ? `
-                <p class="title np-artist mq">${mqs(d.artist)}</p>
-                <p class="title np-track mq">${mqs(d.track)}</p>` : ''}` : `
+                <p class="title np-artist mq">${maybeLink(artistUrl(d), d.artist, 'Open this artist on iHeart')}</p>
+                <p class="title np-track mq">${maybeLink(trackUrl(d), d.track, 'Open this song on iHeart')}</p>` : ''}` : `
                 <p class="title mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                 <p class="subtitle mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
@@ -1756,6 +1763,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
     const had = !!(w.data.track && w.data.artist);
     w.data.track = np.track || null;
     w.data.artist = np.artist || null;
+    w.data.artistId = np.artistId || null;
+    w.data.trackId = np.trackId || null;
     const has = !!(w.data.track && w.data.artist);
     /* Gaining or losing track data changes how many lines the block has, and
        now also its type size, so that edge needs a re-render. */
@@ -1767,10 +1776,17 @@ function makeWidget(rootId, statusId, colourId, variant) {
        than only the bar card. */
     if (had !== has) { render(); return; }
     if (!has) return;
+    /* A new track is a new destination, so the anchors move with the text. */
+    const retarget = (sel, href) => {
+      const a = q(sel + ' a.line-link');
+      if (a && href) a.setAttribute('href', href);
+    };
     if (variant === 'bar') {
       const tr = q('.np-track .mqi'), ar = q('.np-artist .mqi');
       if (tr) tr.textContent = w.data.track;
       if (ar) ar.textContent = w.data.artist;
+      retarget('.np-artist', artistUrl(w.data));
+      retarget('.np-track', trackUrl(w.data));
     } else {
       /* With a track the three lines are track, artist, station; the classes
          carry the weights, so the writer only has to keep the order. */
@@ -1779,6 +1795,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
       if (st) st.textContent = L.station;
       if (n) n.textContent = L.sub;
       if (tr) tr.textContent = L.name;
+      retarget('.h-name', artistUrl(w.data));
+      retarget('.h-track', trackUrl(w.data));
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
@@ -2005,6 +2023,21 @@ addEventListener('resize', showVw); showVw();
    show line to the show. The artwork is the show's, so it goes to the show,
    which is where a podcast tile leads on iheart.com itself. Live radio has one
    destination, so every part of it points at the station. */
+/* The same slug rules as packages/utilities slugify in iheartradio/web: fold
+   accents, drop apostrophes, lowercase, strip anything that is not a word
+   character, space or hyphen, then kebab-case. iHeart canonicalises the slug on
+   arrival anyway, checked with a single x in its place, but a link that reads
+   correctly before the redirect is worth the twelve lines. */
+const slugify = (v) => String(v || '')
+  .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/'/g, '').toLowerCase()
+  .replace(/[^\s\w-]/g, '').trim()
+  .replace(/[\s_]+/g, '-').replace(/-+/g, '-');
+/* Null rather than a broken link when the feed carries no id, which is what
+   the production slug builder does for the same reason. */
+const artistUrl = (d) => d.artistId ? `https://www.iheart.com/artist/${slugify(d.artist)}-${d.artistId}/` : null;
+const trackUrl = (d) => (d.artistId && d.trackId) ? `${artistUrl(d)}songs/${slugify(d.track)}-${d.trackId}/` : null;
+
 const showUrl = (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/`;
 const episodeUrl = (d) => `${showUrl(d)}episode/episode-${d.episodeId}/`;
 const stationUrl = (d) => `https://www.iheart.com/live/station-${d.stationId}/`;
@@ -2016,6 +2049,7 @@ function contentUrl(d) {
 /* A metadata line that is also a link. The anchor sits inside the paragraph so
    the clickable area is the text rather than the whole line box, and so the
    paragraph keeps the clipping and the marquee. */
+const maybeLink = (href, text, aria) => href ? lineLink(href, text, aria) : mqs(text);
 const lineLink = (href, text, aria) =>
   `<a class="line-link" href="${esc(href)}" target="_blank" rel="noopener"` +
   (aria ? ` aria-label="${esc(aria)}"` : '') + `>${mqs(text)}</a>`;

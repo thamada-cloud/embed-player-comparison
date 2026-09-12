@@ -801,11 +801,25 @@ Each line goes to the page it names.
 | Episode line | the episode page |
 | Show line | the show page |
 | Podcast artwork | the show page, since that is the show's own tile and it is where a podcast tile leads on iheart.com |
-| Live radio, any part | the station page |
+| Artist line | the artist page |
+| Track line | the song page |
+| Live radio, artwork and station line | the station page |
 
 Confirmed by clicking through on the bar card: the episode line opens
-`"Yumming My Yuck" (w/ Carly Rae Jepsen)`, and the show line and the artwork
-both open `Las Culturistas with Matt Rogers and Bowen Yang | iHeart`.
+`"Yumming My Yuck" (w/ Carly Rae Jepsen)`, the show line and the artwork both
+open `Las Culturistas with Matt Rogers and Bowen Yang | iHeart`, the artist line
+opens `Bruno Mars | iHeart` and the track line `Bruno Mars - Risk It All |
+iHeart`.
+
+The artist and song links are built from the `artistId` and `trackId` the
+now-playing feed carries alongside the names, with the slug rules copied from
+`packages/utilities` slugify. iHeart canonicalises the slug on arrival anyway,
+checked by requesting the same ids with a single `x` in the slug's place and
+watching it redirect to the real one, but a link that reads correctly before the
+redirect is worth the few lines. A track arriving without ids renders as plain
+text rather than a dead link, which is what the production slug builder does for
+the same reason, and the anchors are re-pointed when the track changes rather
+than being left on the previous song.
 
 They are anchors rather than click handlers, so a middle click, a cmd click and
 a keyboard both work, and the focus ring is there for the keyboard.
