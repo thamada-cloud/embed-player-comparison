@@ -269,10 +269,10 @@ a.thumb-link:hover { opacity: .92; }
                 object-fit: cover; border-radius: 0; box-shadow: none;
                 background: transparent; padding: 0; }
 .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.70); }
-/* Design C sits 5 points darker than the frames' 70, which is a choice rather
+/* Design C sits 10 points darker than the frames' 70, which is a choice rather
    than a reading. Design B still paints the frames' own value, so the two can
    be looked at side by side. */
-.widget.c .scrim { background: rgba(0,0,0,.75); }
+.widget.c .scrim { background: rgba(0,0,0,.80); }
 .topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
@@ -1079,7 +1079,7 @@ const OVERLAY = 0.60;                 /* keep in step with --overlay-pct */
 /* The hero frames draw rgba(0,0,0,0.7). Design C runs 5 points darker by
    choice, so the value is per design rather than one constant, and the contrast
    readout under each card reports the one that card actually paints. */
-const SCRIM = { hero: 0.70, c: 0.75 };
+const SCRIM = { hero: 0.70, c: 0.80 };
 const overlaid = (c) => c.map((v) => Math.round(v * (1 - OVERLAY)));
 
 /* WCAG 2.x relative luminance and contrast ratio. Both text styles in the
@@ -1102,8 +1102,8 @@ const TEXT_RGB = [0xf6, 0xf8, 0xf9];  /* --ihr-grey-100, the header text colour 
    certainty is the other end. The worst any artwork can possibly be is pure
    white, so white under the scrim is the worst background any picture can
    produce, and that is a computation rather than a sample.
-   At 70% black that floor is 8.00 to 1 against the grey-100 text, at 75% it is
-   9.77, both clear of the 7 that AAA asks for normal text. The scrim would have
+   At 70% black that floor is 8.00 to 1 against the grey-100 text, at 80% it is
+   11.86, both clear of the 7 that AAA asks for normal text. The scrim would have
    to fall to 66.7% before AAA could fail on some artwork, and to 55.2% before
    AA could. */
 const scrimFloor = (pct) => contrast([255 * (1 - pct), 255 * (1 - pct), 255 * (1 - pct)], TEXT_RGB);
