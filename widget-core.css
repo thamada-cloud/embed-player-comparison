@@ -855,7 +855,16 @@ a.thumb-link:hover { opacity: .92; }
 .play-btn[aria-label]::before, .hero-play[aria-label]::before {
   opacity: 0; pointer-events: none; z-index: 6;
   transform: translateX(-50%) translateY(var(--sp-8));
+  /* Leaving: wait the close delay, then fade out. react-aria calls these delay
+     and closeDelay and they are separate from the animation durations, which
+     the component fixes at 200ms in and 100ms out. accomplice's own wrapper
+     sets neither, so every call site picks its own; 200 and 100 is what
+     number-field and textarea use, the two closest things to a compact control
+     whose icon is doing the explaining. 200 is long enough that sweeping the
+     cursor across a transport row does not flash six tooltips, and short enough
+     that a deliberate hover still feels immediate. */
   transition: opacity 100ms ease-out, transform 100ms ease-out;
+  transition-delay: 100ms;
 }
 .icon-btn[aria-label]:hover::after, .h-btn[aria-label]:hover::after,
 .play-btn[aria-label]:hover::after, .hero-play[aria-label]:hover::after,
@@ -867,6 +876,7 @@ a.thumb-link:hover { opacity: .92; }
 .play-btn[aria-label]:focus-visible::before, .hero-play[aria-label]:focus-visible::before {
   opacity: 1; transform: translateX(-50%) translateY(0);
   transition: opacity 200ms, transform 200ms;
+  transition-delay: 200ms;
 }
 /* A hidden spacer is still a button. It has no label and no tooltip, but say so
    rather than rely on it. */
@@ -895,6 +905,8 @@ a.thumb-link:hover { opacity: .92; }
   .play-btn[aria-label]::after, .hero-play[aria-label]::after,
   .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
   .play-btn[aria-label]::before, .hero-play[aria-label]::before {
+    /* The delays stay. They are about intent, not motion, and removing them
+       would make the tooltips MORE eager for someone who asked for less. */
     transition: opacity 100ms; transform: translateX(-50%) translateY(0);
   }
 }

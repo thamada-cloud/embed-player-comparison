@@ -1665,6 +1665,7 @@ built from `components/tooltip/tooltip.css.ts` and `tooltip.tsx`:
 | type | 10 / 14, weight 400, `letterSpacing[0]` |
 | offset | 4, with the arrow 16 x 8 on the path `M0 0 L8 8 L16 0` |
 | motion | in over 200ms from an 8px offset, out over 100ms eased |
+| delay | **200ms to open, 100ms to close** |
 
 **The label is `attr(aria-label)`, not a second attribute.** The tooltip text and the
 accessible name are therefore the same string by construction and cannot drift apart. It
@@ -1674,6 +1675,32 @@ episodes or Hide episodes.
 
 Only the buttons ON the card carry one. The drawer's close button sits on white, where a
 white bubble would be invisible, and it is excluded by selector rather than by accident.
+
+### The open delay
+
+The animation duration and the open delay are different things, and the component only
+fixes the first. accomplice's `Tooltip` wrapper sets **no delay at all**: it re-exports
+react-aria's `TooltipTrigger` unchanged, so every call site picks its own.
+
+| accomplice call site | open | close |
+| --- | --- | --- |
+| `number-field.tsx` | 200 | 100 |
+| `textarea` story | 200 | 100 |
+| `field.tsx` | 500 | not set |
+| `tooltip` stories | 250, and 50 | 100 |
+| tests | 0 | 0 |
+
+So there is no house value to match, and the spread is deliberate: a form field waits
+500ms because you are typing in it, a compact control waits 200ms. These cards use
+**200 open, 100 close**, matching `number-field` and `textarea`, the two closest things to
+a compact control whose icon is doing the explaining.
+
+Measured after the change: nothing appears before ~200ms, full opacity by ~400ms, and the
+tooltip holds ~100ms after the pointer leaves before fading. A 90ms sweep across a button
+never shows one at all, which is the behaviour the delay exists for.
+
+The delays survive `prefers-reduced-motion`. They are about intent rather than motion, and
+dropping them would make the tooltips more eager for someone who asked for less.
 
 ### Two deviations, stated rather than buried
 
