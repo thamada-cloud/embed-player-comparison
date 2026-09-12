@@ -1,0 +1,827 @@
+/* ============================================================================
+   AUDIO WIDGET PROTOTYPE
+   Built from Figma "Audio Widgets": 2524:126999 and 2526:135968 (podcast, 350
+   and 1280), 2526:142928 and 2527:144307 (live radio).
+
+   Both widgets live on this page at once, and each one sizes itself from its
+   own width with container queries rather than a manual switch. Container
+   queries, not media queries, because an embeddable widget has to respond to
+   the slot it is dropped into, which is not always the viewport.
+   ==========================================================================*/
+:root {
+  --ihr-grey-100: #f6f8f9; --ihr-grey-150: #edf1f3; --ihr-grey-200: #e6eaed; --ihr-grey-250: #dadfe3;
+  --ihr-grey-300: #a9afb2; --ihr-grey-450: #55565b; --ihr-grey-600: #27292d;
+  --ihr-red-400: #e22c3a; --ihr-red-550: #cc032e; --ihr-red-600: #c6002b;
+  --ihr-red-650: #b30027; --true-white: #fff;
+
+  /* ---- accomplice scales, transcribed from themes/default/theme-tokens.ts.
+     The token NAME is the pixel value throughout, because accomplice runs a
+     10px rem base: fontSize[14] is 1.4rem, space[12] is 1.2rem. Written here in
+     px so nothing depends on this page's root size. ---- */
+  --fs-6: 6px;    --fs-10: 10px;  --fs-11: 11px;  --fs-12: 12px;  --fs-13: 13px;
+  --fs-14: 14px;  --fs-15: 15px;  --fs-16: 16px;  --fs-17: 17px;  --fs-18: 18px;
+  --fs-20: 20px;  --fs-21: 21px;  --fs-24: 24px;  --fs-32: 32px;  --fs-40: 40px;
+  --lh-8: 8px;    --lh-14: 14px;  --lh-16: 16px;  --lh-18: 18px;  --lh-20: 20px;
+  --lh-21: 21px;  --lh-22: 22px;  --lh-24: 24px;  --lh-26: 26px;  --lh-28: 28px;
+  --lh-30: 30px;  --lh-40: 40px;  --lh-48: 48px;
+  /* letterSpacing is in rem in the source and NEGATIVE for most kinds. */
+  --ls-0: -0.2px; --ls-1: -0.5px; --ls-2: -0.6px; --ls-3: -2px;
+  --ls-4: 0px;    --ls-5: 1px;    --ls-6: -1px;
+  --sp-0: 0px;    --sp-2: 2px;    --sp-4: 4px;    --sp-6: 6px;   --sp-8: 8px;
+  --sp-12: 12px;  --sp-16: 16px;  --sp-24: 24px;  --sp-28: 28px; --sp-32: 32px;
+  --sp-48: 48px;
+  --rad-1: 1.25px; --rad-2: 2.5px; --rad-5: 5px; --rad-6: 6px;
+  /* 99rem on accomplice's 10px base, written out so it does not follow THIS
+     page's root size. Fully round either way, but the number should be theirs. */
+  --rad-999: 990px;
+  --elevation1: 0 1px 3px rgba(0, 0, 0, 0.15);
+  --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
+  /* Overlay strength over the artwork colour. Was 70%. */
+  --overlay-pct: .60;
+  --overlay: rgba(0,0,0,.60);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #e9edef; color: var(--ihr-grey-600);
+  font: 14px/1.4 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+header {
+  background: #fff; border-bottom: 1px solid var(--ihr-grey-250);
+  padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+  /* Stays put while the page scrolls, so the width control is reachable from
+     any card rather than only from the top. z-index 5 clears the drawers, which
+     sit at 3 and 4 inside a card. */
+  position: sticky; top: 0; z-index: 5;
+}
+.brand { font-weight: 600; }
+.brand span { font-weight: 400; font-size: 12px; color: var(--ihr-grey-450); margin-left: 8px; }
+.hint { font-size: 12px; color: var(--ihr-grey-450); }
+.hint a { color: var(--ihr-red-600); }
+
+main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid; gap: 34px; }
+/* Anything scrolled to lands below the sticky bar rather than under it. */
+section, .band { scroll-margin-top: 92px; }
+section > h2 { font-size: 13px; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .06em; }
+section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450); max-width: 80ch; }
+
+/* ---------- width gauge ----------
+   The widget lays itself out from its OWN width, not the window's, so the
+   readout reports the shell width (what the container query actually reads)
+   next to the window width. They differ by the page gutters and the 1320
+   max-width, which is exactly the thing that is otherwise invisible. */
+.h2row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 10px; margin: 0 0 2px; }
+.h2row h2 { margin: 0; }
+.gauge {
+  font-size: 11.5px; letter-spacing: 0; text-transform: none; font-weight: 400;
+  color: var(--ihr-grey-450); font-variant-numeric: tabular-nums;
+  border: 1px solid var(--ihr-grey-250); border-radius: 999px; padding: 2px 9px; background: #fff;
+}
+.gauge b { font-weight: 600; color: var(--ihr-grey-600); }
+.gauge .mode { font-weight: 600; }
+.gauge.wide .mode { color: var(--ihr-red-550); }
+.hint .vw { font-variant-numeric: tabular-nums; }
+
+/* ---------- the width slider ---------- */
+.widthctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ihr-grey-450); }
+.widthctl label { white-space: nowrap; }
+.widthctl input[type="range"] { width: 220px; accent-color: var(--ihr-red-550); cursor: pointer; }
+.widthctl input[type="number"] { width: 68px; font: inherit; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; text-align: right; color: var(--ihr-grey-600);
+  padding: 3px 6px; border: 1px solid var(--ihr-grey-250); border-radius: 6px; background: #fff; }
+.widthctl input[type="number"]:focus { outline: 2px solid var(--ihr-red-550); outline-offset: -1px; }
+.widthctl .unit { margin-left: -4px; }
+.widthctl output { font-variant-numeric: tabular-nums; color: var(--ihr-grey-450); min-width: 34px; }
+.widthctl button { font: inherit; font-size: 11px; padding: 3px 9px; border-radius: 999px;
+                   border: 1px solid var(--ihr-grey-250); background: #fff; color: var(--ihr-grey-600);
+                   cursor: pointer; }
+.widthctl button:hover { background: var(--ihr-grey-150); }
+
+/* ---------- what is live, what is not ----------
+   The page carries the production player and four prototypes at once, which is
+   the whole point of it and also the easiest thing in the world to misread in a
+   screenshot. Every group is banded and every card is tagged, so a section
+   cannot be looked at without its status being on screen next to it. */
+.band { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+        padding: 14px 16px; border-radius: 10px; margin: 0 0 4px; }
+.band p { margin: 0; font-size: 13px; max-width: 90ch; }
+.band-live { background: #e7f4ec; border: 1px solid #bcdfc9; color: #14532d; }
+.band-proto { background: #fff4e2; border: 1px solid #f0d5a8; color: #6b4708; }
+.band h2 { font-size: 15px; margin: 0; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+       padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.tag-live { background: #12703c; color: #fff; }
+.tag-proto { background: #8a5a06; color: #fff; }
+/* The same two tags again on every individual card, since a section can be
+   scrolled to, screenshotted or linked on its own. */
+.h2row .tag { font-weight: 700; }
+section.is-live > .band-note { color: #14532d; }
+
+/* ---------- the shipping player, for comparison ---------- */
+/* Stacked, never side by side. Two columns halved the width each embed got,
+   which is the one thing a player's layout actually responds to, so the
+   baseline was being shown in a form the page never asked about. Each one now
+   takes the full width, the same as the prototype cards below it. */
+.embeds { display: grid; gap: 16px; grid-template-columns: 1fr; }
+.embed { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.embed-label { font-size: 12px; color: var(--ihr-grey-450); }
+.embed iframe { width: 100%; height: 200px; border: 0; display: block;
+                border-radius: var(--radius-widget); background: var(--ihr-grey-150); }
+
+/* ---------- search ---------- */
+.search { position: relative; margin-bottom: 12px; max-width: 460px; }
+.search input {
+  width: 100%; font: inherit; font-size: 14px; padding: 9px 12px;
+  border: 1px solid var(--ihr-grey-250); border-radius: 8px; background: #fff; color: inherit;
+}
+.search input:focus { outline: 2px solid var(--ihr-red-550); outline-offset: -1px; }
+.results {
+  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px);
+  background: #fff; border: 1px solid var(--ihr-grey-250); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); max-height: 320px; overflow-y: auto; padding: 4px;
+}
+.results[hidden] { display: none; }
+.results button {
+  display: flex; gap: 10px; align-items: center; width: 100%; text-align: left;
+  background: none; border: 0; font: inherit; padding: 8px; border-radius: 6px; cursor: pointer;
+}
+.results button:hover, .results button:focus { background: var(--ihr-grey-150); outline: none; }
+.results img { width: 38px; height: 38px; border-radius: 4px; object-fit: cover; background: var(--ihr-grey-250); flex: 0 0 auto; }
+.results b { display: block; font-size: 13px; font-weight: 600; }
+.results span { display: block; font-size: 11.5px; color: var(--ihr-grey-450); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .empty { padding: 12px; font-size: 12.5px; color: var(--ihr-grey-450); }
+
+/* ============================================================================
+   WIDGET. One set of rules; the container query does the rest.
+   ==========================================================================*/
+/* Every player is capped by one variable, so the slider moves all of them at
+   once: the four prototypes and the shipping embeds above them. Unset means no
+   cap, which is the page filling the window as it did before. */
+.shell { container-type: inline-size; width: 100%; max-width: var(--player-w, none); }
+.embeds { max-width: var(--player-w, none); }
+.widget {
+  border-radius: var(--radius-widget); overflow: hidden; width: 100%;
+  position: relative;                      /* the info drawer covers the card */
+  display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10);
+}
+.player {
+  width: 100%; min-height: 180px; position: relative;
+  display: flex; flex-direction: column; justify-content: space-between; padding-top: 16px;
+  /* artwork colour with the design's 70% black on top, authored as the same
+     two stacked gradients Figma uses */
+  background-image:
+    linear-gradient(90deg, var(--overlay) 0%, var(--overlay) 100%),
+    linear-gradient(90deg, var(--dominant, #191b28) 0%, var(--dominant, #191b28) 100%);
+  transition: background-image .35s ease;
+}
+.body {
+  display: grid; width: 100%; padding: 0 16px; position: relative;
+  grid-template-columns: 64px 1fr;
+  grid-template-areas: "art meta" "controls controls";
+  column-gap: 12px; row-gap: 16px; align-items: center;
+}
+/* The artwork and the metadata are links to the thing that is playing. The
+   anchor takes the grid slot so the image keeps its own box, and it inherits
+   colour and loses the underline so the card looks exactly as it did. */
+.art-link { grid-area: art; align-self: center; display: block; line-height: 0; border-radius: var(--radius-widget); }
+.art { width: 64px; height: 64px; border-radius: var(--radius-widget);
+       box-shadow: var(--shadow-01); object-fit: cover; background: #222; }
+/* Colour is never touched on a text link. Setting `color: inherit` on the
+   metadata block once outranked the .meta rule that paints the header text
+   grey-100, and every line on the bar card turned near black. The image links
+   can inherit safely, since they carry no text. */
+a.line-link, a.thumb-link, a.art-link { text-decoration: none; }
+a.thumb-link, a.art-link { color: inherit; }
+a.line-link { color: inherit; }
+/* The underline goes on the SPAN, not only on the anchor. A hovered line that
+   overflows turns its span into an inline-block so the marquee can translate it,
+   and an inline-block does not draw its ancestor's text decoration, so the
+   underline vanished at the very moment it was asked for. Declaring it on both
+   covers the lines that marquee and the lines that do not. */
+/* accomplice Link, the `underline: hover` variant plus its focus treatment.
+   The component draws focus as a 1px solid outline at 1px offset with
+   radius[2], which is tighter than the 2px ring this page used. */
+a.line-link:hover, a.line-link:hover .mqi {
+  text-decoration: underline; text-underline-offset: 2px;
+}
+a.line-link:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
+  outline: 1px solid var(--true-white); outline-offset: 1px;
+  border-radius: var(--rad-2); text-decoration: none;
+}
+a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
+a.thumb-link:hover { opacity: .92; }
+/* Station logos are transparent PNGs drawn for a white tile. Left on the dark
+   header the artwork bleeds into the background and the mark loses its edges,
+   so live radio gets the white plate the design gives it. */
+.widget.live .art { background: #fff; object-fit: contain; padding: 4px; }
+.widget.live .tile { background: #fff; background-image: none; object-fit: contain; padding: 3px; }
+/* The text and the controls are one group in the live frames, so they get a
+   wrapper. Everywhere except live-wide the wrapper is display:contents, which
+   removes it from the box tree and leaves .meta and .controls-row as the grid
+   items they were. */
+.col { display: contents; }
+/* 2px for live, which is what all three revised frames draw between the three
+   lines. Podcast keeps 4 between its pair. */
+.widget.live .meta { gap: 2px; }
+/* 33px is what holds the lines off the logo, and it is the only thing that
+   does on any of the three designs: the logo is 25 wide and sits 16 in from the
+   card's right edge, so 33 of text padding against the same edge leaves 8 of
+   clearance. Every card takes 16 on that edge, so the one number serves all. */
+.meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
+        padding-right: 33px; color: var(--ihr-grey-100); }
+/* ---- accomplice Text kinds, from components/text/kind.ts ----
+   Declared once and applied by name, rather than the same four numbers
+   retyped at every call site. The mapping is exact, not approximate: what the
+   Figma frames drew already WAS the system, so every line in these cards lands
+   on a real kind.
+     subtitle-4  14 / 18 / 600 / -0.2   the podcast title, the artist line
+     caption-2   14 / 18 / 400 / -0.2   the track line
+     caption-4   12 / 16 / 400 /  0     the show line, the station line
+     caption-3   12 / 16 / 600 / -0.2
+     button-2    14 / 16 / 600 / -0.2   the speed control
+     overline-1  11 / 16 / 700 /  1     uppercase, the explicit badge  */
+.k-subtitle-4 { font-size: var(--fs-14); line-height: var(--lh-18);
+                font-weight: 600; letter-spacing: var(--ls-0); }
+.k-caption-2  { font-size: var(--fs-14); line-height: var(--lh-18);
+                font-weight: 400; letter-spacing: var(--ls-0); }
+.k-caption-3  { font-size: var(--fs-12); line-height: var(--lh-16);
+                font-weight: 600; letter-spacing: var(--ls-0); }
+.k-caption-4  { font-size: var(--fs-12); line-height: var(--lh-16);
+                font-weight: 400; letter-spacing: var(--ls-4); }
+.k-button-2   { font-size: var(--fs-14); line-height: var(--lh-16);
+                font-weight: 600; letter-spacing: var(--ls-0); }
+.k-overline-1 { font-size: var(--fs-11); line-height: var(--lh-16);
+                font-weight: 700; letter-spacing: var(--ls-5); text-transform: uppercase; }
+
+.title { font-size: var(--fs-14); line-height: var(--lh-18); font-weight: 600;
+         letter-spacing: var(--ls-0); margin: 0;
+         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Live radio shows now playing over two lines, track then artist, with the
+   station line beneath. Track is Regular and artist is SemiBold, which is the
+   opposite weighting to the podcast title, straight from the frame. */
+/* The two now-playing lines are siblings of the station line rather than a
+   nested block, since the revised frames put all three in one column 2px apart.
+   The weight rules move with them: scoped to .titles they stopped applying the
+   moment the wrapper went, and the track quietly rendered SemiBold. */
+.np-track { font-weight: 400; }
+.np-artist { font-weight: 600; }
+.widget.live .title { font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-0); }
+/* caption-4 */
+.subtitle { font-size: var(--fs-12); line-height: var(--lh-16); letter-spacing: var(--ls-4);
+            margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* With no track playing the station line is the only line in the block, so it
+   takes the podcast title's size at each width rather than the 12/16 it uses
+   as a third line under a track and artist. A deliberate step past the frame,
+   which drew this state at 12/16. Declared here, ahead of the container query,
+   so the wide override inside the query wins on order as well as specificity. */
+.widget.live.notrack .subtitle { font-size: var(--fs-14); line-height: var(--lh-18);
+                                 letter-spacing: var(--ls-0); font-weight: 600; }
+/* accomplice Logo sizes the mark by HEIGHT off a fixed scale, and 26 is not on
+   it: the scale runs 12, 16, 18, 24, 32, 36, 40, 48, 52, 56 and up. 24 is the
+   nearest rung, so the mark is 24 tall here and the width follows its ratio
+   rather than being pinned. This is the one place the port changes a drawn
+   size, and it is a 2px difference. */
+.ihr { height: var(--fs-24); width: auto; display: block; }
+/* The logo is a link home, so the ANCHOR carries the position rather than the
+   image. Leaving the absolute positioning on the image left the anchor with a
+   zero sized box in the flow, which is a link nobody can click. */
+.ihr-link { position: absolute; right: 16px; top: 0; display: block; line-height: 0; color: inherit; }
+/* The artwork cards park the logo in the card's top right corner, the same
+   place the bar card puts it, rather than letting it ride the top bar's flex
+   row and drift down as the text block grows. The top bar is the containing
+   block and spans the full width, so right 16 and top 0 land 16 from the card's
+   right edge and 16 from its top, which is exactly the bar card's inset. */
+.topbar .ihr-link { right: 16px; top: 0; }
+/* The text already clears the logo on its own: .meta carries 40px of right
+   padding, which is the logo's 25 plus 15 of slack, and that is the whole of
+   what keeps design A's lines off it. So the top bar takes the same 16px the
+   bar card's .body takes, and all three designs truncate at the same point,
+   56px in from the card's right edge. */
+.widget.hero .topbar { padding-right: 16px; }
+.ihr-link:hover { opacity: .85; }
+.ihr-link:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px; }
+
+/* ============================================================================
+   HERO CARD. Frames 2512:113087 (podcast) and 2512:111965 (live radio).
+   The artwork is the background, at any width, under the frames' own 70% black.
+   Only the 350 frame exists for this design, so the stage holds that frame's
+   224px height rather than inventing a taller one for wide viewports.
+   ==========================================================================*/
+.widget.hero { border-radius: var(--radius-widget); overflow: hidden; width: 100%;
+               display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10); }
+/* The whole card is a play target, so it says so. */
+.widget.hero .stage { cursor: pointer; }
+.widget.hero .sheet, .widget.hero .slider { cursor: auto; }
+.stage { position: relative; height: 224px; width: 100%; overflow: hidden;
+         display: flex; flex-direction: column; justify-content: space-between;
+         padding-top: 16px; background: #fff; }
+/* The frames stack white, then the artwork, then 70% black. That holds for a
+   podcast, whose artwork is an opaque square. A station's artwork is not: the
+   API ships a transparent PNG drawn for a white tile, so the same stack leaves
+   most of the card as white under a scrim, a flat grey the mock never shows
+   because the mock used an opaque tile. The base is the artwork's own mean
+   colour for live radio instead, so the card takes the station's brand colour
+   where the logo does not cover. A deviation, and forced by the asset. */
+.widget.hero.live .stage { background: var(--dominant, #191b28); }
+/* background and padding are reset explicitly. The other design gives a live
+   station's .art a white plate and 4px of padding, which is right for a 64px
+   tile and wrong for a full bleed background: the white plate is what made the
+   live card render as flat grey under the scrim rather than taking the
+   station's colour. */
+.widget.hero .stage > .art { position: absolute; inset: 0; width: 100%; height: 100%;
+                object-fit: cover; border-radius: 0; box-shadow: none;
+                background: transparent; padding: 0; }
+/* 80, not the frames' 70. A deliberate step past them on both artwork designs,
+   asked for after looking at the two side by side. */
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.80); }
+.topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
+/* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
+   position:absolute, so reusing the name took this image out of the flex row
+   and let the two lines of text run underneath it. Second time a class name
+   from the other design has leaked in; the h- prefix keeps this card's names
+   to itself. */
+.topbar .h-thumb { width: 48px; height: 48px; border-radius: var(--radius-widget); object-fit: cover;
+                   flex: 0 0 auto; background: #fff; }
+/* Station logos are transparent PNGs drawn for a white tile, exactly as in the
+   other widget, and the live frame shows the thumb on white. */
+.widget.hero.live .topbar .h-thumb { object-fit: contain; padding: 3px; }
+.topbar .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 0; }
+/* The live block runs flush, no gap between its three lines. The frames carry
+   2px there, this is a deliberate step past them, and it applies to the two
+   artwork cards only: design A's live block and both podcast pairs keep the 2. */
+.widget.hero.live .topbar .meta { gap: 0; }
+/* The artwork cards restated the drawn 25x26. On the Logo scale that rung is
+   24, and it is set once on .ihr, so this override has nothing left to say. */
+.topbar .ihr { height: var(--fs-24); width: auto; }
+/* Two type styles, swapped between the two frames. The name line is the
+   SemiBold one at 14/18, the sub line the Regular one at 12/16. */
+/* The live block, identical across all three designs after the revision:
+   station line 12/16 Regular, artist 14/18 SemiBold, track 14/18 Regular, every
+   line in grey-100 and 2px apart. The station line is NOT white and NOT dimmed,
+   it is the same grey-100 as the two above it, since the whole column carries
+   that colour in the frames. */
+.h-station { margin: 0; font-size: var(--fs-12); line-height: var(--lh-16);
+             font-weight: 400; letter-spacing: var(--ls-4);
+             color: var(--ihr-grey-100); }
+.h-name { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
+          letter-spacing: var(--ls-0); font-weight: 600;
+          color: var(--ihr-grey-100); }
+.h-track { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
+           letter-spacing: var(--ls-0); font-weight: 400;
+           color: var(--ihr-grey-100); }
+/* The podcast pair, off 2548:250303 (design B) and 2548:250299 (design C),
+   which are identical. The episode leads at 14/18 SemiBold in TRUE WHITE and
+   the show sits under it at 12/16 Regular in grey-100, which is the reverse of
+   the order and the opposite of the colour pairing an earlier build had.
+   Note the live block runs the other way on colour, every line grey-100. */
+.h-ep { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
+        letter-spacing: var(--ls-0); font-weight: 600;
+        color: var(--true-white); }
+.h-show { margin: 0; font-size: var(--fs-12); line-height: var(--lh-16);
+          font-weight: 400; letter-spacing: var(--ls-4);
+          color: var(--ihr-grey-100); }
+/* Still carries the live fallback's second line, the station description. */
+.h-sub { margin: 0; font-size: var(--fs-12); line-height: var(--lh-16);
+         font-weight: 400; letter-spacing: var(--ls-4); color: var(--true-white); }
+/* The control row, frames 2512:113298 (podcast) and 2512:111876 (live).
+   The row is the thing that is centred on the card, not the button: it is
+   absolutely placed at the middle and lays its buttons out around the red one
+   with an 8px gap. Idle hides every secondary button, which leaves the red one
+   alone in the centre and reproduces the resting frames exactly. */
+.hero-controls {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 0 24px; box-sizing: border-box;
+}
+.widget.hero.live .hero-controls { top: calc(50% - 1px); }
+.h-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
+         padding: 4px; border-radius: 999px; display: flex; flex: 0 0 auto; }
+.h-btn img { width: 24px; height: 24px; display: block; }
+/* The Figma component in this slot is named Web Internal / Podcast Playback
+   Speed, but the asset it exports is a play triangle, its own root being
+   <g id="Web Internal / Play">. What the frame RENDERS there is the text 1x, so
+   that is what is built, in the Caption 1 style the frame lists, 14/18 SemiBold
+   at -0.4. Exported assets are the rule; an export that disagrees with the
+   frame it came from is not one. */
+/* button-2, like the bar card's speed control. The -0.4 tracking it carried
+   is not a value the system has; the kind's is -0.2. */
+.h-speed { display: block; width: var(--fs-24); height: var(--fs-24);
+           line-height: var(--lh-24); text-align: center;
+           font-size: var(--fs-14); font-weight: 600;
+           letter-spacing: var(--ls-0); color: var(--true-white); }
+.h-btn:hover { background: rgba(255,255,255,.14); }
+.h-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
+/* Every artwork card now reveals its controls on play, design C included. Its
+   own idle frame, 2533:85718, agrees: that card is drawn with the top bar, one
+   centred play button and the waveform, no control row, no scrubber and no list
+   button. An earlier build read C's live frame, which is drawn idle with its
+   icons showing, and generalised from it. */
+.widget.hero:not(.playing) .h-btn { display: none; }
+/* The live frame keeps a speed button at opacity 0 on the left. It is a
+   spacer: two icons sit to the right of the red button and only one to the
+   left, so without it the red button would not be centred. Kept as the frame
+   has it rather than replaced with a margin. */
+.h-btn.spacer { visibility: hidden; pointer-events: none; }
+.hero-play {
+  position: relative;
+  appearance: none; border: 0; cursor: pointer; background: var(--ihr-red-600);
+  border-radius: 999px; padding: 4px; display: flex; flex: 0 0 auto;
+  filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.12));
+}
+.hero-play img { width: 56px; height: 56px; display: block; }
+.hero-play:active { transform: scale(.96); }
+
+/* The bottom block. Podcast gains a scrubber above the waveform while playing,
+   in a column with the frame's 4px gap; live radio has no duration and so
+   never gets one. */
+.hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.widget.hero:not(.playing) .slider { display: none; }
+.widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
+/* The hero card used to carry its own smaller scrubber geometry, and its own
+   track colour, because the old track was a padded box whose padding had to be
+   tuned per design. The accomplice Slider separates the hit area from the line,
+   so one rule now serves all three and the hero override is gone: the 16px
+   min-height it wanted is the component's own default. */
+.stage .wave { position: relative; height: 12px; }
+.widget.c .stage .wave { height: 24px; }
+/* The hero list sits on the card, not on the page, so it keeps square top
+   corners against the stage above it. */
+.widget.hero .list { border-radius: 0; }
+
+/* ---------- design C, frames 2533:85625 and 2533:91574 ----------
+   Design B's card with its controls always on, a list button over the scrubber
+   on the podcast side, and a live radio side that is genuinely its own layout
+   rather than the podcast minus parts. */
+/* 16:9, fluid, the way a YouTube embed behaves: the box keeps its ratio and the
+   height follows the width instead of being pinned to the frame's 263.
+   The floor is the one concession. Everything inside the card is a fixed pixel
+   size, so unlike a video the contents do not shrink with the box: the top bar
+   is 56 tall, the control row is 64 and centred, and the bottom block is 72, so
+   below 234 the centred row starts to overlap what is above and below it. The
+   podcast bottom block is the binding one, a 32px list row, 8, a 16px scrubber,
+   4, and now a 24px waveform, so 84 in total, against a 64px control row whose
+   centre sits at calc(50% + .5px). That half pixel is why 232 still clashed and
+   234 is the real floor, caught by measuring rather than by the arithmetic.
+   16:9 reaches 234 at a width of 416, so the floor applies on phones.
+   The ceiling is the other end of the same argument. A video can be any size
+   because it scales; this card cannot, so past a point 16:9 is just a taller
+   and taller field of artwork around the same 64px button. 400 holds the ratio
+   through every width an embed slot realistically gets, phones and article
+   columns up to 711, and past that the card grows wider rather than taller. */
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 400px; }
+.widget.c .hero-controls { top: calc(50% + .5px); }
+/* Live C ends in a waveform running to the edge, like every other card here,
+   so it takes no bottom padding. Its own frame parked three icons at the bottom
+   right instead and had no waveform at all; the control row and the waveform
+   come from 2512:111876, which is where that row is drawn. The rest of the card
+   stays design C's own, the 48px tile and the single line of text. */
+.widget.c.live .hero-controls { top: calc(50% - .5px); }
+/* 48 everywhere now, so the live-only rule is gone. */
+/* The list button sits 8px above the scrubber, and the pair sits 4px above the
+   waveform, which is two nested columns in the frame and two here. */
+.c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.list-row { display: flex; justify-content: flex-end; padding: 0 16px; box-sizing: border-box; }
+/* The drawer, frame 2533:85717. It slides up over the player inside the card
+   rather than opening a panel beneath it, which is what the frame draws: the
+   Drawer instance is the same 358 by 263 box as the player, at 0,0.
+   It is closed by transform rather than by display, so the slide can be seen,
+   and visibility flips only at the end of the travel so a closed drawer is out
+   of the tab order rather than sitting invisibly over the controls. */
+/* accomplice Drawer, bottom placement: width 100%, a 6px 6px 0 0 radius and a
+   translateY(100%) to translateY(0) slide. All three already matched, which is
+   worth saying rather than quietly leaving: the sheet was built from the frame
+   and the frame was built from the component. The radius is now the token. */
+.sheet {
+  position: absolute; inset: 0; z-index: 3; width: 100%;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--true-white);
+  border-radius: var(--rad-6) var(--rad-6) 0 0;
+  transform: translateY(100%); visibility: hidden;
+  transition: transform .28s ease, visibility 0s linear .28s;
+}
+/* :not(.info-sheet), because the info drawer also carries the .sheet class and
+   was therefore being opened by the episodes flag as well. It sits on a higher
+   layer, so pressing the list button showed the information instead. */
+.widget.sheet-open .sheet:not(.info-sheet) {
+  transform: translateY(0); visibility: visible;
+  transition: transform .28s ease, visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) { .sheet { transition: visibility 0s; } }
+.sheet-head { flex: 0 0 auto; display: flex; align-items: center; gap: 16px;
+              padding: 16px; background: var(--ihr-grey-200); }
+/* h5, exactly: 18 / 24 / 700 / 0. */
+.sheet-head h3 { flex: 1 1 auto; min-width: 0; margin: 0;
+                 font-size: var(--fs-18); line-height: var(--lh-24);
+                 font-weight: 700; letter-spacing: var(--ls-4); color: var(--ihr-grey-600);
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-close { flex: 0 0 auto; appearance: none; border: 0; background: transparent;
+               cursor: pointer; padding: 4px; border-radius: 999px; display: flex; }
+.sheet-close img { width: 24px; height: 24px; display: block; }
+/* A dark wash, not the white one the icon buttons over artwork use, since this
+   header is light. */
+.sheet-close:hover { background: rgba(0,0,0,.08); }
+.sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; }
+.sheet-body .rows { gap: 2px; }
+
+/* The info drawer, frame 2562:285883. Same component, mounted over the whole
+   card rather than over the stage, so its own rule sets the cover. */
+.info-sheet { z-index: 4; border-radius: var(--radius-widget); }
+.widget.info-open .info-sheet {
+  transform: translateY(0); visibility: visible;
+  transition: transform .28s ease, visibility 0s;
+}
+/* The title wraps to two lines here rather than ellipsising, which is what
+   takes the header from 64 to 80. */
+.info-sheet .sheet-head h3 { white-space: normal; overflow: visible; text-overflow: clip; }
+/* body-3, exactly: 16 / 24 / 400 / -0.5. */
+.info-body { margin: 0; font-size: var(--fs-16); line-height: var(--lh-24);
+             letter-spacing: var(--ls-1); color: #000; }
+
+/* ---------- marquee ----------
+   Text that does not fit still ellipsises. On a device with a real pointer it
+   also scrolls on hover so the rest can be read. The inner span is plain
+   inline until it is hovered, which keeps the ellipsis working normally; an
+   inline-block child and text-overflow do not reliably agree. Touch has no
+   hover state, so it simply keeps the ellipsis. */
+/* accomplice Marquee. The recipe's base is max-width 100%, overflow hidden,
+   position relative, text-overflow ellipsis, white-space nowrap, width 100%,
+   and it flips from block to flex once it has measured that the text overflows,
+   which is the `ready` variant. This page measures the same thing and marks it
+   with .over, so the two agree on behaviour; the declarations below are the
+   component's base verbatim. */
+.mq { max-width: 100%; width: 100%; overflow: hidden; position: relative;
+      white-space: nowrap; text-overflow: ellipsis; }
+@media (hover: hover) and (pointer: fine) {
+  .mq.over:hover { text-overflow: clip; }
+  .mq.over:hover .mqi {
+    display: inline-block; will-change: transform;
+    animation: marquee var(--mq-dur, 6s) linear infinite;
+  }
+}
+@keyframes marquee {
+  0%, 12%  { transform: translateX(0); }
+  50%, 62% { transform: translateX(var(--mq-shift, 0)); }
+  100%     { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mq.over:hover .mqi { animation: none; }
+}
+
+/* Wide layout. The artwork spans the full height beside BOTH the text and the
+   controls, which is what the 1280 frame does. */
+/* Two fixed states, not a fluid range. The artwork holds the 350 frame's 64px
+   until the widget crosses the breakpoint, then holds the 1280 frame's 132px.
+   Scaling it continuously with cqw made it drift to sizes that appear in
+   neither frame, which read as wrong at every width in between. */
+@container (min-width: 560px) {
+  .body {
+    grid-template-columns: 132px 1fr;
+    grid-template-areas: "art meta" "art controls";
+    /* 16px, not 21. The podcast frame's title block starts at y=5 and ends at
+       51 with controls at 67, so the gap is 16 and the 5 is padding above the
+       title. Counting the 5 as part of the gap pushed everything down. */
+    column-gap: 16px; row-gap: 16px; align-items: start;
+  }
+  .art { width: 132px; height: 132px; }
+  .art-link { align-self: start; }
+  /* .body .meta, not .meta. This 5px is the bar card's own top offset against
+     its 132px artwork, and unscoped it also reached the artwork cards, whose
+     .meta sits in .topbar. There it added 5px to a 36px text block beside a
+     40px tile, so the block came out 41 tall and hung off the artwork instead
+     of centring on it. Only visible above the 560 breakpoint, which is why it
+     measured clean on a phone. */
+  .body .meta { padding-top: 5px; }
+  /* Straight off frame 2526:135975: title 16/24 SemiBold, subtitle 14/18
+     Regular, both at -0.2 letter spacing. An earlier pass guessed 20/24 and
+     -0.4, which made the podcast title noticeably larger than the design. */
+  /* subtitle-2 over caption-2 at the wide size, the same pairing the narrow
+     size makes with subtitle-4 over caption-4. */
+  .title { font-size: var(--fs-16); line-height: var(--lh-24); letter-spacing: var(--ls-0); }
+  .subtitle { font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-0); }
+  /* The live frames keep the now-playing block at 14/18 and the station line
+     at 12/16 at BOTH sizes, so the wide rules must not scale them up. */
+  .widget.live .title { font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-0); }
+  .widget.live .subtitle { font-size: var(--fs-12); line-height: var(--lh-16); }
+
+  /* Live centres the text-plus-controls group against the 132px artwork, and
+     it is the GROUP that centres, not each row on its own. With a track the
+     group is 56 + 16 + 60 = 132 and fills the artwork exactly, which is why
+     frame 2527:144307 shows the text at y=0 and the controls at y=72. With no
+     track it is 16 + 16 + 60 = 92, and frame 2530:61496 puts it at y=20, the
+     centred position. The two-row grid could not do this: the artwork spans
+     both rows, so its surplus height was split evenly between them, which
+     pushed the text to the top and opened the gap under it to 33.5px. One flex
+     column, centred as a unit, is the layout the frames actually describe.
+     Podcast keeps the two-row grid, since its own frame offsets it from the
+     top rather than centring it. */
+  .widget.live .body { grid-template-areas: "art col"; }
+  .widget.live .col {
+    grid-area: col; align-self: stretch; min-width: 0;
+    display: flex; flex-direction: column; justify-content: center; gap: 16px;
+  }
+  /* The 5px is the podcast frame's top offset. Live centres instead. */
+  .widget.live .meta { padding-top: 0; }
+  /* With no track the station line is the only line in the block, so it takes
+     the podcast title's size rather than the 12/16 it uses as a third line
+     under a track and artist. A deliberate step past the frame, which drew
+     this state at 12/16. */
+  .widget.live.notrack .subtitle { font-size: var(--fs-16); line-height: var(--lh-24);
+                                   letter-spacing: var(--ls-0); font-weight: 600; }
+}
+
+.controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
+@container (min-width: 560px) { .controls-row { align-items: flex-start; } }
+/* Live has no scrubber, so its single control group centres on the play button
+   rather than hanging off the top. The frame puts the 32px group at y=14 of a
+   60px row, which is exactly centred. */
+.widget.live .controls-row { align-items: center; }
+
+.play-btn {
+  appearance: none; border: 0; cursor: pointer; background: var(--true-white);
+  border-radius: 999px; padding: 3.75px; display: flex; flex: 0 0 auto;
+  position: relative;
+  filter: drop-shadow(0 .938px 1.406px rgba(0,0,0,.15));
+}
+/* Buffering ring, copied from iheart.com rather than approximated.
+   The spinner itself is packages/accomplice/src/icons/loading in
+   iheartradio/web: a circle of r=47 in a 100 viewBox, round cap,
+   stroke-dasharray 60 300 so the arc covers about a fifth of the 295 unit
+   circumference, stroke-width 8 user units, rotating once every .75s linear,
+   stroked in gray300.
+   How it is MOUNTED matters as much as the drawing, and is the part an earlier
+   pass got wrong. In button.tsx a pending icon button renders the loader with
+   LOADER_BOX_PROPS_ICON, which is position absolute, inset 0, width and height
+   100%, laid OVER the button with the glyph still visible underneath. So the
+   ring is the button's own diameter, not a larger ring around it, and its
+   stroke is 8/100 of the button, 4.8px on this 60px button. The earlier version
+   sat 7px outside the button at a 3.3px stroke, which is why it read as a
+   different spinner. */
+.spin { position: absolute; inset: 0; width: 100%; height: 100%;
+        display: none; pointer-events: none; overflow: visible; }
+.widget.buffering .spin { display: block; }
+.spin circle {
+  fill: transparent; stroke: var(--ihr-grey-300); stroke-width: 8;
+  stroke-dasharray: 60 300; stroke-linecap: round;
+  transform-origin: center; animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+/* Still turns, because a stopped ring would read as a hung player, but slowly
+   enough not to be the flicker the preference is asking to avoid. */
+@media (prefers-reduced-motion: reduce) { .spin circle { animation-duration: 2.4s; } }
+.play-btn img { width: 52.5px; height: 52.5px; display: block; }
+.play-btn:active { transform: scale(.96); }
+.stack { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
+
+/* ---------- the scrubber, which is the accomplice Slider ----------
+   This is the component the design system's Seek Bar story renders, rebuilt
+   from packages/accomplice/src/components/slider/slider.css.ts in the web
+   monorepo rather than eyeballed off the Storybook page, so the numbers are the
+   component's own:
+
+     root        flex row, 12 gap, centred, 100% wide
+     track       position relative, min-height 16, and a ::before line rather
+                 than a padded box, so the hit area and the line are separate
+                 things instead of one trick
+     track size  2px, and 3px from 1025 up, which is the large breakpoint
+     line        6px radius, centred on the track with top 50% and a translate
+     fill        red550, red400 while the track is hovered, red650 while dragging
+     preview     the segment between the thumb and where a click would land,
+                 drawn only while hovering ahead of the current position
+     thumb       12px, red550 with the same two states, elevation1 shadow, and
+                 HIDDEN until the track is hovered or the thumb is dragging,
+                 which is the component's onlyThumbOnHover default
+
+   The colour pairs are lightDark() in the original. These cards are dark
+   surfaces in every state, so they take the dark half of each pair: grey450
+   for the line, grey250 for the preview. 1.2rem reads as 12px because
+   accomplice sets a 10px rem base, which its own space scale confirms, where
+   space[12] is 1.2rem. */
+.slider { display: flex; flex-direction: row; position: relative; gap: 12px;
+          justify-content: center; align-items: center; width: 100%; max-width: 100%; }
+/* caption-4 for the time labels. Tabular figures are not part of the kind and
+   stay local: a clock that changes width as it counts is its own problem. */
+.slider .t { font-size: var(--fs-12); line-height: var(--lh-16); letter-spacing: var(--ls-4);
+             color: var(--true-white); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.track {
+  --track-size: 2px;
+  position: relative; flex: 1 1 0; min-width: 0; width: 100%; min-height: 16px;
+  cursor: pointer; touch-action: none;
+}
+@media screen and (min-width: 1025px) { .track { --track-size: 3px; } }
+.track::before {
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  left: 0; width: 100%; max-width: 100%; height: var(--track-size);
+  border-radius: 6px; background: var(--ihr-grey-450);
+}
+/* Fill and preview share the line's geometry, which is why it is factored out
+   in the original too. */
+.elapsed, .preview {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  height: var(--track-size); max-width: 100%; border-radius: 6px;
+}
+.elapsed { left: 0; width: 0; background: var(--ihr-red-550); }
+.track[data-hovered] .elapsed:not([data-dragging]) { background: var(--ihr-red-400); }
+.elapsed[data-dragging] { background: var(--ihr-red-650); }
+.preview { width: 0; background: var(--ihr-grey-250); }
+.thumb {
+  position: absolute; top: 50%; left: 0; width: 12px; height: 12px;
+  margin: -6px 0 0 -6px; border-radius: 50%; background: var(--ihr-red-550);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15); forced-color-adjust: none;
+  display: none;
+}
+.track[data-hovered] .thumb, .thumb[data-dragging] { display: block; }
+.track[data-hovered] .thumb:not([data-dragging]) { background: var(--ihr-red-400); }
+.thumb[data-dragging] { background: var(--ihr-red-650); }
+.thumb[data-focus-visible] { outline: 2px solid blue; }
+
+.btn-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
+/* Live has a single control group and the frame puts it at x=0, so it is left
+   aligned rather than pushed to the far edge. The empty left group it used to
+   render was still a flex item, so the row's 8px gap sat in front of the
+   icons and pushed them to 24px from the play button where the frame says 16.
+   An empty element is not free in a gapped flex row. */
+.widget.live .btn-row { justify-content: flex-start; }
+.btn-group { display: flex; gap: 8px; align-items: center; }
+/* accomplice Button at size `icon`: padding space[4], aspect-ratio 1/1,
+   border-radius radius[999]. What was already here matched by accident; the
+   aspect ratio is the part that was missing, and it is what keeps a glyph of
+   any width in a round button rather than a lozenge. */
+.icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
+            padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
+            display: flex; align-items: center; justify-content: center; }
+.icon-btn img { width: 24px; height: 24px; display: block; }
+.icon-btn:hover { background: rgba(255,255,255,.14); }
+.icon-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
+/* accomplice Button at size `small`: the button-2 kind on a space[32] height.
+   The padding the component pairs with it is 8 16, which a two character label
+   in a control row cannot afford, so the height and the kind carry over and the
+   padding stays local. */
+.speed-btn { min-width: var(--sp-32); height: var(--sp-32);
+  align-items: center; justify-content: center; color: var(--true-white);
+  font-size: var(--fs-14); line-height: var(--lh-16); font-weight: 600;
+  letter-spacing: var(--ls-0); font-family: inherit; }
+
+/* Bars rise from the BOTTOM with rounded tops. Figma authors them as
+   items-start with rounded-bl/br inside a wrapper carrying -scale-y-100;
+   reading the bar styling without that flip gives the mirror image. */
+/* Bars hold the design's width and the COUNT grows with the container. The
+   Figma frames use 3px bars at 350 (70 of them, flexed) and 4px at 1280, so
+   flexing a fixed 70 bars across a wide widget ballooned them to 15px, several
+   times the design. Width is fixed here and the count is derived instead. */
+.wave { display: flex; gap: var(--bar-gap, 2px); height: 16px; width: 100%; align-items: flex-end;
+        opacity: .8; overflow: hidden; }
+.wave i { flex: 0 0 var(--bar-w, 3px); width: var(--bar-w, 3px); display: block;
+          background: var(--ihr-grey-300); border-radius: 2px 2px 0 0; height: 3px;
+          transition: height 90ms linear; }
+
+/* No bottom padding. In the frame the rows region runs from y=48 to the list's
+   own bottom edge at 220, a 172px viewport, and the rows are clipped there
+   rather than at a padding edge. Reserving 16px at the bottom shrank that to
+   156px, which left the third row peeking by only 8px instead of 24 and so
+   read as if the list simply ended. */
+.list { width: 100%; height: 220px; background: var(--ihr-grey-150); padding: 12px 16px 0;
+        display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+/* The frame's list header is a 32px row (it carries a 32px Buttons frame
+   beside the label), so rendering it at the text's own 18px line-height closed
+   the gap under "Episodes" by 14px. */
+.list h3 { margin: 0; flex: 0 0 32px; height: 32px; display: flex; align-items: center;
+           font-size: var(--fs-14); line-height: var(--lh-18);
+           letter-spacing: var(--ls-0); font-weight: 600; }
+.rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
+       border-radius: var(--radius-widget); cursor: pointer; }
+.row:hover { background: rgba(0,0,0,.05); }
+.row:focus-visible { outline: 2px solid var(--ihr-red-550); outline-offset: -2px; }
+/* Now playing is signalled by the title turning brand red, not by a filled
+   row. The filled bar read as a selection state rather than playback. */
+.row.on { background: none; }
+.row.on .row-meta b { color: var(--ihr-red-550); }
+.tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
+        background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
+        filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }
+.row-meta { display: flex; flex-direction: column; justify-content: center; flex: 1 1 0; min-width: 0; }
+.row-meta b { font-size: var(--fs-14); line-height: var(--lh-18);
+              letter-spacing: var(--ls-0); font-weight: 600;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-meta span { font-size: var(--fs-12); line-height: var(--lh-16);
+                 letter-spacing: var(--ls-4); color: var(--ihr-grey-450);
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* accomplice Badge. The recipe is fontSize[11] / lineHeight[16] / weight 700,
+   letterSpacing[5], uppercase, radius[2], and its size variants differ only in
+   padding: small is 0 4, large is 2 6. These sit in a dense row, so small. */
+.badge { font-size: var(--fs-11); line-height: var(--lh-16); font-weight: 700;
+         letter-spacing: var(--ls-5); text-transform: uppercase;
+         background: var(--ihr-grey-300); color: var(--ihr-grey-600); padding: 2px 4px; border-radius: 2px; }
+
+.status { font-size: 12px; color: var(--ihr-grey-450); min-height: 18px; margin: 8px 0 0; }
+.status.err { color: #b00020; font-weight: 600; }
+.colourline { font: 11.5px ui-monospace, Menlo, monospace; color: var(--ihr-grey-450); display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.chip { width: 22px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.15); display: inline-block; }
+.ratio { font-weight: 600; color: var(--ihr-grey-600); }
+.wcag { font: 600 10.5px/1 'Open Sans', sans-serif; letter-spacing: .04em; text-transform: uppercase;
+        padding: 3px 6px; border-radius: 3px; }
+.wcag.pass { background: rgba(20,140,80,.14); color: #14814f; }
+.wcag.warn { background: rgba(200,120,0,.16); color: #8a5200; }
+.wcag.fail { background: rgba(176,0,32,.12); color: #b00020; }
+.meta-note { color: var(--ihr-grey-450); }

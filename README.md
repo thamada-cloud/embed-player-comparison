@@ -1520,3 +1520,42 @@ Design A's hit area does drop from 26 to 16, which is the component's own `min-h
 That takes it below the WCAG 2.2 target size minimum of 24, where it previously cleared
 it by 2. B and C were already at 16 and are unchanged. Raising it would mean departing
 from the component.
+
+## A second build on accomplice's values, `widget-ds.html`
+
+The original build stays exactly as it is. `widget-ds.html` is the same markup and the
+same JavaScript with a second stylesheet, `widget-ds.css`, in which every value that
+accomplice already defines is taken from the component sources rather than from the
+Figma frames. Nothing was ported by eye: each value was read out of
+`packages/accomplice/src` in the `iheartradio/web` clone.
+
+`embed.html?build=ds` serves the same card for the host-page slots.
+
+### What the port changed
+
+| piece | original | accomplice | source |
+| --- | --- | --- | --- |
+| explicit badge | weight 600 | **weight 700** | `badge.css.ts` |
+| iHeart logo | 25 x 26 | **24 tall**, width follows | `logo.css.ts` size scale |
+| icon buttons | radius 999px | `aspect-ratio: 1/1`, radius[999] | `button/size.ts` size `icon` |
+| speed control | 14px, tracking -0.4, no line-height | **button-2**: 14 / 16 / 600 / -0.2 | `text/kind.ts` |
+| marquee | overflow + ellipsis | adds `max-width:100%`, `width:100%`, `position:relative` | `marquee.css.ts` base |
+| text links | 2px focus ring at 2px offset | **1px at 1px offset**, radius[2] | `link.css.ts` |
+| every type value | numbers from the frames | named kinds via tokens | `text/kind.ts` |
+| the scrubber | already ported | `Slider` | done earlier |
+
+### What did not change, and why that matters
+
+**Every card is the same height in both builds**: 400, 180, 444, 224, 234, 234.
+
+**The type barely moved.** `.title` was already 14 / 18 / 600 / -0.2, which is exactly
+`subtitle-4`. The info drawer body was already 16 / 24 / 400 / -0.5, which is exactly
+`body-3`. The drawer heading was already 18 / 24 / 700, which is exactly `h5`. The
+sheet's radius and slide were already the Drawer's. That is not luck: the frames were
+drawn from the system, so transcribing the frames landed on the system's values. The
+port's real gain is that the values now have names instead of being numbers that happen
+to be right.
+
+Three things stay bespoke because accomplice has no equivalent: the waveform, the artwork
+scrim, and the card shell itself. accomplice's `Player` is the site's fixed 6.4rem bottom
+bar, which is the wrong shape for an embed card.
