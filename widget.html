@@ -247,7 +247,7 @@ a.thumb-link:hover { opacity: .92; }
    and let the two lines of text run underneath it. Second time a class name
    from the other design has leaked in; the h- prefix keeps this card's names
    to itself. */
-.topbar .h-thumb { width: 40px; height: 40px; border-radius: var(--radius-widget); object-fit: cover;
+.topbar .h-thumb { width: 48px; height: 48px; border-radius: var(--radius-widget); object-fit: cover;
                    flex: 0 0 auto; background: #fff; }
 /* Station logos are transparent PNGs drawn for a white tile, exactly as in the
    other widget, and the live frame shows the thumb on white. */
@@ -376,7 +376,7 @@ a.thumb-link:hover { opacity: .92; }
    come from 2512:111876, which is where that row is drawn. The rest of the card
    stays design C's own, the 48px tile and the single line of text. */
 .widget.c.live .hero-controls { top: calc(50% - .5px); }
-.widget.c.live .topbar .h-thumb { width: 48px; height: 48px; }
+/* 48 everywhere now, so the live-only rule is gone. */
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }

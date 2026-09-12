@@ -733,8 +733,8 @@ has.
   With nothing on air all three fall back to the station's name over its
   description.
 
-  The tiles still differ, 40px on A's compact and B, 48 on C, and each is in its
-  own frame.
+  The tiles are 48 on both artwork designs now, podcast and live alike, which is
+  a step past the podcast frames' own 40. A's compact card keeps its 64.
 
 The station line stays under the track rather than being replaced by it. A card
 that swaps the station out for the song has told you what is on but not where it
