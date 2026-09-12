@@ -973,18 +973,19 @@ which is the computed floor exactly, to two decimal places. The artwork contains
 pure white where the text sits, so it produced the theoretical worst case and
 still passed AAA.
 
-### Design C darkens its scrim to 80%
+### Both artwork designs darken their scrim to 80%
 
-The frames draw `rgba(0,0,0,0.7)` on both artwork designs. Design C paints 80
-instead, which is a choice rather than a reading, so the scrim value is held per
-design and design B still paints the frames' own 70 for a side by side look.
+The frames draw `rgba(0,0,0,0.7)`. Both designs paint 80 instead, which is a
+choice rather than a reading, arrived at by looking at 70 and 80 side by side.
+The value is still held per design rather than collapsed into one constant,
+since the two have differed before and may again.
 
-The contrast readout under each card reports the value that card actually
-paints, and it is the worst pixel behind the text rather than an average.
-Measured at 80%: Las Culturistas reads 13.90 to 1 against design B's 9.95 at
-70%, and Z100 15.28. The guaranteed floor, the worst any artwork can produce,
-goes from 8.00 to 1 at 70% to 11.86 at 80%. Both already cleared AAA, so the
-gain is headroom rather than a change of grade.
+The contrast readout under each card reports the worst pixel behind the text
+rather than an average. At 80% all four cards read between 13.53 and 15.28 to 1,
+where design B read 9.95 at 70%. The guaranteed floor, the worst any artwork can
+produce, goes from 8.00 to 1 at 70% to 11.86 at 80%. Every card already cleared
+AAA, so the gain is headroom on bright artwork rather than a change of grade,
+paid for in how much of the picture still reads.
 
 ### Design C, the third set
 

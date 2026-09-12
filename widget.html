@@ -268,11 +268,9 @@ a.thumb-link:hover { opacity: .92; }
 .widget.hero .stage > .art { position: absolute; inset: 0; width: 100%; height: 100%;
                 object-fit: cover; border-radius: 0; box-shadow: none;
                 background: transparent; padding: 0; }
-.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.70); }
-/* Design C sits 10 points darker than the frames' 70, which is a choice rather
-   than a reading. Design B still paints the frames' own value, so the two can
-   be looked at side by side. */
-.widget.c .scrim { background: rgba(0,0,0,.80); }
+/* 80, not the frames' 70. A deliberate step past them on both artwork designs,
+   asked for after looking at the two side by side. */
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.80); }
 .topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
@@ -1076,10 +1074,11 @@ function dominantColour(img) {
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
 
 const OVERLAY = 0.60;                 /* keep in step with --overlay-pct */
-/* The hero frames draw rgba(0,0,0,0.7). Design C runs 5 points darker by
-   choice, so the value is per design rather than one constant, and the contrast
-   readout under each card reports the one that card actually paints. */
-const SCRIM = { hero: 0.70, c: 0.80 };
+/* The hero frames draw rgba(0,0,0,0.7). Both artwork designs now run 10 points
+   darker by choice. The value is still held per design rather than collapsed
+   into one constant, since the two have differed before and may again, and the
+   contrast readout under each card reports the one that card actually paints. */
+const SCRIM = { hero: 0.80, c: 0.80 };
 const overlaid = (c) => c.map((v) => Math.round(v * (1 - OVERLAY)));
 
 /* WCAG 2.x relative luminance and contrast ratio. Both text styles in the
