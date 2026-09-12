@@ -868,7 +868,14 @@ a.thumb-link:hover { opacity: .92; }
 .row-meta b { font-size: var(--fs-14); line-height: var(--lh-18);
               letter-spacing: var(--ls-0); font-weight: 600;
               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-meta span { font-size: var(--fs-12); line-height: var(--lh-16);
+/* `> span`, not a descendant `span`. The subtitle is a direct child of
+   .row-meta, but every marquee wraps its text in a .mqi span, so a descendant
+   selector also caught the one INSIDE the <b> and restyled the title with the
+   subtitle's rules. That is what actually paints the text, so every episode
+   title was rendering at 12/16 in grey-450 rather than 14/18 in its own colour,
+   and the loaded episode's brand red never reached the screen at all: the
+   colour was correct on the <b> and overwritten on the span inside it. */
+.row-meta > span { font-size: var(--fs-12); line-height: var(--lh-16);
                  letter-spacing: var(--ls-4); color: var(--ihr-grey-450);
                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* accomplice Badge. The recipe is fontSize[11] / lineHeight[16] / weight 700,

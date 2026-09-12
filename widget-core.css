@@ -704,7 +704,14 @@ a.thumb-link:hover { opacity: .92; }
 .row-meta { display: flex; flex-direction: column; justify-content: center; flex: 1 1 0; min-width: 0; }
 .row-meta b { font-size: 14px; line-height: 18px; letter-spacing: -.2px; font-weight: 600;
               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-meta span { font-size: 12px; line-height: 16px; color: var(--ihr-grey-450);
+/* `> span`, not a descendant `span`. The subtitle is a direct child of
+   .row-meta, but every marquee wraps its text in a .mqi span, so a descendant
+   selector also caught the one INSIDE the <b> and restyled the title with the
+   subtitle's rules. That is what actually paints the text, so every episode
+   title was rendering at 12/16 in grey-450 rather than 14/18 in its own colour,
+   and the loaded episode's brand red never reached the screen at all: the
+   colour was correct on the <b> and overwritten on the span inside it. */
+.row-meta > span { font-size: 12px; line-height: 16px; color: var(--ihr-grey-450);
                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
          background: var(--ihr-grey-300); color: var(--ihr-grey-600); padding: 2px 4px; border-radius: 2px; }

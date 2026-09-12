@@ -1607,3 +1607,26 @@ diverge later.
 
 This line previously used `red550` (`#CC032E`), a neighbouring value on the red scale
 that reads as the same colour at a glance and is not the brand one.
+
+### The selector leak that hid it
+
+Applying brandRed exposed a bug that had been there the whole time. `.row-meta span`
+used a descendant combinator, and every marquee wraps its text in a `.mqi` span, so the
+rule also matched the span INSIDE the episode title's `<b>` and restyled it with the
+subtitle's rules.
+
+That span is what actually paints the text, so the effect was invisible in the CSS and
+obvious on screen once looked for:
+
+| | `<b>` said | the `.mqi` inside it painted |
+| --- | --- | --- |
+| loaded title | 14/18, 600, `#C6002B` | 12/16, 600, `#55565B` |
+| other titles | 14/18, 600, `#27292D` | 12/16, 600, `#55565B` |
+
+So every episode title had been rendering two sizes small in the wrong grey, and the
+brand red never reached the screen at all. Computed style on the `<b>` reported the right
+colour throughout, which is why a measurement alone did not catch it.
+
+The fix is `>` instead of a descendant: `.row-meta > span` matches the subtitle, which is
+a direct child, and not the marquee span nested inside the title. The subtitle's own
+`.mqi` still inherits from its parent, so it is unaffected.
