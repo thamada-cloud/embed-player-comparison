@@ -1538,6 +1538,12 @@ Figma frames. Nothing was ported by eye: each value was read out of
 | explicit badge | weight 600 | **weight 700** | `badge.css.ts` |
 | iHeart logo | 25 x 26 | **24 tall**, width follows | `logo.css.ts` size scale |
 | icon buttons | radius 999px | `aspect-ratio: 1/1`, radius[999] | `button/size.ts` size `icon` |
+| button hover | `rgba(255,255,255,.14)`, invented | **gray400** `#717277` | `button.css.ts` tertiary/white |
+| button pressed | same wash as hover, `scale(.96)` | same colour as hover, **`scale(.95)`** | `baseButtonStyles` |
+| play button, A | white, no hover state | white, hover and pressed **gray300**, fine pointer only | primary/white |
+| play button, B and C | red600, no hover state | **red550** at rest, hover and pressed **red400**, fine pointer only | primary/red |
+| button focus | none | 2px solid **blue400** at 2px offset | `baseButtonStyles` |
+| button motion | none | `scale(1)` with a 300ms transition under `(pointer: fine)` | `baseButtonStyles` |
 | speed control | 14px, tracking -0.4, no line-height | **button-2**: 14 / 16 / 600 / -0.2 | `text/kind.ts` |
 | marquee | overflow + ellipsis | adds `max-width:100%`, `width:100%`, `position:relative` | `marquee.css.ts` base |
 | text links | 2px focus ring at 2px offset | **1px at 1px offset**, radius[2] | `link.css.ts` |
@@ -1555,6 +1561,19 @@ sheet's radius and slide were already the Drawer's. That is not luck: the frames
 drawn from the system, so transcribing the frames landed on the system's values. The
 port's real gain is that the values now have names instead of being numbers that happen
 to be right.
+
+### Three things about the real button states
+
+Worth writing down, because the first pass of this port got all three wrong by
+assuming rather than reading.
+
+1. **The base button has no hover background.** Hover is `cursor: pointer` and nothing
+   else. Every background belongs to a compound variant of `color` x `kind`.
+2. **Coloured variants only hover on a fine pointer.** Their hover background sits inside
+   `@media (pointer: fine)`, so a touch device never paints it. Only the neutral
+   tertiaries (white, default, gray) hover unconditionally.
+3. **Hover and pressed are the same colour.** Pressed is told apart by
+   `transform: scale(0.95)`, not by a darker fill.
 
 Three things stay bespoke because accomplice has no equivalent: the waveform, the artwork
 scrim, and the card shell itself. accomplice's `Player` is the site's fixed 6.4rem bottom

@@ -30,6 +30,8 @@
   --sp-0: 0px;    --sp-2: 2px;    --sp-4: 4px;    --sp-6: 6px;   --sp-8: 8px;
   --sp-12: 12px;  --sp-16: 16px;  --sp-24: 24px;  --sp-28: 28px; --sp-32: 32px;
   --sp-48: 48px;
+  --ihr-gray-200: #e6eaed; --ihr-gray-300: #a9afb2; --ihr-gray-400: #717277;
+  --ihr-gray-500: #3f4447; --ihr-blue-400: #3ca2dd; --border-2: 2px;
   --rad-1: 1.25px; --rad-2: 2.5px; --rad-5: 5px; --rad-6: 6px;
   /* 99rem on accomplice's 10px base, written out so it does not follow THIS
      page's root size. Fully round either way, but the number should be theirs. */
@@ -410,8 +412,10 @@ a.thumb-link:hover { opacity: .92; }
            line-height: var(--lh-24); text-align: center;
            font-size: var(--fs-14); font-weight: 600;
            letter-spacing: var(--ls-0); color: var(--true-white); }
-.h-btn:hover { background: rgba(255,255,255,.14); }
-.h-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
+/* Same variant as the bar card's icon buttons: tertiary / white. */
+.h-btn:hover, .h-btn:active, .h-btn[aria-pressed="true"] {
+  background-color: var(--ihr-gray-400);
+}
 /* Every artwork card now reveals its controls on play, design C included. Its
    own idle frame, 2533:85718, agrees: that card is drawn with the top bar, one
    centred play button and the waveform, no control row, no scrubber and no list
@@ -430,7 +434,16 @@ a.thumb-link:hover { opacity: .92; }
   filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.12));
 }
 .hero-play img { width: 56px; height: 56px; display: block; }
-.hero-play:active { transform: scale(.96); }
+/* kind `primary`, color `red`: red550 at rest, red400 for hover and pressed.
+   The frames drew this fill as red600, so the resting colour shifts by one step
+   here. That is the port doing its job rather than a slip: red550 is the value
+   the component uses, and red600 is not a fill the button variant offers. */
+.hero-play { background: var(--ihr-red-550); color: var(--true-white);
+             box-shadow: var(--elevation1); }
+@media (pointer: fine) {
+  .hero-play:hover:not([disabled]) { background-color: var(--ihr-red-400); }
+}
+.hero-play:active { background-color: var(--ihr-red-400); }
 
 /* The bottom block. Podcast gains a scrubber above the waveform while playing,
    in a column with the frame's 4px gap; live radio has no duration and so
@@ -670,7 +683,14 @@ a.thumb-link:hover { opacity: .92; }
    enough not to be the flicker the preference is asking to avoid. */
 @media (prefers-reduced-motion: reduce) { .spin circle { animation-duration: 2.4s; } }
 .play-btn img { width: 52.5px; height: 52.5px; display: block; }
-.play-btn:active { transform: scale(.96); }
+/* kind `primary`, color `white`: brandWhite at rest with a gray600 glyph, and
+   gray300 for both hover and pressed. The hover half sits inside
+   (pointer: fine) in the original, so a touch device never paints it. */
+.play-btn { color: var(--ihr-grey-600); box-shadow: var(--elevation1); }
+@media (pointer: fine) {
+  .play-btn:hover:not([disabled]) { background-color: var(--ihr-gray-300); }
+}
+.play-btn:active { background-color: var(--ihr-gray-300); }
 .stack { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
 
 /* ---------- the scrubber, which is the accomplice Slider ----------
@@ -743,16 +763,54 @@ a.thumb-link:hover { opacity: .92; }
    An empty element is not free in a gapped flex row. */
 .widget.live .btn-row { justify-content: flex-start; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
-/* accomplice Button at size `icon`: padding space[4], aspect-ratio 1/1,
-   border-radius radius[999]. What was already here matched by accident; the
-   aspect ratio is the part that was missing, and it is what keeps a glyph of
-   any width in a round button rather than a lozenge. */
-.icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
-            padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
-            display: flex; align-items: center; justify-content: center; }
+/* ---------- accomplice Button ----------
+   baseButtonStyles, then size `icon`, then the compound variant each button
+   actually is. Read from button.css.ts and button/size.ts rather than invented:
+   the wash this page used to paint on hover, rgba(255,255,255,.14), is not a
+   value the system has anywhere.
+
+   Three things about the real states are easy to get wrong:
+
+   1. The BASE has no hover background at all. Hover is `cursor: pointer` and
+      nothing else. Every background belongs to a compound variant.
+   2. For the coloured variants the hover background lives inside
+      `@media (pointer: fine)`, so a touch device gets no hover state. Only the
+      neutral tertiaries (white, default, gray) hover unconditionally.
+   3. Hover and pressed are the SAME colour. The pressed state is told apart by
+      `transform: scale(0.95)`, not by a darker fill. */
+.icon-btn, .h-btn, .play-btn, .hero-play {
+  appearance: none; border: 0; position: relative;
+  display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: var(--sp-4); border-radius: var(--rad-999);
+  text-decoration: none; user-select: none; overflow: visible; pointer-events: all;
+}
+@media (pointer: fine) {
+  .icon-btn, .h-btn, .play-btn, .hero-play { transform: scale(1); transition: 300ms; }
+}
+.icon-btn:hover, .h-btn:hover, .play-btn:hover, .hero-play:hover { cursor: pointer; }
+/* data-pressed in the original, which is react-aria's held state. :active is
+   the plain CSS equivalent. 0.95, not the 0.96 this page had. */
+.icon-btn:active, .h-btn:active, .play-btn:active, .hero-play:active { transform: scale(.95); }
+.icon-btn:focus-visible, .h-btn:focus-visible,
+.play-btn:focus-visible, .hero-play:focus-visible {
+  transition: none; outline-style: solid; outline-width: var(--border-2);
+  outline-offset: 2px; outline-color: var(--ihr-blue-400);
+}
+.icon-btn:focus-visible:not(:active), .h-btn:focus-visible:not(:active),
+.play-btn:focus-visible:not(:active), .hero-play:focus-visible:not(:active) { transform: scale(1); }
+
+/* size `icon`: padding space[4], aspect-ratio 1/1, radius[999]. */
+.icon-btn, .h-btn { padding: var(--sp-4); aspect-ratio: 1 / 1; background: transparent; }
 .icon-btn img { width: 24px; height: 24px; display: block; }
-.icon-btn:hover { background: rgba(255,255,255,.14); }
-.icon-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
+
+/* kind `tertiary`, color `white`, on a dark surface. Hover and pressed take
+   gray400, and so does the sustained open state, which the component expresses
+   as [data-persist-pressed-state][aria-expanded="true"] and this page as
+   aria-pressed. Not gated on pointer: the neutral tertiaries hover everywhere. */
+.icon-btn { color: var(--true-white); }
+.icon-btn:hover, .icon-btn:active, .icon-btn[aria-pressed="true"] {
+  background-color: var(--ihr-gray-400);
+}
 /* accomplice Button at size `small`: the button-2 kind on a space[32] height.
    The padding the component pairs with it is 8 16, which a two character label
    in a control row cannot afford, so the height and the kind carry over and the
