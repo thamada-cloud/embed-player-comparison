@@ -1406,6 +1406,26 @@ Design A and design B put the episode list under the podcast card, and the list 
 what runs past the slot. Design C is the only one of the three whose podcast card
 fits the slot as the host sizes it today.
 
+### Fitting the slot to the card
+
+An iframe cannot resize itself, so the card reports the height it needs and the host
+decides what to do with it. `embed.html` posts `{ type: 'widget-height', design, mode,
+height }` to its parent whenever the card's measured height changes, watched with a
+ResizeObserver so it keeps up with artwork arriving, the episode list filling in, a
+control row appearing on play and a drawer opening. `host-page.html` listens, checks
+the message came from its own frame and that the height is in a sane band, and sets
+the slot to it.
+
+The harness has a **Slot height** control with the two cases side by side:
+
+- **Fit to the widget**, the default. Every card gets the height it asks for, and
+  nothing is cut off.
+- **Fixed 300, as shipped**, which is what the real host hardcodes. The readout then
+  names the gap, for example `352 x 300, card wants 444, clipped by 144`.
+
+The two shipping embeds are cross-origin and report nothing, so they stay at 300 in
+both modes, which is exactly what they get on the real page.
+
 ## Shared widget code, `widget-core.css` and `widget-core.js`
 
 The widget was lifted out of `widget.html` into these two files so that the prototype

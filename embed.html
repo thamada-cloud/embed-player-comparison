@@ -8,7 +8,7 @@
      embed slot on a host page and judged at the size that slot gives it.
      The card itself is the same code the prototype page runs, loaded from the
      same two files, so the two can never drift apart. -->
-<link rel="stylesheet" href="widget-core.css?v=20260912030745">
+<link rel="stylesheet" href="widget-core.css?v=20260912031500">
 <style>
   /* An embed fills the frame it is given. No page gutters, no max width, no
      chrome: whatever the host sized the iframe to is the whole budget. */
@@ -47,6 +47,50 @@ document.getElementById('slot').innerHTML =
 document.title = 'Audio widget, design ' + design.toUpperCase() + ', ' + mode;
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260912030745"></script>
+<script src="widget-core.js?v=20260912031500"></script>
+<script>
+/* An embed cannot resize the box it is given, so it reports what it needs and
+   leaves the decision to the host. This is the same shape as the usual embed
+   resize convention: a message that names itself, carrying a height in CSS
+   pixels. A host that ignores it is no worse off than it is today.
+
+   The target origin is left open because the host is whatever page embedded
+   this one, which is not knowable from in here. That is safe in this direction:
+   the message carries a height and the card's identity, nothing private. */
+(function reportHeight() {
+  if (window.parent === window) return;             /* opened directly, no host */
+  let last = 0;
+  const send = () => {
+    const card = document.querySelector('.widget');
+    /* The card's own height, not the document's, so page padding cannot creep
+       into the number. scrollHeight is the fallback before the card exists. */
+    const h = Math.ceil(card ? card.getBoundingClientRect().height
+                             : document.documentElement.scrollHeight);
+    if (!h || h === last) return;
+    last = h;
+    parent.postMessage({ type: 'widget-height', design: design, mode: mode, height: h }, '*');
+  };
+  /* The height moves for real reasons after load: artwork arrives, the episode
+     list fills in, playing reveals a control row, a drawer opens. Watching the
+     card itself covers all of them. */
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(send);
+    const watch = () => {
+      const card = document.querySelector('.widget');
+      if (card) { ro.observe(card); send(); return true; }
+      return false;
+    };
+    /* The card is built from an API response, so it is not there at load. */
+    if (!watch()) {
+      const mo = new MutationObserver(() => { if (watch()) mo.disconnect(); });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+  /* Belt and braces for anything an observer misses, such as a web font
+     landing late, and for browsers without a ResizeObserver at all. */
+  addEventListener('load', send);
+  [100, 400, 1200, 3000].forEach((t) => setTimeout(send, t));
+})();
+</script>
 </body>
 </html>

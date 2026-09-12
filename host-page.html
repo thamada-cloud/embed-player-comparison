@@ -197,8 +197,14 @@ figcaption b { font-weight: 600; color: #000; }
 /* The host's own shape: a titled section, the iframe at the rail's full width
    and a fixed 300 tall, and a one line credit under it. */
 .iheart-slot .module-title { border-bottom: 1px solid #000; margin-bottom: 24px; }
-.iheart-slot .slot-frame { width: 100%; height: 300px; border: 0; display: block;
-                           background: var(--img-bg); }
+/* 300 is what the real host hardcodes, and it stays the default value here so
+   the shipping constraint is what you see when nothing overrides it. */
+.iheart-slot .slot-frame { width: 100%; height: var(--slot-h, 300px); border: 0;
+                           display: block; background: var(--img-bg);
+                           transition: height .18s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .iheart-slot .slot-frame { transition: none; }
+}
 .iheart-slot .credit { font-size: 14px; line-height: 18px; font-weight: 500;
                        letter-spacing: .7px; margin: 12px 0 0; }
 /* Only when the harness asks for it: the slot's bounds, so a card that runs
@@ -232,6 +238,11 @@ body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
       <option value="c-podcast">Design C, podcast</option>
       <option value="c-live">Design C, live radio</option>
     </optgroup>
+  </select>
+  <label for="fit">Slot height</label>
+  <select id="fit">
+    <option value="fit" selected>Fit to the widget</option>
+    <option value="fixed">Fixed 300, as shipped</option>
   </select>
   <label><input type="checkbox" id="bounds"> Show slot bounds</label>
   <a class="jump" href="#slot">Jump to slot</a>
@@ -409,6 +420,10 @@ function show(key) {
   /* Swapping src rather than reloading the page, and reassigning it even when
      it has not changed, so a card always starts from a clean state and no two
      players can ever be left running at once. */
+  /* A new card has its own height. Forgetting the old one matters: a taller
+     card leaving the slot must not leave the slot tall for the next one. */
+  wanted = null;
+  applyHeight();
   frame.src = s.src;
   titleEl.textContent = s.title;
   creditEl.textContent = s.credit;
@@ -416,12 +431,62 @@ function show(key) {
 }
 pick.addEventListener('change', () => show(pick.value));
 
-/* The slot's real measured size, read from the element rather than assumed, so
-   the readout stays honest when the window crosses a breakpoint. */
+/* ---------------------------------------------------------------------------
+   Slot height.
+
+   The real host hardcodes 300, which clips two of the six cards. An iframe
+   cannot size itself, so the card inside reports the height it needs and this
+   page decides what to do with it. Fitting is the default, and the fixed 300 is
+   kept one control away because that is what ships today and the difference
+   between the two is the thing worth looking at.
+
+   Only the six prototypes can report: they are served from this origin, so the
+   message arrives. The two shipping embeds are cross-origin and say nothing, so
+   they stay at 300, which is also exactly what they get on the real page.
+   ------------------------------------------------------------------------ */
+const FIXED_H = 300;
+const fitSel = document.getElementById('fit');
+let wanted = null;          /* the last height this card asked for, if any */
+
+function applyHeight() {
+  const fitting = fitSel.value === 'fit';
+  const h = (fitting && wanted) ? wanted : FIXED_H;
+  document.documentElement.style.setProperty('--slot-h', h + 'px');
+  readSize();
+}
+
+addEventListener('message', (e) => {
+  /* Only the slot's own frame, and only the message shape this page asked for.
+     Anything else on the bus is ignored rather than trusted. */
+  if (e.source !== frame.contentWindow) return;
+  const d = e.data;
+  if (!d || d.type !== 'widget-height') return;
+  const h = Number(d.height);
+  /* A sane band. A report outside it is a bug in the card, not a slot the page
+     should hand over its layout to. */
+  if (!Number.isFinite(h) || h < 40 || h > 1600) return;
+  wanted = Math.round(h);
+  applyHeight();
+});
+
+fitSel.addEventListener('change', applyHeight);
+
+/* The slot's real size, read off the element rather than assumed, so the
+   readout stays honest across a breakpoint. It also says what the card asked
+   for when that differs from what it got, which is how a clip becomes visible
+   as a number instead of a guess. */
 const sizeOut = document.getElementById('slotsize');
 const readSize = () => {
   const b = frame.getBoundingClientRect();
-  sizeOut.textContent = Math.round(b.width) + ' x ' + Math.round(b.height);
+  const got = Math.round(b.height);
+  let text = Math.round(b.width) + ' x ' + got;
+  if (wanted && wanted !== got) {
+    /* Short of the slot and past it are different problems, and calling both
+       of them a clip was wrong: one wastes space, the other loses controls. */
+    text += wanted > got ? ', card wants ' + wanted + ', clipped by ' + (wanted - got)
+                         : ', card wants ' + wanted + ', ' + (got - wanted) + ' spare';
+  }
+  sizeOut.textContent = text;
 };
 addEventListener('resize', readSize);
 if (window.ResizeObserver) new ResizeObserver(readSize).observe(frame);
@@ -431,8 +496,8 @@ document.getElementById('bounds').addEventListener('change', (e) => {
 });
 
 /* Deep linkable, so a specific design in the slot can be handed to someone. */
-const wanted = new URLSearchParams(location.search).get('w');
-if (wanted && SOURCES[wanted]) pick.value = wanted;
+const linked = new URLSearchParams(location.search).get('w');
+if (linked && SOURCES[linked]) pick.value = linked;
 show(pick.value);
 readSize();
 </script>
