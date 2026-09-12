@@ -665,8 +665,8 @@ a.thumb-link:hover { opacity: .92; }
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
   <div class="widthctl">
     <label for="widthRange">Player width</label>
-    <input id="widthRange" type="range" min="320" max="1320" step="1" aria-label="Player width">
-    <input id="widthNum" type="number" min="320" max="1320" step="1" aria-label="Player width in pixels">
+    <input id="widthRange" type="range" min="0" max="1320" step="1" aria-label="Player width">
+    <input id="widthNum" type="number" min="0" max="1320" step="1" aria-label="Player width in pixels">
     <span class="unit">px</span>
     <output id="widthOut" for="widthRange"></output>
     <button type="button" id="widthFill">Fill</button>
@@ -2044,7 +2044,9 @@ const widthRange = document.getElementById('widthRange');
 const widthNum = document.getElementById('widthNum');
 const widthOut = document.getElementById('widthOut');
 const widthFill = document.getElementById('widthFill');
-const MIN_W = 320;
+/* 0, not a comfortable minimum. Watching a card collapse is a legitimate thing
+   to want to see, and an embed slot really can be handed nothing. */
+const MIN_W = 0;
 
 function availableWidth() {
   const main = document.querySelector('main');
@@ -2081,13 +2083,19 @@ widthRange.addEventListener('input', () => {
    does not slam every player to the minimum mid-keystroke. */
 const clampWidth = () => {
   const max = Number(widthRange.max);
-  const v = Math.min(max, Math.max(MIN_W, Math.round(Number(widthNum.value) || max)));
+  const raw = Number(widthNum.value);
+  /* `raw || max` would be wrong here, and was: 0 is falsy, so typing the very
+     value the minimum now allows snapped the players back to full width. An
+     empty field is the only case that should fall back. */
+  const wanted = widthNum.value.trim() === '' || !Number.isFinite(raw) ? max : raw;
+  const v = Math.min(max, Math.max(MIN_W, Math.round(wanted)));
   widthNum.value = String(v);
   applyWidth(v, v >= max);
 };
 widthNum.addEventListener('input', () => {
+  if (widthNum.value.trim() === '') return;        /* mid-edit, leave it alone */
   const max = Number(widthRange.max), raw = Number(widthNum.value);
-  if (raw >= MIN_W && raw <= max) applyWidth(raw, raw >= max);
+  if (Number.isFinite(raw) && raw >= MIN_W && raw <= max) applyWidth(raw, raw >= max);
 });
 widthNum.addEventListener('change', clampWidth);
 widthNum.addEventListener('blur', clampWidth);

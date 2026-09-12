@@ -563,8 +563,14 @@ card's own gauge keeps reporting what that card actually measures.
 A number beside it takes a typed width, and the two stay in step in both
 directions. It applies as you type while the value is sensible and clamps on
 blur or Enter, so a half typed `3` does not slam every player to the minimum
-mid-keystroke. Out of range values clamp rather than being refused: 5000 becomes
-the page width, 50 becomes 320.
+mid-keystroke. Out of range values clamp rather than being refused, and the
+range runs all the way down to 0, since watching a card collapse is a legitimate
+thing to want to see and an embed slot really can be handed nothing.
+
+Zero is also where the field's own arithmetic went wrong once. Falling back with
+`Number(value) || max` treats 0 as absent, so typing the one value the new
+minimum allows snapped every player back to full width. Only an empty field
+falls back now.
 
 The maximum is whatever the page can give, re-read on resize, and sitting at the
 maximum means no cap at all rather than a cap that happens to match, so the
