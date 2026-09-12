@@ -1630,3 +1630,21 @@ colour throughout, which is why a measurement alone did not catch it.
 The fix is `>` instead of a descendant: `.row-meta > span` matches the subtitle, which is
 a direct child, and not the marquee span nested inside the title. The subtitle's own
 `.mqi` still inherits from its parent, so it is unaffected.
+
+## Design C shows its list button at rest
+
+The artwork cards reveal their controls on play. The list button is now the exception on
+design C, so the episodes are reachable before anything is playing.
+
+Written as an exclusion from the hide rather than a re-show:
+
+    .widget.hero:not(.playing) .h-btn:not([data-act="list"]) { display: none; }
+
+Two reasons for that shape. It does not have to restate a `display` value, which is
+`flex` in the original build and `inline-flex` in the accomplice one. And design C is the
+only card that puts a list button in that row, so the attribute selector needs no design
+scoping to stay correct.
+
+Design B is unaffected, since its episode list sits under the card rather than behind a
+button, and design C's live card has no list button because live radio has no episodes.
+Card heights are unchanged at every width.

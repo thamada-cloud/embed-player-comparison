@@ -347,7 +347,13 @@ a.thumb-link:hover { opacity: .92; }
    centred play button and the waveform, no control row, no scrubber and no list
    button. An earlier build read C's live frame, which is drawn idle with its
    icons showing, and generalised from it. */
-.widget.hero:not(.playing) .h-btn { display: none; }
+/* The list button is the exception: design C shows it at rest, so the episodes
+   are reachable before anything is playing. Written as an exclusion from the
+   hide rather than a re-show, for two reasons. It does not have to restate a
+   display value, which differs between this build and the accomplice one. And
+   design C is the only card that puts a list button in this row, so the
+   attribute selector needs no design scoping to stay correct. */
+.widget.hero:not(.playing) .h-btn:not([data-act="list"]) { display: none; }
 /* The live frame keeps a speed button at opacity 0 on the left. It is a
    spacer: two icons sit to the right of the red button and only one to the
    left, so without it the red button would not be centred. Kept as the frame
