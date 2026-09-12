@@ -240,9 +240,12 @@ a.thumb-link:hover { opacity: .92; }
    block and spans the full width, so right 16 and top 0 land 16 from the card's
    right edge and 16 from its top, which is exactly the bar card's inset. */
 .topbar .ihr-link { right: 16px; top: 0; }
-/* Room for it, so a long line does not run underneath: 16 to the logo, its 25,
-   then 8 of clearance. */
-.widget.hero .topbar { padding-right: 49px; }
+/* The text already clears the logo on its own: .meta carries 40px of right
+   padding, which is the logo's 25 plus 15 of slack, and that is the whole of
+   what keeps design A's lines off it. So the top bar takes the same 16px the
+   bar card's .body takes, and all three designs truncate at the same point,
+   56px in from the card's right edge. */
+.widget.hero .topbar { padding-right: 16px; }
 .ihr-link:hover { opacity: .85; }
 .ihr-link:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px; }
 
