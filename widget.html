@@ -207,8 +207,12 @@ a.thumb-link:hover { opacity: .92; }
 /* 2px for live, which is what all three revised frames draw between the three
    lines. Podcast keeps 4 between its pair. */
 .widget.live .meta { gap: 2px; }
+/* 33px is what holds the lines off the logo, and it is the only thing that
+   does on any of the three designs: the logo is 25 wide and sits 16 in from the
+   card's right edge, so 33 of text padding against the same edge leaves 8 of
+   clearance. Every card takes 16 on that edge, so the one number serves all. */
 .meta { grid-area: meta; display: flex; flex-direction: column; min-width: 0; gap: 4px;
-        padding-right: 40px; color: var(--ihr-grey-100); }
+        padding-right: 33px; color: var(--ihr-grey-100); }
 .title { font-weight: 600; font-size: 14px; line-height: 18px; letter-spacing: -.2px; margin: 0;
          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Live radio shows now playing over two lines, track then artist, with the
