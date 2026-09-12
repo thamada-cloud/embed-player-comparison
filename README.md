@@ -553,6 +553,26 @@ The live frames were revised after the first build and now differ structurally:
 Everything else, including the iHeart logo, the transport icons and the artwork,
 is the exported Figma asset committed under `assets/`.
 
+### A slider at the top sets every player's width
+
+Dragging it caps the four prototypes and the two shipping embeds together,
+through one custom property, so they all answer the same width and the
+comparison stays like for like. The readout beside it shows the number, and each
+card's own gauge keeps reporting what that card actually measures.
+
+Its maximum is whatever the page can give, re-read on resize, and sitting at the
+maximum means no cap at all rather than a cap that happens to match, so the
+default is the page filling the window exactly as before. Fill puts it back.
+
+This is a page control, not a widget feature. It resizes the container, which is
+what an embedding site really varies, rather than scaling anything: the players
+respond through their own container queries, so what you see at 380 is what a
+380px slot would get.
+
+Measured across a drag from 1280 to 320: all three prototypes and the embed
+report the same width at every stop, and the bar card's gauge flips from wide to
+compact at its 560 breakpoint on the way down.
+
 ### The page says what is real and what is not, everywhere
 
 The prototype page carries the production player and four prototypes at once,

@@ -64,6 +64,17 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .gauge.wide .mode { color: var(--ihr-red-550); }
 .hint .vw { font-variant-numeric: tabular-nums; }
 
+/* ---------- the width slider ---------- */
+.widthctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ihr-grey-450); }
+.widthctl label { white-space: nowrap; }
+.widthctl input[type="range"] { width: 220px; accent-color: var(--ihr-red-550); cursor: pointer; }
+.widthctl output { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ihr-grey-600);
+                   min-width: 62px; }
+.widthctl button { font: inherit; font-size: 11px; padding: 3px 9px; border-radius: 999px;
+                   border: 1px solid var(--ihr-grey-250); background: #fff; color: var(--ihr-grey-600);
+                   cursor: pointer; }
+.widthctl button:hover { background: var(--ihr-grey-150); }
+
 /* ---------- what is live, what is not ----------
    The page carries the production player and four prototypes at once, which is
    the whole point of it and also the easiest thing in the world to misread in a
@@ -121,7 +132,11 @@ section.is-live > .band-note { color: #14532d; }
 /* ============================================================================
    WIDGET. One set of rules; the container query does the rest.
    ==========================================================================*/
-.shell { container-type: inline-size; width: 100%; }
+/* Every player is capped by one variable, so the slider moves all of them at
+   once: the four prototypes and the shipping embeds above them. Unset means no
+   cap, which is the page filling the window as it did before. */
+.shell { container-type: inline-size; width: 100%; max-width: var(--player-w, none); }
+.embeds { max-width: var(--player-w, none); }
 .widget {
   border-radius: var(--radius-widget); overflow: hidden; width: 100%;
   position: relative;                      /* the info drawer covers the card */
@@ -644,6 +659,12 @@ a.thumb-link:hover { opacity: .92; }
   <div class="brand">Audio Widget Prototype <span>from Figma, Audio Widgets</span></div>
   <div class="hint">One live player at the top, four prototypes below it. Nothing below the first band is shipped.</div>
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
+  <div class="widthctl">
+    <label for="widthRange">Player width</label>
+    <input id="widthRange" type="range" min="320" max="1320" step="1" aria-describedby="widthOut">
+    <output id="widthOut" for="widthRange">0 px</output>
+    <button type="button" id="widthFill">Fill</button>
+  </div>
 </header>
 
 <main>
@@ -2006,6 +2027,47 @@ document.querySelectorAll('section').forEach((sec) => {
    once immediately so the line is current the moment the tab is looked at. */
 document.addEventListener('visibilitychange', () =>
   INSTANCES.forEach((w) => { if (document.hidden) clearInterval(w.npTimer); else if (w.startNowPlaying) w.startNowPlaying(); }));
+
+/* The width slider.
+   It caps every player through one custom property rather than resizing the
+   window, so the four prototypes and the shipping embeds all answer the same
+   width and the comparison stays honest. The maximum is whatever the page can
+   actually give, re-read on resize, and the slider sitting at its maximum means
+   no cap at all rather than a cap that happens to match. */
+const widthRange = document.getElementById('widthRange');
+const widthOut = document.getElementById('widthOut');
+const widthFill = document.getElementById('widthFill');
+const MIN_W = 320;
+
+function availableWidth() {
+  const main = document.querySelector('main');
+  const cs = getComputedStyle(main);
+  return Math.max(MIN_W, Math.round(main.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
+}
+
+function applyWidth(px, atMax) {
+  if (atMax) document.documentElement.style.removeProperty('--player-w');
+  else document.documentElement.style.setProperty('--player-w', px + 'px');
+  widthOut.textContent = atMax ? px + ' px, fills' : px + ' px';
+}
+
+function syncWidthControl(keepAtMax) {
+  const max = availableWidth();
+  const wasMax = keepAtMax === undefined ? Number(widthRange.value) >= Number(widthRange.max) : keepAtMax;
+  widthRange.max = String(max);
+  if (wasMax || !widthRange.value) widthRange.value = String(max);
+  const v = Math.min(Number(widthRange.value), max);
+  widthRange.value = String(v);
+  applyWidth(v, v >= max);
+}
+
+widthRange.addEventListener('input', () => {
+  const v = Number(widthRange.value);
+  applyWidth(v, v >= Number(widthRange.max));
+});
+widthFill.addEventListener('click', () => syncWidthControl(true));
+addEventListener('resize', () => syncWidthControl());
+syncWidthControl(true);
 
 const vw = document.getElementById('vw');
 const showVw = () => { vw.textContent = Math.round(window.innerWidth); };
