@@ -796,7 +796,13 @@ podcast, the station page for live radio, built from the same ids the embeds
 use, so the link lands on the content rather than on a search result.
 
 They are anchors rather than click handlers, so a middle click, a cmd click and
-a keyboard both work, and the focus ring is there for the keyboard. The anchor
+a keyboard both work, and the focus ring is there for the keyboard.
+
+Only `text-decoration` is reset on the text link. Adding `color: inherit`
+alongside it outranked the `.meta` rule that sets the header text to grey-100,
+so the anchor took the page's own dark colour and every line on the bar card
+turned near black against the artwork. The two image links still inherit, since
+they carry no text. The anchor
 takes the grid slot on the bar card so the image keeps its own box, and colour
 and underline are inherited away: measured before and after, every artwork and
 metadata box is the same size it was.

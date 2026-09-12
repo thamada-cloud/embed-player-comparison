@@ -149,7 +149,12 @@ section.is-live > .band-note { color: #14532d; }
 .art-link { grid-area: art; align-self: center; display: block; line-height: 0; border-radius: var(--radius-widget); }
 .art { width: 64px; height: 64px; border-radius: var(--radius-widget);
        box-shadow: var(--shadow-01); object-fit: cover; background: #222; }
-a.meta, a.thumb-link, a.art-link { color: inherit; text-decoration: none; }
+/* text-decoration only. `color: inherit` on a.meta outranked the .meta rule
+   that sets the header text to grey-100, so the anchor took the page's own dark
+   colour instead and every line on the bar card turned near black. The image
+   links can inherit safely, since they carry no text. */
+a.meta, a.thumb-link, a.art-link { text-decoration: none; }
+a.thumb-link, a.art-link { color: inherit; }
 a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
 a.meta:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible {
   outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px;
