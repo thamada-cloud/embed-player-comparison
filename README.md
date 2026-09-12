@@ -1367,10 +1367,27 @@ up and the rail stacks below the article under that, and the widget module sits 
 clear of whatever is above it. `host-page.html` reproduces all of those numbers and
 is verified against the table above at each of the four widths.
 
-Everything that is not a layout measurement is original: the wordmark, the headlines,
-the body copy and the rail modules are written for this page. No host text, imagery
-or licensed typeface is reproduced, and none is needed, because what is under test is
-the widget in the slot rather than the page around it.
+The rest of the page is built to the same measurements rather than approximated:
+
+| piece | measured |
+| --- | --- |
+| article column | 736 wide, 0 64px padding, 1px #595959 rule down its right |
+| reading column | 479, centred in the 607 that padding leaves |
+| lede image | 607 wide at 3:2 |
+| rail list item | flex, 16px 0 padding, 1px #bbb rule, 128 thumb at 3:2, 16 gap, 184 of text |
+| rail module | white, 1px black rule under it, 48 clear of the next |
+| headline | 34/40 weight 500 at 0.68 tracking |
+| body copy | IBM Plex Serif 18/30 |
+| rail module heads | 21/25 weight 700 at 0.63 tracking |
+| rail item heads | 14/18 weight 500 at 0.7 tracking |
+
+Two deliberate departures, both about not passing this off as the real thing. The
+host's headline face is licensed, so Archivo stands in at the same sizes, weights and
+tracking, and IBM Plex Serif is used for body copy because that is genuinely what the
+real page uses and it is openly licensed. The wordmark, headlines, copy and
+photography are original or openly licensed rather than lifted: the photographs come
+from picsum.photos, which serves Unsplash-licensed images, at the aspect ratios the
+real page uses. No host text, imagery, branding or licensed typeface is reproduced.
 
 ### What the slot reveals
 
