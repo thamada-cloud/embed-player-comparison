@@ -1521,20 +1521,21 @@ That takes it below the WCAG 2.2 target size minimum of 24, where it previously 
 it by 2. B and C were already at 16 and are unchanged. Raising it would mean departing
 from the component.
 
-## A second build on accomplice's values, `widget-ds.html`
+## The widget is built on accomplice's values
 
-The original build stays exactly as it is. `widget-ds.html` is the same markup and the
-same JavaScript with a second stylesheet, `widget-ds.css`, in which every value that
-accomplice already defines is taken from the component sources rather than from the
-Figma frames. Nothing was ported by eye: each value was read out of
+Every value that accomplice already defines is taken from the component sources rather
+than from the Figma frames. Nothing was ported by eye: each value was read out of
 `packages/accomplice/src` in the `iheartradio/web` clone.
 
-`embed.html?build=ds` serves the same card for the host-page slots.
+This began as a second build alongside the original so the two could be compared. The
+comparison is done and the original has been replaced by it, so there is one stylesheet
+again.
 
 ### What the port changed
 
-| piece | original | accomplice | source |
+| piece | before | accomplice | source |
 | --- | --- | --- | --- |
+| scrubber | hand-built | `Slider`, including hover preview and thumb-on-hover | `slider.css.ts` |
 | explicit badge | weight 600 | **weight 700** | `badge.css.ts` |
 | iHeart logo | 25 x 26 | **24 tall**, width follows | `logo.css.ts` size scale |
 | icon buttons | radius 999px | `aspect-ratio: 1/1`, radius[999] | `button/size.ts` size `icon` |
@@ -1548,11 +1549,10 @@ Figma frames. Nothing was ported by eye: each value was read out of
 | marquee | overflow + ellipsis | adds `max-width:100%`, `width:100%`, `position:relative` | `marquee.css.ts` base |
 | text links | 2px focus ring at 2px offset | **1px at 1px offset**, radius[2] | `link.css.ts` |
 | every type value | numbers from the frames | named kinds via tokens | `text/kind.ts` |
-| the scrubber | already ported | `Slider` | done earlier |
 
 ### What did not change, and why that matters
 
-**Every card is the same height in both builds**: 400, 180, 444, 224, 234, 234.
+**Every card kept its height through the whole port**: 400, 180, 444, 224, 234, 234.
 
 **The type barely moved.** `.title` was already 14 / 18 / 600 / -0.2, which is exactly
 `subtitle-4`. The info drawer body was already 16 / 24 / 400 / -0.5, which is exactly
