@@ -560,7 +560,13 @@ through one custom property, so they all answer the same width and the
 comparison stays like for like. The readout beside it shows the number, and each
 card's own gauge keeps reporting what that card actually measures.
 
-Its maximum is whatever the page can give, re-read on resize, and sitting at the
+A number beside it takes a typed width, and the two stay in step in both
+directions. It applies as you type while the value is sensible and clamps on
+blur or Enter, so a half typed `3` does not slam every player to the minimum
+mid-keystroke. Out of range values clamp rather than being refused: 5000 becomes
+the page width, 50 becomes 320.
+
+The maximum is whatever the page can give, re-read on resize, and sitting at the
 maximum means no cap at all rather than a cap that happens to match, so the
 default is the page filling the window exactly as before. Fill puts it back.
 

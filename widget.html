@@ -68,8 +68,12 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .widthctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ihr-grey-450); }
 .widthctl label { white-space: nowrap; }
 .widthctl input[type="range"] { width: 220px; accent-color: var(--ihr-red-550); cursor: pointer; }
-.widthctl output { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ihr-grey-600);
-                   min-width: 62px; }
+.widthctl input[type="number"] { width: 68px; font: inherit; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; text-align: right; color: var(--ihr-grey-600);
+  padding: 3px 6px; border: 1px solid var(--ihr-grey-250); border-radius: 6px; background: #fff; }
+.widthctl input[type="number"]:focus { outline: 2px solid var(--ihr-red-550); outline-offset: -1px; }
+.widthctl .unit { margin-left: -4px; }
+.widthctl output { font-variant-numeric: tabular-nums; color: var(--ihr-grey-450); min-width: 34px; }
 .widthctl button { font: inherit; font-size: 11px; padding: 3px 9px; border-radius: 999px;
                    border: 1px solid var(--ihr-grey-250); background: #fff; color: var(--ihr-grey-600);
                    cursor: pointer; }
@@ -661,8 +665,10 @@ a.thumb-link:hover { opacity: .92; }
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
   <div class="widthctl">
     <label for="widthRange">Player width</label>
-    <input id="widthRange" type="range" min="320" max="1320" step="1" aria-describedby="widthOut">
-    <output id="widthOut" for="widthRange">0 px</output>
+    <input id="widthRange" type="range" min="320" max="1320" step="1" aria-label="Player width">
+    <input id="widthNum" type="number" min="320" max="1320" step="1" aria-label="Player width in pixels">
+    <span class="unit">px</span>
+    <output id="widthOut" for="widthRange"></output>
     <button type="button" id="widthFill">Fill</button>
   </div>
 </header>
@@ -2035,6 +2041,7 @@ document.addEventListener('visibilitychange', () =>
    actually give, re-read on resize, and the slider sitting at its maximum means
    no cap at all rather than a cap that happens to match. */
 const widthRange = document.getElementById('widthRange');
+const widthNum = document.getElementById('widthNum');
 const widthOut = document.getElementById('widthOut');
 const widthFill = document.getElementById('widthFill');
 const MIN_W = 320;
@@ -2048,16 +2055,19 @@ function availableWidth() {
 function applyWidth(px, atMax) {
   if (atMax) document.documentElement.style.removeProperty('--player-w');
   else document.documentElement.style.setProperty('--player-w', px + 'px');
-  widthOut.textContent = atMax ? px + ' px, fills' : px + ' px';
+  widthRange.value = String(px);
+  /* Leave a field alone while it is being typed in, or the caret jumps. */
+  if (document.activeElement !== widthNum) widthNum.value = String(px);
+  widthOut.textContent = atMax ? 'fills' : '';
 }
 
 function syncWidthControl(keepAtMax) {
   const max = availableWidth();
   const wasMax = keepAtMax === undefined ? Number(widthRange.value) >= Number(widthRange.max) : keepAtMax;
   widthRange.max = String(max);
+  widthNum.max = String(max);
   if (wasMax || !widthRange.value) widthRange.value = String(max);
   const v = Math.min(Number(widthRange.value), max);
-  widthRange.value = String(v);
   applyWidth(v, v >= max);
 }
 
@@ -2065,6 +2075,23 @@ widthRange.addEventListener('input', () => {
   const v = Number(widthRange.value);
   applyWidth(v, v >= Number(widthRange.max));
 });
+
+/* Typing a width. Applied as it is typed when the value is already sensible,
+   and clamped to what the page can give on blur or Enter, so a half typed "3"
+   does not slam every player to the minimum mid-keystroke. */
+const clampWidth = () => {
+  const max = Number(widthRange.max);
+  const v = Math.min(max, Math.max(MIN_W, Math.round(Number(widthNum.value) || max)));
+  widthNum.value = String(v);
+  applyWidth(v, v >= max);
+};
+widthNum.addEventListener('input', () => {
+  const max = Number(widthRange.max), raw = Number(widthNum.value);
+  if (raw >= MIN_W && raw <= max) applyWidth(raw, raw >= max);
+});
+widthNum.addEventListener('change', clampWidth);
+widthNum.addEventListener('blur', clampWidth);
+widthNum.addEventListener('keydown', (e) => { if (e.key === 'Enter') { clampWidth(); widthNum.blur(); } });
 widthFill.addEventListener('click', () => syncWidthControl(true));
 addEventListener('resize', () => syncWidthControl());
 syncWidthControl(true);
