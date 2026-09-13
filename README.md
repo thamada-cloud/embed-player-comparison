@@ -1853,3 +1853,31 @@ Design B keeps the flex row: its group is symmetrical by construction, three eac
 
 Measured as the distance between the button's centre and the card's, at 352 and 1280, at
 rest and playing: **0 in all sixteen cases**, designs B and C, podcast and live.
+
+### A rem bug that made three things 1.6x too big
+
+The token block at the top of the stylesheet is written in px, with a note saying why:
+accomplice runs a **10px** rem base and this page runs 16px, so `1.4rem` there is 14px
+and here it is 22.4. Every token respects that. Then, porting the Toast and the Dialog, I
+copied four values straight out of the component sources as literal `rem` and they all
+rendered 1.6x too large:
+
+| | was | should be |
+| --- | --- | --- |
+| share modal | `35.5rem` = 568px | **355px** |
+| share modal, large | `40.1rem` = 642px | **401px** |
+| share artwork, toast min-height | `5.6rem` = 89.6px | **56px** |
+| toast close offset | `-0.3rem` = -4.8px | **-3px** |
+
+The numbers were in my own test output and I read past them. Anything taken from an
+accomplice source now goes in as px, the same as the tokens.
+
+### The share targets
+
+From `SocialShareOption`: a **48px** square with `radius[999]`, `elevation1` and
+`space[4]` of padding, `brandWhite` on a light sheet. No border; the shadow is what lifts
+it off the surface. Glyph sizes are the call sites' own, **Copy at 40** and the two social
+marks at **32**. The label is `overline-2`, 10 / 14 / 400, sitting `space[8]` below.
+
+The two social targets keep neutral glyphs rather than the platforms' own marks, which are
+trademarks, in a public repository. Sizes, spacing and labels are the part under test.

@@ -1095,7 +1095,7 @@ a.thumb-link:hover { opacity: .92; }
 }
 .toast {
   width: 100%; max-width: 500px; pointer-events: auto;
-  border-radius: var(--sp-6); min-height: 5.6rem; padding: var(--sp-16);
+  border-radius: var(--sp-6); min-height: 56px; padding: var(--sp-16);
   background-color: var(--ihr-blue-100);
   display: grid; grid-template-columns: auto 1fr;
   column-gap: var(--sp-8); align-items: center;
@@ -1121,7 +1121,7 @@ a.thumb-link:hover { opacity: .92; }
   appearance: none; border: 0; background: transparent; cursor: pointer;
   padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
   display: inline-flex; align-items: center; justify-content: center;
-  position: relative; top: -0.3rem; color: var(--ihr-grey-600);
+  position: relative; top: -3px; color: var(--ihr-grey-600);
 }
 .toast-close img { width: 24px; height: 24px; display: block; }
 .toast-close:hover, .toast-close:active { background-color: var(--ihr-gray-300); }
@@ -1182,11 +1182,11 @@ a.thumb-link:hover { opacity: .92; }
 .share-modal {
   box-sizing: border-box; position: relative; z-index: 20;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: var(--sp-8); width: min(35.5rem, 100%); max-height: 100%;
+  gap: var(--sp-8); width: min(355px, 100%); max-height: 100%;
   animation: share-scale 350ms cubic-bezier(.16, 1, .3, 1);
 }
 @keyframes share-scale { from { opacity: 0; transform: scale(.75); } }
-@media (min-width: 1025px) { .share-modal { width: min(40.1rem, 100%); } }
+@media (min-width: 1025px) { .share-modal { width: min(401px, 100%); } }
 @media (prefers-reduced-motion: reduce) {
   .share-underlay, .share-modal { animation: none; }
 }
@@ -1219,7 +1219,7 @@ a.thumb-link:hover { opacity: .92; }
 
 .share-head { display: flex; flex-direction: row; gap: var(--sp-12); }
 .share-art {
-  min-width: 5.6rem; width: 5.6rem; height: 5.6rem; border-radius: var(--rad-6);
+  min-width: 56px; width: 56px; height: 56px; border-radius: var(--rad-6);
   box-shadow: var(--elevation1); object-fit: cover; background: var(--true-white);
 }
 .share-live .share-art { object-fit: contain; padding: 3px; }
@@ -1258,17 +1258,25 @@ a.thumb-link:hover { opacity: .92; }
 .share-targets { display: flex; flex-direction: row; gap: var(--sp-8); justify-content: center; }
 .share-target {
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: var(--sp-4);
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-8);
   font-family: inherit; color: var(--ihr-grey-600);
-  font-size: var(--fs-12); line-height: var(--lh-16); letter-spacing: var(--ls-4);
+  /* overline-2: 10 / 14 / 400, no tracking. */
+  font-size: var(--fs-10); line-height: var(--lh-14); font-weight: 400;
+  letter-spacing: var(--ls-4);
   padding: 0; text-decoration: none;
 }
+/* SocialShareOption: a 4.8rem square, which is 48 on accomplice's 10px root,
+   with radius[999], elevation1 and space[4] of padding. brandWhite on light.
+   No border: the shadow is what lifts it off the sheet. The glyph sizes are
+   the call sites' own, Copy at 40 and the two social marks at 32. */
 .share-target span.ring {
-  width: 5.6rem; height: 5.6rem; border-radius: var(--rad-999);
-  border: 1px solid var(--ihr-gray-350);
+  width: 48px; height: 48px; padding: var(--sp-4);
+  border-radius: var(--rad-999); background-color: var(--true-white);
+  box-shadow: var(--elevation1);
   display: flex; align-items: center; justify-content: center;
 }
-.share-target svg { width: 24px; height: 24px; display: block; }
+.share-target svg { width: 32px; height: 32px; display: block; }
+.share-target[data-share="copy"] svg { width: 40px; height: 40px; }
 .share-target:hover span.ring { background-color: var(--ihr-grey-150); }
 .share-target:focus-visible span.ring { outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px; }
 
