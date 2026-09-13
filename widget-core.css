@@ -1084,3 +1084,150 @@ a.thumb-link:hover { opacity: .92; }
 .toast-close:focus-visible, .toast-action:focus-visible {
   outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px;
 }
+
+/* ---------- accomplice Dialog, the share sheet ----------
+   Surface from components/dialog/dialog.css.ts, contents from
+   apps/listen/app/components/social-share/social-share-dialog.tsx:
+
+     underlay   rgba(0 0 0 / 0.8), centred, fading in over 350ms
+     modal      column, 8 gap, 35.5rem wide and 40.1rem from large up,
+                scaling in from .75 over 350ms on cubic-bezier(.16,1,.3,1)
+     dialog     brandWhite, radius[6], column with 16 gap, centred text,
+                body-3 base, 24 top and bottom, 16 sides and 24 from medium up
+     heading    h5, and h4 from medium up
+     close      absolute, top -40, brandWhite, aligned to the end
+     artwork    5.6rem square, radius[6], elevation1
+     name       subtitle-4 on mobile, subtitle-3 from medium
+     desc       caption-4 on mobile, caption-2 from medium, gray450
+     section    "Share on" and "Embed widget", subtitle-5 then subtitle-4
+     embed row  input flushed and disabled, 4 gap, then a small primary button
+
+   The underlay is fixed to the viewport in the original. Here it is absolute
+   inside the card, for the same reason the toast is: an embed's viewport is
+   the card, and on the prototype page six cards share one, so a fixed overlay
+   would dim all of them and name none. The dialog keeps the component's own
+   overflow:auto, so on a short card it scrolls rather than spilling. */
+.share-underlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0 0 0 / 0.8);
+  animation: share-fade 350ms;
+}
+@keyframes share-fade { from { opacity: 0; } }
+.share-modal {
+  box-sizing: border-box; position: relative; z-index: 20;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--sp-8); width: min(35.5rem, 100%); max-height: 100%;
+  animation: share-scale 350ms cubic-bezier(.16, 1, .3, 1);
+}
+@keyframes share-scale { from { opacity: 0; transform: scale(.75); } }
+@media (min-width: 1025px) { .share-modal { width: min(40.1rem, 100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .share-underlay, .share-modal { animation: none; }
+}
+.share-dialog {
+  box-sizing: border-box; position: relative; width: 100%;
+  background-color: var(--true-white); color: var(--ihr-grey-600);
+  border-radius: var(--rad-6);
+  display: flex; flex-direction: column; gap: var(--sp-16);
+  max-height: inherit; overflow: auto; text-align: center;
+  font-size: var(--fs-16); line-height: var(--lh-24); letter-spacing: var(--ls-1);
+  padding: var(--sp-24) var(--sp-16);
+}
+@container (min-width: 769px) { .share-dialog { padding: var(--sp-24); } }
+.share-dialog h2 {
+  margin: 0; text-align: center; width: 100%;
+  font-size: var(--fs-18); line-height: var(--lh-24); font-weight: 700;
+  letter-spacing: var(--ls-4);
+}
+@container (min-width: 769px) {
+  .share-dialog h2 { font-size: var(--fs-20); line-height: var(--lh-24); }
+}
+.share-close {
+  position: absolute; top: -40px; align-self: end;
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: var(--true-white); display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-4); border-radius: var(--rad-999);
+}
+.share-close svg { width: 24px; height: 24px; display: block; }
+.share-close:hover { background-color: rgba(255,255,255,.16); }
+
+.share-head { display: flex; flex-direction: row; gap: var(--sp-12); }
+.share-art {
+  min-width: 5.6rem; width: 5.6rem; height: 5.6rem; border-radius: var(--rad-6);
+  box-shadow: var(--elevation1); object-fit: cover; background: var(--true-white);
+}
+.share-live .share-art { object-fit: contain; padding: 3px; }
+.share-names {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  min-width: 0; text-align: left;
+}
+.share-name {
+  margin: 0; color: var(--ihr-grey-600);
+  font-size: var(--fs-14); line-height: var(--lh-18); font-weight: 600;
+  letter-spacing: var(--ls-0);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.share-desc {
+  margin: 0; color: var(--ihr-grey-450);
+  font-size: var(--fs-12); line-height: var(--lh-16); font-weight: 400;
+  letter-spacing: var(--ls-4);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+@container (min-width: 769px) {
+  .share-name { font-size: var(--fs-15); line-height: var(--lh-20); }
+  .share-desc { font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-0); }
+}
+.share-section {
+  display: flex; flex-direction: column; align-items: flex-start;
+  justify-content: center; gap: var(--sp-8);
+}
+.share-section > p {
+  margin: 0; color: var(--ihr-grey-600);
+  font-size: var(--fs-13); line-height: var(--lh-16); font-weight: 600;
+  letter-spacing: var(--ls-0);
+}
+@container (min-width: 769px) {
+  .share-section > p { font-size: var(--fs-14); line-height: var(--lh-18); }
+}
+.share-targets { display: flex; flex-direction: row; gap: var(--sp-8); justify-content: center; }
+.share-target {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-4);
+  font-family: inherit; color: var(--ihr-grey-600);
+  font-size: var(--fs-12); line-height: var(--lh-16); letter-spacing: var(--ls-4);
+  padding: 0; text-decoration: none;
+}
+.share-target span.ring {
+  width: 5.6rem; height: 5.6rem; border-radius: var(--rad-999);
+  border: 1px solid var(--ihr-gray-350);
+  display: flex; align-items: center; justify-content: center;
+}
+.share-target svg { width: 24px; height: 24px; display: block; }
+.share-target:hover span.ring { background-color: var(--ihr-grey-150); }
+.share-target:focus-visible span.ring { outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px; }
+
+.share-embed { display: flex; flex-direction: row; align-items: center;
+               gap: var(--sp-4); justify-content: center; width: 100%; }
+/* Input kind "flushed": a bottom rule only. */
+.share-embed input {
+  flex: 1 1 0; min-width: 0; font-family: inherit;
+  font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-1);
+  color: var(--ihr-grey-450); background: transparent;
+  border: 0; border-bottom: 1px solid var(--ihr-gray-350);
+  padding: var(--sp-4) 0; text-overflow: ellipsis;
+}
+/* Button kind primary, color defaultInverted, size small: gray600 on light. */
+.share-copy {
+  appearance: none; border: 0; cursor: pointer; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
+  height: var(--sp-32); padding: var(--sp-8) var(--sp-16);
+  border-radius: var(--rad-999);
+  background-color: var(--ihr-grey-600); color: var(--true-white);
+  font-family: inherit; font-size: var(--fs-14); line-height: var(--lh-16);
+  font-weight: 600; letter-spacing: var(--ls-0); white-space: nowrap;
+}
+.share-copy svg { width: 16px; height: 16px; display: block; }
+@media (pointer: fine) { .share-copy:hover { background-color: var(--ihr-gray-300); } }
+.share-copy:active { background-color: var(--ihr-gray-300); transform: scale(.95); }
+.share-copy:focus-visible { outline: var(--border-2) solid var(--ihr-blue-400); outline-offset: 2px; }

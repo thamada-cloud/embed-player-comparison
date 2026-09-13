@@ -1692,3 +1692,50 @@ under the person reading it. The component's stories use `timeout: null` for thi
 
 The toast also stops its own clicks reaching the card, since the artwork designs treat a
 click anywhere as play/pause.
+
+## The share button opens the accomplice Dialog
+
+The share icon opens the social share sheet iheart.com opens from the same control.
+Surface from `components/dialog/dialog.css.ts`, contents from
+`apps/listen/app/components/social-share`:
+
+| | value |
+| --- | --- |
+| underlay | `rgba(0 0 0 / 0.8)`, centred, fading in over 350ms |
+| modal | 35.5rem wide, 40.1rem from large up, scaling in from .75 over 350ms |
+| dialog | `brandWhite`, `radius[6]`, column with 16 gap, centred, body-3 base, 24 top and bottom, 16 sides and 24 from medium |
+| heading | h5, h4 from medium up |
+| close | absolute, top -40, `brandWhite`, aligned to the end |
+| artwork | 5.6rem square, `radius[6]`, `elevation1` |
+| name / desc | subtitle-4 then caption-4, stepping to subtitle-3 and caption-2 from medium |
+| embed row | a flushed, disabled input beside a small primary button, 4 gap |
+
+The title follows `SHARE_TITLE_BY_TYPE`: the live card shares a **Station**, the podcast
+card is showing an episode so it shares an **Episode**. The embed snippet is what
+`EmbedWidget` builds, height 200 and all, and both copy controls revert after 5 seconds
+exactly as it does.
+
+### It does not fit three of the six cards
+
+The dialog needs **399px** of height. Measured:
+
+| card | height | dialog |
+| --- | --- | --- |
+| A podcast | 400 | fits, with 1px to spare |
+| B podcast | 444 | fits |
+| C podcast / live | 234 | scrolls, 165 hidden |
+| A live | 180 | scrolls, 219 hidden |
+| B live | 224 | scrolls |
+
+It stays usable because the component already sets `overflow: auto`, and Copy Code is
+reachable by scrolling on every card, checked rather than assumed. But a sheet designed
+for a full page is a poor fit for a 180px embed, and that is worth knowing before anyone
+ships it there. A compact variant, or opening the share page in a new tab instead, are the
+two obvious answers.
+
+### On the three share targets
+
+They are drawn with neutral glyphs rather than the platforms' own marks. Those are
+trademarks and this is a public repository. The row's structure, sizes and labels are what
+the prototype is testing, and a circle with the platform's name beneath it carries both.
+The links themselves are real.

@@ -949,7 +949,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         status(w.data.subtitle);
       }
     }
-    if (kind === 'share') status('Share sheet would open here.');
+    if (kind === 'share') shareDialog();
   }
 
   /* Choosing an episode from the list.
@@ -1152,6 +1152,114 @@ function makeWidget(rootId, statusId, colourId, variant) {
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself
      when playback catches up. */
+  /* accomplice Dialog carrying the social share sheet, the same one iheart.com
+     opens from this icon. Title, sections and the embed snippet all come from
+     apps/listen/app/components/social-share.
+
+     The three targets are drawn with neutral glyphs rather than the platforms'
+     own marks. Those are trademarks and this is a public repo; the row's
+     structure, sizes and labels are what the prototype is testing, and a
+     circle with the platform's name under it carries both. */
+  const GLYPH_COPY =
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="2"/>' +
+    '<path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const GLYPH_OUT =
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path d="M14 4h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M20 4 10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const GLYPH_X =
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  function shareDialog() {
+    const card = root.querySelector('.widget');
+    const d = w.data;
+    if (!card || !d) return;
+    const open = card.querySelector('.share-underlay');
+    if (open) open.remove();
+
+    const isLive = d.kind === 'live';
+    /* SHARE_TITLE_BY_TYPE. A podcast card is showing an episode, so it shares
+       one; the live card shares the station. */
+    const title = isLive ? 'Share Station' : 'Share Episode';
+    const pageUrl = isLive ? stationUrl(d) : episodeUrl(d);
+    /* EmbedWidget builds exactly this, height and all. */
+    const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
+      (pageUrl.includes('?') ? pageUrl + '&embed=true' : pageUrl + '?embed=true') +
+      '" frameborder="0"></iframe>';
+
+    const under = document.createElement('div');
+    under.className = 'share-underlay';
+    under.innerHTML =
+      '<div class="share-modal">' +
+        '<button class="share-close" type="button" aria-label="Close">' + GLYPH_X + '</button>' +
+        '<div class="share-dialog' + (isLive ? ' share-live' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
+          '<h2>' + esc(title) + '</h2>' +
+          '<div class="share-head">' +
+            '<img class="share-art" src="' + esc(d.art || '') + '" alt="">' +
+            '<div class="share-names">' +
+              '<p class="share-name">' + esc(d.title || '') + '</p>' +
+              /* d.subtitle is the composed line, station name and description
+                 joined, which would repeat the name already on the row above.
+                 The raw description is kept separately as d.desc for exactly
+                 this reason; podcast has no second field, so it keeps subtitle,
+                 which there is the show name rather than a repeat. */
+              '<p class="share-desc">' + esc((isLive ? d.desc : d.subtitle) || '') + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="share-section"><p>Share on</p><div class="share-targets">' +
+            '<button class="share-target" type="button" data-share="copy">' +
+              '<span class="ring">' + GLYPH_COPY + '</span>Copy Link</button>' +
+            '<a class="share-target" data-share="facebook" target="_blank" rel="noopener"' +
+              ' href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(pageUrl) + '">' +
+              '<span class="ring">' + GLYPH_OUT + '</span>Facebook</a>' +
+            '<a class="share-target" data-share="x" target="_blank" rel="noopener"' +
+              ' href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(pageUrl) +
+              '&text=' + encodeURIComponent(d.title || '') + '">' +
+              '<span class="ring">' + GLYPH_OUT + '</span>X</a>' +
+          '</div></div>' +
+          '<div class="share-section" style="width:100%"><p>Embed widget</p>' +
+            '<div class="share-embed">' +
+              '<input name="embed-code" readonly disabled value="' + esc(embedCode) + '">' +
+              '<button class="share-copy" type="button">' + GLYPH_COPY +
+                '<span class="label">Copy Code</span></button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    const close = () => { under.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    under.querySelector('.share-close').addEventListener('click', close);
+    /* Clicking the dimmed area closes, clicking the sheet does not. */
+    under.addEventListener('click', (e) => { if (e.target === under) close(); });
+    document.addEventListener('keydown', onKey);
+    /* The artwork cards play on any click, so the sheet keeps its own. */
+    under.addEventListener('click', (e) => e.stopPropagation());
+
+    /* Both copies revert after 5 seconds, which is what EmbedWidget does. */
+    const flash = (el, labelEl, done) => {
+      const was = labelEl.textContent;
+      labelEl.textContent = done;
+      setTimeout(() => { labelEl.textContent = was; }, 5000);
+    };
+    const copyBtn = under.querySelector('.share-copy');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard && navigator.clipboard.writeText(embedCode);
+      flash(copyBtn, copyBtn.querySelector('.label'), 'Copied!');
+    });
+    const linkBtn = under.querySelector('[data-share="copy"]');
+    linkBtn.addEventListener('click', () => {
+      navigator.clipboard && navigator.clipboard.writeText(pageUrl);
+      flash(linkBtn, linkBtn.lastChild, 'Copied!');
+    });
+
+    card.appendChild(under);
+    under.querySelector('.share-close').focus();
+  }
+
   function drawPreview() {
     const pv = q('.preview'); if (!pv) return;
     const a = w.audio;
