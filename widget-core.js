@@ -882,8 +882,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
     }
     if (kind === 'back' && a) a.currentTime = Math.max(0, a.currentTime - 15);
     if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
-    if (kind === 'save') { w.saved = !w.saved; btn.setAttribute('aria-pressed', String(w.saved));
-      status(w.saved ? 'Saved to your library.' : ''); }
+    /* Saving needs an account, and an embed is never signed in, so the honest
+       answer is the one iheart.com gives: the auth CTA toast. The button no
+       longer pretends to latch a saved state it cannot have. The copy is
+       LIBRARY_AUTHENTICATION_MESSAGE verbatim from
+       apps/listen/app/utilities/constants.ts. */
+    if (kind === 'save') authToast();
     if (kind === 'row') {
       /* Chosen from inside design C's drawer, the drawer has done its job and
          gets out of the way so the card it just changed can be seen. */
@@ -1157,6 +1161,51 @@ function makeWidget(rootId, statusId, colourId, variant) {
     const now = Math.min(1, a.currentTime / a.duration) * 100;
     pv.style.left = now + '%';
     pv.style.width = Math.max(0, w.previewAt - now) + '%';
+  }
+
+  /* accomplice's AuthenticateCTANotification: kind info, the library message,
+     and two tertiary gray actions carrying gray600 text. The two links are the
+     real ones, checked rather than assumed: account.iheart.com/login answers
+     200 and is what iheart.com's own signup page links to, while
+     iheart.com/login is a 404. They open in a new tab because this is an embed
+     and navigating the frame would take the player with it. */
+  const AUTH_COPY = 'Log in to save your favorites and access Your Library';
+  const LOGIN_URL = 'https://account.iheart.com/login';
+  const SIGNUP_URL = 'https://www.iheart.com/signup/';
+
+  function authToast() {
+    const card = root.querySelector('.widget');
+    if (!card) return;
+    /* One at a time. Pressing the button again re-raises it rather than
+       stacking a second copy behind the first. */
+    const existing = card.querySelector('.toast-region');
+    if (existing) existing.remove();
+
+    const region = document.createElement('div');
+    region.className = 'toast-region';
+    region.innerHTML =
+      '<div class="toast" role="status" aria-live="polite" data-kind="info">' +
+        '<img class="toast-icon" src="assets/info-filled.svg" alt="">' +
+        '<div class="toast-body">' +
+          '<div class="toast-head">' +
+            '<p class="toast-copy">' + esc(AUTH_COPY) + '</p>' +
+            '<button class="toast-close" type="button" aria-label="Close">' +
+              '<img src="assets/sheet-close.svg" alt=""></button>' +
+          '</div>' +
+          '<div class="toast-actions">' +
+            '<a class="toast-action" href="' + LOGIN_URL + '" target="_blank" rel="noopener">Log in</a>' +
+            '<a class="toast-action" href="' + SIGNUP_URL + '" target="_blank" rel="noopener">Sign up</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    /* No timeout. A toast whose whole purpose is two links to click should not
+       time out from under the person reading it; the stories use timeout null
+       for exactly this shape. */
+    region.querySelector('.toast-close').addEventListener('click', () => region.remove());
+    /* The artwork cards treat a click anywhere as play/pause. The toast sits on
+       top of that, so it stops its own clicks from reaching the card. */
+    region.addEventListener('click', (e) => e.stopPropagation());
+    card.appendChild(region);
   }
 
   function tick() {

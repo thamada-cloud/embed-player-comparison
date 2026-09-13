@@ -37,6 +37,7 @@
   --ihr-brand-red: #c6002b;
   --ihr-gray-200: #e6eaed; --ihr-gray-300: #a9afb2; --ihr-gray-400: #717277;
   --ihr-gray-350: #96979f; --ihr-gray-500: #3f4447; --ihr-blue-400: #3ca2dd; --border-2: 2px;
+  --ihr-blue-100: #9adaff; --ihr-blue-600: #0055b7;
   --rad-1: 1.25px; --rad-2: 2.5px; --rad-5: 5px; --rad-6: 6px;
   /* 99rem on accomplice's 10px base, written out so it does not follow THIS
      page's root size. Fully round either way, but the number should be theirs. */
@@ -167,7 +168,7 @@ section.is-live > .band-note { color: #14532d; }
    cap, which is the page filling the window as it did before. */
 .shell { container-type: inline-size; width: 100%; max-width: var(--player-w, none); }
 .embeds { max-width: var(--player-w, none); }
-.widget {
+.widget { position: relative;
   border-radius: var(--radius-widget); overflow: hidden; width: 100%;
   position: relative;                      /* the info drawer covers the card */
   display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,.10);
@@ -1003,3 +1004,83 @@ a.thumb-link:hover { opacity: .92; }
 .wcag.warn { background: rgba(200,120,0,.16); color: #8a5200; }
 .wcag.fail { background: rgba(176,0,32,.12); color: #b00020; }
 .meta-note { color: var(--ihr-grey-450); }
+
+/* ---------- accomplice Toast, kind=info ----------
+   A Toast renders a Notification, so the visual spec is
+   components/notification/notification.css.ts and the layout is its render:
+
+     root       radius space[6], min-height 5.6rem, padding space[16],
+                background blue100 for kind=info
+     grid       "icon content", 8 column gap, items centred
+     icon       blue600, aligned to the start rather than centred
+     head       "copy close", 8 column gap, items start
+     copy       gray600, body-4, and the component hard-sets a 2.4rem line
+                height inline, so that wins over the kind's own 18
+     close      Button size icon, kind tertiary, color gray, nudged up 0.3rem
+     actions    8 column gap, justified to the end, 8 of padding above
+
+   The region: the global one is fixed to the viewport, 500px wide from
+   shmedium up. An embed has no viewport worth speaking of, so this one is
+   absolute inside the card that raised it, which is also the only honest place
+   for it: the toast belongs to that player, not to the page hosting it. */
+.toast-region {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+  display: flex; justify-content: center;
+  padding: var(--sp-16); pointer-events: none;
+}
+.toast {
+  width: 100%; max-width: 500px; pointer-events: auto;
+  border-radius: var(--sp-6); min-height: 5.6rem; padding: var(--sp-16);
+  background-color: var(--ihr-blue-100);
+  display: grid; grid-template-columns: auto 1fr;
+  column-gap: var(--sp-8); align-items: center;
+  box-shadow: var(--elevation1);
+  animation: toast-in 200ms ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+.toast-icon { align-self: start; display: block; width: 24px; height: 24px; }
+.toast-body { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.toast-head {
+  display: grid; grid-template-columns: 1fr auto;
+  column-gap: var(--sp-8); align-items: start;
+}
+.toast-copy {
+  color: var(--ihr-grey-600);
+  font-size: var(--fs-14); line-height: 24px; font-weight: 400;
+  letter-spacing: var(--ls-1); margin: 0;
+}
+/* body-3 from shmedium up, which is the breakpoint the component switches on. */
+@container (min-width: 560px) { .toast-copy { font-size: var(--fs-16); } }
+.toast-close {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
+  display: inline-flex; align-items: center; justify-content: center;
+  position: relative; top: -0.3rem; color: var(--ihr-grey-600);
+}
+.toast-close img { width: 24px; height: 24px; display: block; }
+.toast-close:hover, .toast-close:active { background-color: var(--ihr-gray-300); }
+.toast-actions {
+  display: flex; column-gap: var(--sp-8); justify-content: flex-end;
+  padding-top: var(--sp-8);
+}
+/* The CTA asks for size small on mobile and large from medium up. These cards
+   are narrow, so small, and the wide size follows the same container query the
+   copy does. Tertiary and gray, with gray600 text, per getAuthCTAToastProps. */
+.toast-action {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: var(--ihr-grey-600); text-decoration: none;
+  height: var(--sp-32); padding: var(--sp-8) var(--sp-16);
+  border-radius: var(--rad-999);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: inherit; font-size: var(--fs-14); line-height: var(--lh-16);
+  font-weight: 600; letter-spacing: var(--ls-0);
+}
+@container (min-width: 560px) {
+  .toast-action { height: var(--sp-48); padding: var(--sp-12) var(--sp-24);
+                  font-size: var(--fs-16); line-height: var(--lh-24); }
+}
+.toast-action:hover, .toast-action:active { background-color: var(--ihr-gray-300); }
+.toast-close:focus-visible, .toast-action:focus-visible {
+  outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px;
+}

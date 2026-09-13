@@ -1652,3 +1652,43 @@ overhangs at every width rather than only at narrow ones, and "Show episodes" is
 one anchors its right edge to the button's, which is where react-aria would put it
 anyway. The arrow stays centred on the button. Checked at 352 and 1280: nothing else
 overhangs in any design.
+
+## The plus button raises the auth toast
+
+Saving needs an account and an embed is never signed in, so the plus button no longer
+pretends to latch a saved state it cannot have. It raises the accomplice **Toast**,
+`kind: 'info'`, which is what iheart.com shows for the same action.
+
+A Toast renders a `Notification`, so the visual spec is
+`components/notification/notification.css.ts` and the layout is its render:
+
+| | value |
+| --- | --- |
+| surface | `blue100` `#9ADAFF`, radius `space[6]`, min-height 5.6rem, padding `space[16]` |
+| icon | `InfoFilled` in `blue600` `#0055B7`, aligned to the start |
+| copy | `gray600`, body-4, with the component's inline 2.4rem line-height override |
+| close | Button `size: icon`, `kind: tertiary`, `color: gray`, nudged up 0.3rem |
+| actions | 8 column gap, justified to the end, 8 of padding above |
+
+The copy is `LIBRARY_AUTHENTICATION_MESSAGE` verbatim from
+`apps/listen/app/utilities/constants.ts`, and the two actions come from
+`getAuthCTAToastProps`: tertiary, gray, with `gray600` text.
+
+### Three judgement calls
+
+**The region is local, not global.** accomplice's global toast region is `position: fixed`
+against the viewport. An embed has no viewport worth speaking of, and in the prototype
+page six cards share one, so the toast is absolute inside the card that raised it. That is
+also the only honest place for it: the toast belongs to that player, not to the host page.
+It fits the shortest card with room, 122 tall inside 180.
+
+**The links were checked, not assumed.** `iheart.com/login` is a **404**.
+`account.iheart.com/login` answers 200 and is what iheart.com's own signup page links to,
+so that is the Log in destination; Sign up goes to `iheart.com/signup/`. Both open in a new
+tab, because navigating the frame would take the player with it.
+
+**No timeout.** A toast whose whole purpose is two links to click should not time out from
+under the person reading it. The component's stories use `timeout: null` for this shape.
+
+The toast also stops its own clicks reaching the card, since the artwork designs treat a
+click anywhere as play/pause.
