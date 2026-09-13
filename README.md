@@ -2142,3 +2142,36 @@ from 50.8% on design C live to 80% on design C podcast, depending on how much de
 the show happened to have.
 
 Verified on all six cards: every drawer at 100%, inside its card, with a reachable close.
+
+## The loaded episode only lights up once something is loaded
+
+Checked against production before changing anything, and **iheart.com does show the control
+on the current episode by default**, paused included. Its episode row is:
+
+    active={playing || isCurrent}
+
+and `active` is what `RowImage` uses to keep the scrim and the play control on screen. A
+comment beside it reasons explicitly that "a paused current episode should still show its
+real position", so the persistent state is deliberate. The behaviour stays.
+
+What was wrong here was when a row counted as current. `currentEpisodeId` is seeded with
+the newest episode so the card has something to show, so row one read as current on a card
+nobody had pressed play on: red title, scrim, and a play control over its artwork before
+anything was loaded.
+
+Production guards exactly this, for exactly this reason:
+
+    const isCurrent = isCurrentEpisode && isNonNullish(station);
+
+with a comment saying an ungated version "renders every episode title in the active (red)
+styling on a fresh podcast page" (IHRWEB-24410, IHRWEB-23812). `w.started` is this card's
+version of a station being loaded: it latches on the first play.
+
+| state | before | now |
+| --- | --- | --- |
+| fresh card | row 1 active: red title, scrim, play control | **nothing marked** |
+| playing | row 1 active | unchanged |
+| paused | row 1 active | unchanged, as production intends |
+
+The class is synced in place rather than re-rendered, because `started` latches after the
+rows are built and rebuilding the card mid playback would be worse than the bug.

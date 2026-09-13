@@ -390,7 +390,21 @@ function makeWidget(rootId, statusId, colourId, variant) {
        rebuilds the element and a class set on the old one would be lost. */
     if (w.playing) w.started = true;
     el.classList.toggle('started', !!w.started);
+    syncCurrentRow();
   };
+
+  /* The current row is decided at render time, and `started` latches later, on
+     the first play. Re-rendering to pick that up would rebuild the card under
+     the person using it, so the class is synced in place instead, the same way
+     the playing class is. */
+  function syncCurrentRow() {
+    const d = w.data;
+    if (!d || !d.rows) return;
+    root.querySelectorAll('.row[data-ep]').forEach((row) => {
+      row.classList.toggle('on', !!w.started &&
+        String(row.dataset.ep) === String(d.currentEpisodeId));
+    });
+  }
 
   /* The ring is DERIVED from the element's state, never latched by an event.
      Driving it from `waiting` and `stalled` alone put it up when nothing was
@@ -420,7 +434,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <h3>${esc(d.listTitle)}</h3>
           <div class="rows">
             ${d.rows.map((r) => `
-              <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
+              <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
                    data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
                    aria-label="Play ${esc(r.title)}">
                 <span class="row-art">
@@ -613,7 +627,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         <div class="sheet-body">
           <div class="rows">
             ${d.rows.map((r) => `
-              <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
+              <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
                    data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
                    aria-label="Play ${esc(r.title)}">
                 <span class="row-art">
@@ -1362,6 +1376,23 @@ function makeWidget(rootId, statusId, colourId, variant) {
      against a box that is not the one you see, and the sheet escaped the card
      entirely. The drawers that already worked here were all template-rendered,
      so this one is too. */
+  /* Which row counts as the one loaded. `currentEpisodeId` is seeded with the
+     newest episode so the card has something to show, which means row one would
+     otherwise read as current on a card nobody has pressed play on: red title,
+     scrim and a play control sitting over its artwork before anything is
+     loaded. iheart.com marks the current episode the same way, and guards it
+     the same way for the same reason. Their episode row is
+     `active={playing || isCurrent}`, where
+
+         const isCurrent = isCurrentEpisode && isNonNullish(station);
+
+     and the comment above it says an ungated version "renders every episode
+     title in the active (red) styling on a fresh podcast page"
+     (IHRWEB-24410, IHRWEB-23812). `w.started` is this card's version of
+     "a station is actually loaded": it latches on the first play. */
+  const isCurrentRow = (d, r) =>
+    !!w.started && String(r.id) === String(d.currentEpisodeId);
+
   function shareMarkup(d) {
     if (!d) return '';
     const isLive = d.kind === 'live';
