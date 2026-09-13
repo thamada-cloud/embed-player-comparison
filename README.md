@@ -1759,3 +1759,28 @@ the element and a class set on the old one would be lost.
 The scrubber follows the same rule rather than staying tied to `playing`. Hiding it on
 pause would take away the one thing a paused player most needs to show, which is where it
 stopped. Live radio has no scrubber either way.
+
+## The current episode's row toggles
+
+Clicking the row for the episode already loaded is a transport control, not a selection,
+so it toggles play and pause. Clicking any other row loads that episode and plays it, as
+before.
+
+| click | before | now |
+| --- | --- | --- |
+| current row, playing | nothing at all | pauses |
+| current row, paused | refetched and reset to 0, losing your place | resumes where it stopped |
+| another row | loads and plays | unchanged |
+
+Two reasons beyond matching what Spotify, Apple Music and Pocket Casts do. A row that
+answers a click with nothing reads as broken rather than as already-playing, so people
+click it again. And the guard this replaces only covered the playing case:
+
+    if (String(id) === String(d.currentEpisodeId) && w.playing) return;
+
+so the paused branch fell through to `selectEpisode`'s full refetch, which sets
+`currentTime = 0`. That was worse than either answer to the original question, and
+resuming is the only correct behaviour there whichever way it had gone.
+
+Measured: play to 4s, click the row, paused at 4s; click again, resumes and reaches 6s
+rather than restarting; click a different row, the new episode loads and starts at 0.

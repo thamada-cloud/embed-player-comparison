@@ -971,7 +971,15 @@ function makeWidget(rootId, statusId, colourId, variant) {
   async function selectEpisode(id) {
     const d = w.data;
     if (!id || !d || d.kind !== 'podcast') return;
-    if (String(id) === String(d.currentEpisodeId) && w.playing) return;
+    /* The row for the episode already loaded is a transport control, not a
+       selection: it toggles. Two reasons beyond matching what Spotify, Apple
+       Music and Pocket Casts all do. A row that answers a click with nothing
+       reads as broken rather than as already-playing, and people click it
+       again. And the guard this replaces only covered the PLAYING case, so
+       clicking the current episode while paused fell through to a full refetch
+       that reset currentTime to 0 and threw away your place. Resuming is the
+       only correct answer there whichever way the toggle question had gone. */
+    if (String(id) === String(d.currentEpisodeId)) { toggle(); return; }
     status('Loading episode');
     try {
       const ep = await jget(`${API}/v3/podcast/episodes/${id}`).then((x) => x.episode);
