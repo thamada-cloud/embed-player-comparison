@@ -420,6 +420,13 @@ a.thumb-link:hover { opacity: .92; }
 .h-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
          padding: 4px; border-radius: 999px; display: flex; flex: 0 0 auto; }
 .h-btn img { width: 24px; height: 24px; display: block; }
+/* Design C's skip controls are drawn larger than the rest of its icons: 40
+   rather than 24. Scoped to those two buttons on that design only, so design B
+   and design C's own action row keep the 24 they share with every other icon
+   button. The 4px of Button padding still applies, so the button itself grows
+   to 48 and the grid either side of the play button absorbs it. */
+.widget.c .hero-controls .h-btn[data-act="back"] img,
+.widget.c .hero-controls .h-btn[data-act="fwd"] img { width: 40px; height: 40px; }
 /* The Figma component in this slot is named Web Internal / Podcast Playback
    Speed, but the asset it exports is a play triangle, its own root being
    <g id="Web Internal / Play">. What the frame RENDERS there is the text 1x, so

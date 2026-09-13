@@ -2175,3 +2175,14 @@ version of a station being loaded: it latches on the first play.
 
 The class is synced in place rather than re-rendered, because `started` latches after the
 rows are built and rebuilding the card mid playback would be worse than the bug.
+
+## Design C's skip controls are 40
+
+Back 15 and forward 30 take a 40px glyph on design C, up from the 24 every other icon
+button uses. Scoped to those two buttons on that design only, so design B keeps 24 and so
+does design C's own action row: speed, list, plus, info and share are unchanged.
+
+The 4px of Button `size: icon` padding still applies, so the button grows to 48. The
+control row is a `1fr auto 1fr` grid, so the sides absorb it and the play button stays on
+the card's centre, measured at 0 offset at both 352 and 1280. The row's height is still set
+by the 64px play button, so design C's 234 floor is untouched.
