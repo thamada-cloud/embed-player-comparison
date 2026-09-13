@@ -1815,3 +1815,24 @@ either never show or never leave. The row itself stays tappable, and it toggles.
 One deliberate difference: the tile stays **56px**, the size the Figma frames draw for
 these cards. `RowImage` sizes its own at 6.8 to 8.8rem, which belongs to a full page rather
 than an embed.
+
+## Design C keeps its actions in the bottom right row
+
+Frames 2533:85717 and 2512:111876 put design C's plus, info and share in the bottom
+right row beside the list button, not around the play button. Podcast takes all four,
+live radio takes the same three without the list button, in the same place.
+
+| | centre row | bottom right row |
+| --- | --- | --- |
+| C podcast | speed, back 15, play, forward 30 | list, plus, info, share |
+| C live | play only | plus, info, share |
+| B podcast | unchanged: plus, speed, back, play, forward, info, share | none |
+| B live | unchanged | none |
+
+The row's gap is **4**, which is what both frames draw between these; it sits 16 in from
+each edge and hugs the right.
+
+The reveal rule is now scoped to `.hero-controls` rather than excluding the list button by
+attribute. The transport still hides until the first play, but design C's actions are no
+longer in that row and both of its frames show all of them on a card nobody has played
+yet, so they stay put. Design B keeps everything in `.hero-controls` and is untouched.

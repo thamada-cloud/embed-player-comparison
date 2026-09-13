@@ -431,12 +431,12 @@ a.thumb-link:hover { opacity: .92; }
    stay, including while paused: a card you have played is no longer pristine,
    and hiding its transport every time you pause it makes the controls feel
    like they are fleeing the pointer. Only the untouched card is bare.
-   The list button is the further exception: design C shows it even then, so
-   the episodes are reachable before anything plays. Written as an exclusion
-   from the hide rather than a re-show, so it never has to restate a display
-   value that the button's own rule already owns, and design C is the only card
-   with a list button in this row, so no design scoping is needed. */
-.widget.hero:not(.started) .h-btn:not([data-act="list"]) { display: none; }
+   Scoped to .hero-controls, which is the transport. Design C's actions moved
+   out of that row into the bottom right one, and both of its frames draw all
+   of them on a card nobody has played yet, so those stay put. Design B keeps
+   everything in .hero-controls and is unaffected. This replaces an exclusion
+   for the list button, which the scoping now covers on its own. */
+.widget.hero:not(.started) .hero-controls .h-btn { display: none; }
 /* The live frame keeps a speed button at opacity 0 on the left. It is a
    spacer: two icons sit to the right of the red button and only one to the
    left, so without it the red button would not be centred. Kept as the frame
@@ -511,7 +511,10 @@ a.thumb-link:hover { opacity: .92; }
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.list-row { display: flex; justify-content: flex-end; padding: 0 16px; box-sizing: border-box; }
+/* gap 4, which is what both C frames draw between these four. The row sits
+   16 in from each edge and hugs the right. */
+.list-row { display: flex; justify-content: flex-end; gap: var(--sp-4);
+            padding: 0 16px; box-sizing: border-box; }
 /* The drawer, frame 2533:85717. It slides up over the player inside the card
    rather than opening a panel beneath it, which is what the frame draws: the
    Drawer instance is the same 358 by 263 box as the player, at 0,0.

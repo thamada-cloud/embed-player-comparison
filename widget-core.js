@@ -531,11 +531,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
                aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
           </div>
           <div class="hero-controls">
-            ${isLive ? `
-              <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
-              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
-            ` : `
-              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+            ${isLive ? '' : `
               <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
               <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
             `}
@@ -545,17 +541,18 @@ function makeWidget(rootId, statusId, colourId, variant) {
             </button>
             ${isLive ? '' : `
               <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
-            <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
-            <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
           </div>
           ${isLive ? `
             <div class="hero-bottom">
+              <div class="list-row">
+                ${cActions(false)}
+              </div>
               <div class="wave"></div>
             </div>` : `
             <div class="hero-bottom">
               <div class="c-rows">
                 <div class="list-row">
-                  <button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes"><img src="assets/h-list.svg" alt=""></button>
+                  ${cActions(true)}
                 </div>
                 <div class="slider">
                   <span class="t el">00:00</span>
@@ -1179,6 +1176,24 @@ function makeWidget(rootId, statusId, colourId, variant) {
 
   const fmt = (s) => !isFinite(s) ? '--:--' :
     (Math.floor(s / 60) < 10 ? '0' : '') + Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
+
+  /* Design C keeps its actions in the bottom right row rather than beside the
+     play button, which is what frames 2533:85717 and 2512:111876 draw. The
+     order is the frames' own: list first where there is one, then plus, info,
+     share. Live radio has no episode list, so it takes the same row without
+     the list button and the group sits in the same place.
+     They are not part of the transport, so they do not hide with it: both
+     frames show all of them on a card nobody has pressed play on yet. */
+  const cActions = (withList) =>
+    (withList ?
+      '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes">' +
+        '<img src="assets/h-list.svg" alt=""></button>' : '') +
+    '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
+      '<img src="assets/h-plus.svg" alt=""></button>' +
+    '<button class="h-btn" data-act="info" aria-label="Info">' +
+      '<img src="assets/h-info.svg" alt=""></button>' +
+    '<button class="h-btn" data-act="share" aria-label="Share">' +
+      '<img src="assets/h-share.svg" alt=""></button>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself
