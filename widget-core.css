@@ -525,10 +525,14 @@ a.thumb-link:hover { opacity: .92; }
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-/* gap 4, which is what both C frames draw between these four. The row sits
-   16 in from each edge and hugs the right. */
-.list-row { display: flex; justify-content: flex-end; gap: var(--sp-4);
+/* Two groups, one at each end: speed and list to the left, plus, info and
+   share to the right, which is what frame 2533:85625 draws. gap 4 within each
+   group, 16 in from each edge. space-between rather than flex-end, so the row
+   needs both spans present even when the left one is empty, which is the live
+   radio case. */
+.list-row { display: flex; justify-content: space-between; gap: var(--sp-4);
             padding: 0 16px; box-sizing: border-box; }
+.lr-side { display: flex; align-items: center; gap: var(--sp-4); }
 /* The drawer, frame 2533:85717. It slides up over the player inside the card
    rather than opening a panel beneath it, which is what the frame draws: the
    Drawer instance is the same 358 by 263 box as the player, at 0,0.

@@ -1182,26 +1182,31 @@ function makeWidget(rootId, statusId, colourId, variant) {
 
   /* Design C keeps its actions in the bottom right row rather than beside the
      play button, which is what frames 2533:85717 and 2512:111876 draw. The
-     order is the frames' own: list first where there is one, then plus, info,
-     share, with the speed control ahead of the list. Live radio has no episode
-     list and no speed control, so it takes the same row with just the last
-     three and the group sits in the same place.
+     Frame 2533:85625 splits that row: speed and the list button to the LEFT,
+     plus, info and share to the RIGHT. Two groups either end of a space-between
+     row. Live radio has neither a speed control nor an episode list, so its
+     left group is empty; it is still emitted, because space-between with a
+     single child would push that child to the start instead of the end.
      Moving speed out of the transport also leaves that row symmetrical, back 15
      and forward 30 either side of the play button.
      They are not part of the transport, so they do not hide with it: both
      frames show all of them on a card nobody has pressed play on yet. */
   const cActions = (isPodcast) =>
-    (isPodcast ?
-      '<button class="h-btn" data-act="speed" aria-label="Playback speed">' +
-        '<span class="h-speed">1x</span></button>' +
-      '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes">' +
-        '<img src="assets/h-list.svg" alt=""></button>' : '') +
-    '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
-      '<img src="assets/h-plus.svg" alt=""></button>' +
-    '<button class="h-btn" data-act="info" aria-label="Info">' +
-      '<img src="assets/h-info.svg" alt=""></button>' +
-    '<button class="h-btn" data-act="share" aria-label="Share">' +
-      '<img src="assets/h-share.svg" alt=""></button>';
+    '<span class="lr-side">' +
+      (isPodcast ?
+        '<button class="h-btn" data-act="speed" aria-label="Playback speed">' +
+          '<span class="h-speed">1x</span></button>' +
+        '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes">' +
+          '<img src="assets/h-list.svg" alt=""></button>' : '') +
+    '</span>' +
+    '<span class="lr-side">' +
+      '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
+        '<img src="assets/h-plus.svg" alt=""></button>' +
+      '<button class="h-btn" data-act="info" aria-label="Info">' +
+        '<img src="assets/h-info.svg" alt=""></button>' +
+      '<button class="h-btn" data-act="share" aria-label="Share">' +
+        '<img src="assets/h-share.svg" alt=""></button>' +
+    '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself

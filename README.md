@@ -1824,7 +1824,7 @@ live radio takes the same three without the list button, in the same place.
 
 | | centre row | bottom right row |
 | --- | --- | --- |
-| C podcast | back 15, play, forward 30 | speed, list, plus, info, share |
+| C podcast | back 15, play, forward 30 | speed and list left, plus, info, share right |
 | C live | play only | plus, info, share |
 | B podcast | unchanged: plus, speed, back, play, forward, info, share | none |
 | B live | unchanged | none |
@@ -1882,7 +1882,13 @@ marks at **32**. The label is `overline-2`, 10 / 14 / 400, sitting `space[8]` be
 The two social targets keep neutral glyphs rather than the platforms' own marks, which are
 trademarks, in a public repository. Sizes, spacing and labels are the part under test.
 
-The speed control sits in the bottom row too, ahead of the list button. That leaves the
-transport symmetrical, back 15 and forward 30 either side of the play button, so the row
-reads balanced as well as measuring centred. Live radio has no speed control, so its row
-stays plus, info, share.
+Frame 2533:85625 splits that bottom row rather than stacking everything to the right:
+speed and the list button at the left edge, plus, info and share at the right. Two groups
+either end of a `space-between` row, 4 apart within each group, 16 in from each edge.
+
+Live radio has neither a speed control nor an episode list, so its left group is empty. It
+is still emitted: `space-between` with a single child pushes that child to the START, so
+dropping the empty span would move plus, info and share to the wrong side.
+
+Moving speed out of the transport also leaves that row symmetrical, back 15 and forward 30
+either side of the play button, so it reads balanced as well as measuring centred.
