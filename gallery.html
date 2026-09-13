@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Embed Player Gallery</title>
-<link rel="stylesheet" href="shared.css?v=20260913140842">
+<link rel="stylesheet" href="shared.css?v=20260913141624">
 <style>
 /* ---------- gallery layout, this page only ---------- */
 main { background: var(--stage); padding: 20px 20px 80px; }
@@ -129,7 +129,7 @@ section { margin: 0; }
   </div>
 </main>
 
-<script src="players.js?v=20260913140842"></script>
+<script src="players.js?v=20260913141624"></script>
 <script>
 /* ============================================================================
    GALLERY
@@ -194,6 +194,16 @@ function cardFor(p) {
     body.textContent = 'Cannot be embedded. ' + (p.why || '');
     card.appendChild(body);
   } else {
+    /* Say so when the content is not what was asked for. index.html has always
+       shown this; the gallery never did, so a substituted card was silent and
+       the mode's heading was simply wrong about it. Same wording, same class,
+       already styled in shared.css. */
+    if (r.fellBack) {
+      const bar = document.createElement('div');
+      bar.className = 'fallback-bar';
+      bar.textContent = fallbackText(r.to, r.from);
+      card.appendChild(bar);
+    }
     const wrap = document.createElement('div');
     wrap.className = 'frame-wrap' + (r.entry.aspect ? ' aspect' : '');
     const hold = document.createElement('div');

@@ -1972,3 +1972,31 @@ gallery already drops blocked players, but `index.html` deliberately SHOWS them 
 reason, and would have rendered a "Cannot be embedded" card for a player that embeds
 perfectly well. Its roster now separates the two cases: genuinely blocked players stay,
 players that simply carry nothing for the current mode drop out.
+
+## Live Radio was mostly not live radio
+
+Two separate faults, and the second is why the first went unnoticed.
+
+**Live substituted a podcast on 25 of 29 players.** `FALLBACK.live` sent any player without
+a live stream to its podcast entry, so a Live Radio view was mostly podcasts. That is now
+empty, like music: a podcast player has no live stream to show and nothing is learned from
+pretending. Podcast still falls back to the OTHER podcast, which is a real substitution
+worth making.
+
+**The gallery never said when it substituted.** `index.html` has always drawn a
+`.fallback-bar`; `gallery.html` never did, though it loads the same stylesheet where that
+class is defined. So substituted cards were silent and the mode heading was simply wrong
+about them. The gallery now draws the same bar with the same wording.
+
+| mode | before | after |
+| --- | --- | --- |
+| Live Radio | 29 cards, **only 4 actually live** | **4 cards**, all live |
+| Podcast | 29 cards, 1 substituted silently | 28 cards, no substitution |
+| Crime Junkie | 29 cards, **23 silently showing the other show** | 28 cards, **22 labelled** |
+| Music | 3 cards | unchanged |
+
+Zeno.fm leaves the Podcast view because it is live-only and podcast no longer falls back to
+live. It is one of the four in Live Radio, where it belongs.
+
+The four that carry live radio are iHeartRadio, TuneIn, YouTube and Zeno.fm. That is the
+whole embeddable live radio field, which is worth knowing on its own.

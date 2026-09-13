@@ -387,9 +387,15 @@ const PLAYERS = [
    it falls back to live radio, because a different episode of a different show
    is a closer substitute than a completely different medium. */
 const FALLBACK = {
-  live:      ['podcast', 'podcastCJ'],
-  podcast:   ['podcastCJ', 'live'],
-  podcastCJ: ['podcast', 'live'],
+  /* Empty, for the same reason music is. Live radio substituted a podcast on 25
+     of the 29 players, so a Live Radio view was mostly not live radio, and the
+     gallery never said so. A podcast player has no live stream to show and
+     nothing to learn from pretending: the four that carry one are the whole
+     comparison. Podcast falls back to the OTHER podcast, which is a real
+     substitution worth making, and is now labelled where it happens. */
+  live:      [],
+  podcast:   ['podcastCJ'],
+  podcastCJ: ['podcast'],
   /* Deliberately empty. The other modes fall back because a podcast player
      showing the wrong show still tells you something about its chrome. Music is
      different: a player with no track embed has nothing to substitute, and
