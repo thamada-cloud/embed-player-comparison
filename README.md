@@ -1892,3 +1892,30 @@ dropping the empty span would move plus, info and share to the wrong side.
 
 Moving speed out of the transport also leaves that row symmetrical, back 15 and forward 30
 either side of the play button, so it reads balanced as well as measuring centred.
+
+### Two things the move to the left edge broke
+
+**The speed label outgrew its button.** `.h-speed` was a fixed 24px box, which is right for
+an icon and wrong for text: the label cycles 1x, 1.25x, 1.5x, 2x, 0.75x, and 1.25x needs
+34. It spilled outside the button's own hover background. It now takes a 40px min-width,
+sized to the longest label rather than left to grow, so the button holds one width through
+the whole cycle and the group beside it never shifts. The `aspect-ratio: 1/1` is dropped
+for this button too: that comes from Button size `icon`, and this is a text button.
+
+| label | needs | before | now |
+| --- | --- | --- | --- |
+| 1x | 15.2 | 24 box, fits | 40 box, fits |
+| 1.25x | 34 | 24 box, **spills 10** | 40 box, fits |
+| 1.5x | 26.5 | 24 box, **spills 2.5** | 40 box, fits |
+
+**Tooltips at the row's ends were clipped.** The bottom row now pins groups to BOTH edges,
+so a button at either end sits 16 from the card and any bubble wider than 32 overhangs.
+"Playback speed" is 86 and "Show episodes" is 83. Each end group now anchors its bubbles to
+its own edge, which is where react-aria would put them; the arrow stays centred on the
+button.
+
+The anchoring is scoped per group. The earlier rule anchored everything in the row to its
+right edge, which was correct while the row only had a right group. Applied to the left
+group it would push those bubbles further off the card rather than back onto it.
+
+Measured at 352 and 1280, podcast and live: **no tooltip overhangs the card on any button**.

@@ -428,10 +428,17 @@ a.thumb-link:hover { opacity: .92; }
    frame it came from is not one. */
 /* button-2, like the bar card's speed control. The -0.4 tracking it carried
    is not a value the system has; the kind's is -0.2. */
-.h-speed { display: block; width: var(--fs-24); height: var(--fs-24);
-           line-height: var(--lh-24); text-align: center;
+/* A text button, not an icon one. The label cycles 1x, 1.25x, 1.5x, 2x, 0.75x,
+   and 1.25x needs 34px, so a fixed 24px box let the text spill outside the
+   button's own hover background. min-width is sized to the longest label rather
+   than left to grow, so the button keeps one width through the whole cycle and
+   the group beside it never shifts. */
+.h-speed { display: block; min-width: 40px; width: auto; height: var(--fs-24);
+           line-height: var(--lh-24); text-align: center; white-space: nowrap;
            font-size: var(--fs-14); font-weight: 600;
            letter-spacing: var(--ls-0); color: var(--true-white); }
+/* aspect-ratio comes from Button size `icon`, which this is not. */
+.h-btn[data-act="speed"], .icon-btn[data-act="speed"] { aspect-ratio: auto; }
 /* Same variant as the bar card's icon buttons: tertiary / white. */
 .h-btn:hover, .h-btn:active, .h-btn[aria-pressed="true"] {
   background-color: var(--ihr-gray-400);
@@ -909,24 +916,29 @@ a.thumb-link:hover { opacity: .92; }
 /* A hidden spacer is still a button. It has no label and no tooltip, but say so
    rather than rely on it. */
 .h-btn.spacer::after, .h-btn.spacer::before { content: none; }
-/* The component positions its overlay with react-aria, which shifts a tooltip
-   back inside the viewport when it would overhang. There is no such machinery
-   in a pseudo-element, and one button needs it: design C's list button sits
-   flush to the right of its row, always 32px from the card's edge, so a centred
-   bubble wider than 64px overhangs at EVERY width rather than only at narrow
-   ones. "Show episodes" is 83. So that one anchors its right edge to the
-   button's instead of centring, which is the same thing react-aria would end up
-   doing. The arrow stays centred on the button, as it does there too. */
-.list-row .h-btn[aria-label]::after {
+/* react-aria shifts an overlay back inside the viewport when it would overhang.
+   A pseudo-element has no such machinery, and design C's bottom row pins groups
+   to BOTH edges, so buttons at either end need it: they sit 16 from the card's
+   edge, and any bubble wider than twice that overhangs at every width rather
+   than only at narrow ones. "Show episodes" is 83 and "Playback speed" is 86.
+   So each end group anchors to its own edge instead of centring, which is where
+   react-aria would put them. The arrow stays centred on the button either way.
+   Scoped per group, because anchoring the left group's bubbles to their right
+   edge would push them further off the card rather than back on. */
+.lr-side:first-child .h-btn[aria-label]::after {
+  left: 0; right: auto;
+  transform: translateX(0) translateY(var(--sp-8));
+}
+.lr-side:last-child .h-btn[aria-label]::after {
   left: auto; right: 0;
   transform: translateX(0) translateY(var(--sp-8));
 }
-.list-row .h-btn[aria-label]:hover::after,
-.list-row .h-btn[aria-label]:focus-visible::after {
+.lr-side .h-btn[aria-label]:hover::after,
+.lr-side .h-btn[aria-label]:focus-visible::after {
   transform: translateX(0) translateY(0);
 }
 @media (prefers-reduced-motion: reduce) {
-  .list-row .h-btn[aria-label]::after { transform: translateX(0) translateY(0); }
+  .lr-side .h-btn[aria-label]::after { transform: translateX(0) translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
