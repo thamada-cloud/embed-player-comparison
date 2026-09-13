@@ -2102,3 +2102,33 @@ so it always stops short of the button.
 | C podcast | 8 to 148 | 152 to 184 | no |
 
 Live radio has no speed control, so there is no menu to place.
+
+## All three drawers now behave the same
+
+One card had drawers behaving two ways. The episodes and info drawers were built from the
+frames as full-card sheets sliding over 0.28s; the share drawer was built to accomplice's
+`Drawer`, capped at 80% and sliding over 600ms. Neither was wrong on its own, but three
+drawers on one card behaving differently is worse than either applied consistently.
+
+The component wins, because stopping the prototype drifting from the system is the whole
+point of having ported to it.
+
+| drawer | before | after |
+| --- | --- | --- |
+| Episodes | 100% of the card, 0.28s | **80%, 600ms** |
+| Info | 100% of the card, 0.28s | **80%, 600ms** |
+| Share | 80%, 600ms | unchanged |
+
+### The shape, and why it is not simply `bottom: 0`
+
+`.sheet` is now a transparent full-card container that pushes its panel to the end, and
+`.sheet-panel` is the surface, capped at `max-height: 80%` with the `6px 6px 0 0` radius and
+the 600ms slide. The container is what positions.
+
+Anchoring the panel itself with `bottom: 0` does not work here: on the bar card `.widget`
+wraps the player AND the episode list, so the bottom of it sits below the list rather than
+at the bottom of the card you can see. That is the same trap the share drawer hit.
+
+`max-height` is a cap, not a height, so a drawer with little content is shorter: the info
+drawer runs from 50.8% on design C live to 80% on design C podcast. Verified on all six
+cards, every drawer inside its card, bottom aligned, with a reachable close.

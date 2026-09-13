@@ -585,6 +585,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
   function infoMarkup(d) {
     return `
       <div class="sheet info-sheet" aria-hidden="true">
+       <div class="sheet-panel">
         <div class="sheet-head">
           <h3>${esc(d.infoTitle || d.subtitle)}</h3>
           <button class="sheet-close" data-act="info" aria-label="Close information"><img src="assets/sheet-close.svg" alt=""></button>
@@ -592,6 +593,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         <div class="sheet-body">
           <p class="info-body">${esc(d.infoBody || 'No description available.')}</p>
         </div>
+       </div>
       </div>`;
   }
 
@@ -603,6 +605,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
   function sheetMarkup(d) {
     return `
       <div class="sheet" aria-hidden="true">
+       <div class="sheet-panel">
         <div class="sheet-head">
           <h3>${esc(d.listTitle)}</h3>
           <button class="sheet-close" data-act="list" aria-label="Close episodes"><img src="assets/sheet-close.svg" alt=""></button>
@@ -626,6 +629,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
               </div>`).join('')}
           </div>
         </div>
+       </div>
       </div>`;
   }
 

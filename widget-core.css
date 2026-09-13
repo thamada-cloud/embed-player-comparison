@@ -552,26 +552,41 @@ a.thumb-link:hover { opacity: .92; }
    It is closed by transform rather than by display, so the slide can be seen,
    and visibility flips only at the end of the travel so a closed drawer is out
    of the tab order rather than sitting invisibly over the controls. */
-/* accomplice Drawer, bottom placement: width 100%, a 6px 6px 0 0 radius and a
-   translateY(100%) to translateY(0) slide. All three already matched, which is
-   worth saying rather than quietly leaving: the sheet was built from the frame
-   and the frame was built from the component. The radius is now the token. */
+/* accomplice Drawer, bottom placement, for all three drawers on the card.
+   These two were full-card sheets taken from the frames while the share drawer
+   was built to the component, so one card had drawers behaving two ways: 100%
+   of the card at 0.28s, and 80% at 600ms. The component wins, because the whole
+   point of porting to it was to stop the prototype drifting from the system.
+
+   The shape is the share drawer's: .sheet is a transparent full-card container
+   that pushes its panel to the end, and .sheet-panel is the surface, capped at
+   80% with the 6px 6px 0 0 radius and the 600ms slide. The container is what
+   positions, rather than the panel being anchored with bottom:0, because on the
+   bar card .widget wraps the player AND the episode list, so the bottom of it
+   is below the list rather than the bottom of the card you can see. */
 .sheet {
   position: absolute; inset: 0; z-index: 3; width: 100%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden; pointer-events: none;
+  visibility: hidden; transition: visibility 0s linear .6s;
+}
+.sheet-panel {
+  pointer-events: auto; width: 100%; max-height: 80%;
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--true-white);
   border-radius: var(--rad-6) var(--rad-6) 0 0;
-  transform: translateY(100%); visibility: hidden;
-  transition: transform .28s ease, visibility 0s linear .28s;
+  transform: translateY(100%);
+  transition: transform .6s ease;
 }
 /* :not(.info-sheet), because the info drawer also carries the .sheet class and
    was therefore being opened by the episodes flag as well. It sits on a higher
    layer, so pressing the list button showed the information instead. */
-.widget.sheet-open .sheet:not(.info-sheet) {
-  transform: translateY(0); visibility: visible;
-  transition: transform .28s ease, visibility 0s;
+.widget.sheet-open .sheet:not(.info-sheet) { visibility: visible; transition: visibility 0s; }
+.widget.sheet-open .sheet:not(.info-sheet) .sheet-panel { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .sheet { transition: visibility 0s; }
+  .sheet-panel { transition: none; }
 }
-@media (prefers-reduced-motion: reduce) { .sheet { transition: visibility 0s; } }
 .sheet-head { flex: 0 0 auto; display: flex; align-items: center; gap: 16px;
               padding: 16px; background: var(--ihr-grey-200); }
 /* h5, exactly: 18 / 24 / 700 / 0. */
@@ -588,13 +603,12 @@ a.thumb-link:hover { opacity: .92; }
 .sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; }
 .sheet-body .rows { gap: 2px; }
 
-/* The info drawer, frame 2562:285883. Same component, mounted over the whole
-   card rather than over the stage, so its own rule sets the cover. */
-.info-sheet { z-index: 4; border-radius: var(--radius-widget); }
-.widget.info-open .info-sheet {
-  transform: translateY(0); visibility: visible;
-  transition: transform .28s ease, visibility 0s;
-}
+/* The info drawer, frame 2562:285883. Same component, one layer higher so it
+   sits over the episodes drawer when both are asked for. The radius lives on
+   the panel now, and is top-only like every other bottom drawer. */
+.info-sheet { z-index: 4; }
+.widget.info-open .info-sheet { visibility: visible; transition: visibility 0s; }
+.widget.info-open .info-sheet .sheet-panel { transform: translateY(0); }
 /* The title wraps to two lines here rather than ellipsising, which is what
    takes the header from 64 to 80. */
 .info-sheet .sheet-head h3 { white-space: normal; overflow: visible; text-overflow: clip; }
