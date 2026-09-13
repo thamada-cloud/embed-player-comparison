@@ -423,7 +423,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
                    data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
                    aria-label="Play ${esc(r.title)}">
-                <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                <span class="row-art">
+                  <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                  <span class="row-scrim"></span>
+                  <span class="row-play">
+                    <img class="pi-play" src="assets/play.svg" alt="">
+                    <img class="pi-pause" src="assets/pause.svg" alt="">
+                  </span>
+                </span>
                 <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
                 ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
               </div>`).join('')}
@@ -604,7 +611,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <div class="row${String(r.id) === String(d.currentEpisodeId) ? ' on' : ''}"
                    data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
                    aria-label="Play ${esc(r.title)}">
-                <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                <span class="row-art">
+                  <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                  <span class="row-scrim"></span>
+                  <span class="row-play">
+                    <img class="pi-play" src="assets/play.svg" alt="">
+                    <img class="pi-pause" src="assets/pause.svg" alt="">
+                  </span>
+                </span>
                 <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
                 ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
               </div>`).join('')}

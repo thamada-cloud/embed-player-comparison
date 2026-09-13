@@ -975,7 +975,49 @@ a.thumb-link:hover { opacity: .92; }
 .row.on { background: none; }
 /* brandRed on the loaded episode. */
 .row.on .row-meta b { color: var(--ihr-brand-red); }
-.tile { width: 56px; height: 56px; border-radius: var(--radius-widget); flex: 0 0 auto; object-fit: cover;
+/* ---------- the row artwork, with its play control ----------
+   From apps/listen/app/components/row/row-image.tsx, where Row clones the play
+   button into RowImage as a child. Two things fade in together over 300ms:
+   a brandBlack scrim at 0.2, and the button itself from 0 to 1.
+
+   The trigger there is `isHovering || isActive || isMenuOpen`, and `active` is
+   a semantic prop meaning this row is the current item, not a press state. So
+   the current episode keeps its control on screen while every other row reveals
+   one on hover, which is exactly what .row.on already marks here.
+
+   RowImage also sets pointer-events and display to none under pointerCoarse.
+   A touch device has no hover, so an overlay that only appears on hover would
+   either never show or never leave; the row itself stays tappable. */
+.row-art { position: relative; flex: 0 0 auto; width: 56px; height: 56px;
+           aspect-ratio: 1 / 1; border-radius: var(--rad-6);
+           box-shadow: var(--elevation1); }
+.row-scrim {
+  position: absolute; inset: 0; z-index: 1; border-radius: var(--rad-6);
+  background-color: #000; opacity: 0;
+  transition: opacity ease 300ms; pointer-events: none;
+}
+.row-play {
+  position: absolute; left: 50%; top: 50%; z-index: 2;
+  transform: translate3d(-50%, -50%, 0);
+  opacity: 0; transition: opacity ease 300ms; pointer-events: none;
+  /* Button color default, kind primary, size icon: brandWhite behind a gray600
+     glyph on a light surface, padding space[4], square, fully round. */
+  background-color: var(--true-white); color: var(--ihr-grey-600);
+  padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
+  box-shadow: var(--elevation1);
+  display: flex; align-items: center; justify-content: center;
+}
+.row-play img { width: 24px; height: 24px; display: block; }
+.row:hover .row-scrim, .row.on .row-scrim { opacity: .2; }
+.row:hover .row-play, .row.on .row-play { opacity: 1; }
+/* The glyph follows playback: only the current row can be the one playing. */
+.row-play .pi-pause { display: none; }
+.widget.playing .row.on .row-play .pi-play { display: none; }
+.widget.playing .row.on .row-play .pi-pause { display: block; }
+@media (pointer: coarse) {
+  .row-scrim, .row-play { display: none; }
+}
+.tile { width: 56px; height: 56px; border-radius: var(--radius-widget); object-fit: cover;
         background-image: linear-gradient(153.68deg, #c5cdd2 0%, #717277 100%);
         filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); }
 .row-meta { display: flex; flex-direction: column; justify-content: center; flex: 1 1 0; min-width: 0; }

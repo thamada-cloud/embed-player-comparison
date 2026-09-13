@@ -1784,3 +1784,34 @@ resuming is the only correct behaviour there whichever way it had gone.
 
 Measured: play to 4s, click the row, paused at 4s; click again, resumes and reaches 6s
 rather than restarting; click a different row, the new episode loads and starts at 0.
+
+## Episode rows carry a play control on the artwork
+
+From `apps/listen/app/components/row/row-image.tsx`, where `Row` clones the play button
+into `RowImage` as a child. Two things fade in together over 300ms: a black scrim at 0.2
+opacity, and the button from 0 to 1.
+
+The trigger there is `isHovering || isActive || isMenuOpen`, and `active` is a semantic
+prop meaning *this row is the current item*, not a press state. So the current episode
+keeps its control on screen while every other row reveals one on hover, which is exactly
+what `.row.on` already marked here.
+
+| row | scrim | button | glyph |
+| --- | --- | --- | --- |
+| current, idle | 0.2 | shown | play |
+| current, playing | 0.2 | shown | **pause** |
+| other, idle | 0 | hidden | play |
+| other, hovered | 0.2 | shown | play |
+| any, coarse pointer | `display: none` | `display: none` | n/a |
+
+The button is `<Button color="default" kind="primary" size="icon">`: `brandWhite` behind a
+`gray600` glyph on this light surface, `space[4]` padding, square, fully round. The
+existing `play.svg` and `pause.svg` are already `#27292D`, which is that `gray600`.
+
+`RowImage` also sets pointer-events and display to none under `pointerCoarse`, and that
+carries over. A touch device has no hover, so an overlay that only appears on hover would
+either never show or never leave. The row itself stays tappable, and it toggles.
+
+One deliberate difference: the tile stays **56px**, the size the Figma frames draw for
+these cards. `RowImage` sizes its own at 6.8 to 8.8rem, which belongs to a full page rather
+than an embed.
