@@ -533,7 +533,6 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="hero-controls">
             <span class="cc-side">
               ${isLive ? '' : `
-                <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
                 <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
               `}
             </span>
@@ -1184,12 +1183,17 @@ function makeWidget(rootId, statusId, colourId, variant) {
   /* Design C keeps its actions in the bottom right row rather than beside the
      play button, which is what frames 2533:85717 and 2512:111876 draw. The
      order is the frames' own: list first where there is one, then plus, info,
-     share. Live radio has no episode list, so it takes the same row without
-     the list button and the group sits in the same place.
+     share, with the speed control ahead of the list. Live radio has no episode
+     list and no speed control, so it takes the same row with just the last
+     three and the group sits in the same place.
+     Moving speed out of the transport also leaves that row symmetrical, back 15
+     and forward 30 either side of the play button.
      They are not part of the transport, so they do not hide with it: both
      frames show all of them on a card nobody has pressed play on yet. */
-  const cActions = (withList) =>
-    (withList ?
+  const cActions = (isPodcast) =>
+    (isPodcast ?
+      '<button class="h-btn" data-act="speed" aria-label="Playback speed">' +
+        '<span class="h-speed">1x</span></button>' +
       '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes">' +
         '<img src="assets/h-list.svg" alt=""></button>' : '') +
     '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
