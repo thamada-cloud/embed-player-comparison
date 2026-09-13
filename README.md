@@ -2069,3 +2069,36 @@ panel correctly on all three designs.
 
 Verified on all six cards: the panel is inside the card, aligned to its bottom, 80% of its
 height or less, with a 56px heading and a close that is reachable and works.
+
+## Prototype page, stripped to the players
+
+`widget.html` carried a lot of narration that made sense while the designs were being
+explained and is noise now that they are being compared.
+
+Removed: the "Live today" band, the "Prototype, not shipped" band, the per widget
+"Prototype" tag, the "Live today" tag on the shipping player, the description under every
+heading, the blurb under each design band, the header's prose line, and the "fills" readout
+on the width control. Renamed: "Audio Widget Prototype" to "Widget Prototype", and "iHeart
+embed player" to "Widget player". The three design bands are now just Design A, B and C.
+
+Two things in the header were kept, because they are instruments rather than description:
+the **window width readout** and the **Fill** button, both of which belong to the width
+slider beside them.
+
+### The speed menu no longer opens over its own button
+
+It preferred to open upward and, when the list did not fit, clamped to the top of the card.
+On design B the button sits mid card, so clamping ran the menu straight over the control it
+belongs to.
+
+It now measures the room on both sides, opens above when the list fits there, below when it
+fits there instead, and when neither has room takes the larger gap and caps the menu to it,
+so it always stops short of the button.
+
+| design | menu | button | overlaps |
+| --- | --- | --- | --- |
+| A podcast | 8 to 118 | 122 to 154 | no |
+| B podcast | 8 to 92 | 96 to 128 | no |
+| C podcast | 8 to 148 | 152 to 184 | no |
+
+Live radio has no speed control, so there is no menu to place.

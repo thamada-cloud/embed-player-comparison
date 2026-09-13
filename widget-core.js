@@ -1315,21 +1315,36 @@ function makeWidget(rootId, statusId, colourId, variant) {
 
     card.appendChild(menu);
 
-    /* Opens upward: this button sits low in every design and the card clips its
-       own overflow, so downward would open into nothing. Measured after it is
-       in the DOM, then clamped so neither edge leaves the card. */
+    /* Above the button by preference, below it when there is no room, and
+       never ON it. Clamping a too-tall menu to the top of the card was the bug:
+       on design B the button sits mid card, so a menu pinned to the top ran
+       straight over the control it belongs to. The rule now is to measure both
+       gaps, take the side that fits, and if neither does, take the larger gap
+       and cap the menu to it so it still stops short of the button. */
     const cb = card.getBoundingClientRect();
     const bb = btn.getBoundingClientRect();
     const mb = menu.getBoundingClientRect();
+    const GAP = 4, EDGE = 8;
+
     let left = bb.left - cb.left;
-    left = Math.max(8, Math.min(left, cb.width - mb.width - 8));
-    let top = bb.top - cb.top - mb.height - 4;
-    /* A short card cannot fit the list above the button. Sit it against the top
-       and let the menu's own overflow scroll rather than spill off the card. */
-    if (top < 8) top = 8;
+    left = Math.max(EDGE, Math.min(left, cb.width - mb.width - EDGE));
+
+    const above = (bb.top - cb.top) - GAP - EDGE;        /* room over the button */
+    const below = (cb.bottom - bb.bottom) - GAP - EDGE;  /* room under it */
+    let top;
+    if (mb.height <= above) {
+      top = (bb.top - cb.top) - mb.height - GAP;
+    } else if (mb.height <= below) {
+      top = (bb.bottom - cb.top) + GAP;
+    } else if (above >= below) {
+      menu.style.maxHeight = Math.max(0, above) + 'px';
+      top = EDGE;
+    } else {
+      menu.style.maxHeight = Math.max(0, below) + 'px';
+      top = (bb.bottom - cb.top) + GAP;
+    }
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
-    if (mb.height > cb.height - 16) menu.style.maxHeight = (cb.height - 16) + 'px';
 
     document.addEventListener('keydown', onSpeedKey, true);
     document.addEventListener('pointerdown', onSpeedAway, true);
@@ -1701,7 +1716,8 @@ function applyWidth(px, atMax) {
   widthRange.value = String(px);
   /* Leave a field alone while it is being typed in, or the caret jumps. */
   if (document.activeElement !== widthNum) widthNum.value = String(px);
-  widthOut.textContent = atMax ? 'fills' : '';
+  /* The readout is optional; the page dropped it. */
+  if (widthOut) widthOut.textContent = atMax ? 'fills' : '';
 }
 
 function syncWidthControl(keepAtMax) {

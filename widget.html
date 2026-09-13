@@ -4,40 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Audio Widget Prototype, not shipped</title>
+<title>Widget Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260913144408">
+<link rel="stylesheet" href="widget-core.css?v=20260913144816">
 </head>
 <body>
 
 <header>
-  <div class="brand">Audio Widget Prototype <span>from Figma, Audio Widgets</span></div>
-  <div class="hint">One live player at the top, four prototypes below it. Nothing below the first band is shipped.
-    &middot; <a href="host-home.html">See any of them in a real publisher slot</a></div>
+  <div class="brand">Widget Prototype</div>
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
   <div class="widthctl">
     <label for="widthRange">Player width</label>
     <input id="widthRange" type="range" min="0" max="1320" step="1" aria-label="Player width">
     <input id="widthNum" type="number" min="0" max="1320" step="1" aria-label="Player width in pixels">
     <span class="unit">px</span>
-    <output id="widthOut" for="widthRange"></output>
     <button type="button" id="widthFill">Fill</button>
   </div>
 </header>
 
 <main>
-  <div class="band band-live">
-    <span class="tag tag-live">Live today</span>
-    <p><b>This is what iHeart serves right now.</b> Real iframes from iheart.com, not screenshots and
-       not a rebuild. Anything you see here is already in production.</p>
-  </div>
-
   <section>
-    <div class="h2row"><h2>iHeart embed player</h2><span class="tag tag-live">Live today</span></div>
-    <p class="sub">Carrying the same episode and the same station as the prototypes below, so the
-       comparison is like for like.</p>
+    <div class="h2row"><h2>Widget player</h2></div>
     <div class="embeds">
       <div class="embed">
         <span class="embed-label">Podcast</span>
@@ -54,20 +43,11 @@
   </section>
 
   <div class="band band-proto">
-    <span class="tag tag-proto">Prototype, not shipped</span>
-    <p><b>Everything from here down is a test build.</b> Two designs, each in a podcast and a live
-       radio version, built from the Figma frames and playing real iHeart audio. None of it is in
-       the product, and none of it is a variant anyone has been served.</p>
-  </div>
-
-  <div class="band band-proto">
-    <h2>Design A, the bar card</h2>
-    <p>Artwork beside the text, transport controls in a row, and the episode list below.</p>
+    <h2>Design A</h2>
   </div>
 
   <section>
-    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast"></span></div>
-    <p class="sub">Search any iHeart podcast. The newest episode loads and plays, and the header colour comes from that show's artwork.</p>
+    <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast"></span></div>
     <div class="search" data-for="podcast">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
       <div class="results" hidden></div>
@@ -78,8 +58,7 @@
   </section>
 
   <section>
-    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live"></span></div>
-    <p class="sub">Search any iHeart station. Live radio has no duration, so there is no scrubber.</p>
+    <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live"></span></div>
     <div class="search" data-for="live">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>
@@ -90,15 +69,11 @@
   </section>
 
   <div class="band band-proto">
-    <h2>Design B, the hero card</h2>
-    <p>The artwork fills the card under a scrim, with one brand red play button in the middle of it.
-       Frames 2512:113087 and 2512:111965, and their playing states 2512:113298 and 2512:111876.</p>
+    <h2>Design B</h2>
   </div>
 
   <section>
-    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast-hero"></span></div>
-    <p class="sub">The show's own artwork is the background under 70% black. Press play to see the
-       rest of the controls and the scrubber.</p>
+    <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast-hero"></span></div>
     <div class="search" data-for="podcast-hero">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
       <div class="results" hidden></div>
@@ -109,9 +84,7 @@
   </section>
 
   <section>
-    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live-hero"></span></div>
-    <p class="sub">Same card, no episode list, and the two metadata lines swap weights so the station
-       name leads.</p>
+    <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live-hero"></span></div>
     <div class="search" data-for="live-hero">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>
@@ -122,16 +95,11 @@
   </section>
 
   <div class="band band-proto">
-    <h2>Design C, the hero card with controls always on</h2>
-    <p>Design B's card with every control on screen at rest, a list button over the scrubber that
-       opens the episodes, and a live radio side that is its own layout rather than the podcast
-       minus parts. Frames 2533:85625 and 2533:91574.</p>
+    <h2>Design C</h2>
   </div>
 
   <section>
-    <div class="h2row"><h2>Podcast</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-podcast-c"></span></div>
-    <p class="sub">Seven controls, a scrubber, and a list button at the right that opens the episode
-       list under the card.</p>
+    <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast-c"></span></div>
     <div class="search" data-for="podcast-c">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
       <div class="results" hidden></div>
@@ -142,9 +110,7 @@
   </section>
 
   <section>
-    <div class="h2row"><h2>Live radio</h2><span class="tag tag-proto">Prototype</span><span class="gauge" id="g-live-c"></span></div>
-    <p class="sub">A 48px tile, one line joining the station and its description, three icons at the
-       bottom right, and no waveform.</p>
+    <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live-c"></span></div>
     <div class="search" data-for="live-c">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>
@@ -156,6 +122,6 @@
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260913144408"></script>
+<script src="widget-core.js?v=20260913144816"></script>
 </body>
 </html>
