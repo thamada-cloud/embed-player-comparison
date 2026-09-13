@@ -1895,18 +1895,26 @@ either side of the play button, so it reads balanced as well as measuring centre
 
 ### Two things the move to the left edge broke
 
-**The speed label outgrew its button.** `.h-speed` was a fixed 24px box, which is right for
-an icon and wrong for text: the label cycles 1x, 1.25x, 1.5x, 2x, 0.75x, and 1.25x needs
-34. It spilled outside the button's own hover background. It now takes a 40px min-width,
-sized to the longest label rather than left to grow, so the button holds one width through
-the whole cycle and the group beside it never shifts. The `aspect-ratio: 1/1` is dropped
-for this button too: that comes from Button size `icon`, and this is a text button.
+**The speed label outgrew its button**, and the fix is the one iheart.com uses: keep the
+box fixed and drop the type, rather than letting the button grow.
 
-| label | needs | before | now |
+Production's `PlaybackSpeed` puts the label in a **3.2rem square** and sets **caption-3**,
+12 / 16 / 600, on small screens, stepping up to caption-1 at 14 only where there is room.
+Measured at 12px SemiBold the widest label is 29, so a 32px box holds every step:
+
+| text size | widest label, `1.25x` | fits 24 | fits 32 |
 | --- | --- | --- | --- |
-| 1x | 15.2 | 24 box, fits | 40 box, fits |
-| 1.25x | 34 | 24 box, **spills 10** | 40 box, fits |
-| 1.5x | 26.5 | 24 box, **spills 2.5** | 40 box, fits |
+| 14, as it was | 34.5 | no | **no** |
+| **12, as shipped** | **29.5** | no | **yes** |
+| 10 | 24.4 | no | yes |
+
+Nothing under 32 can hold it at any legible size, which is why the box is 32 rather than
+the 24 an icon gets.
+
+One departure from production: it pairs that 32px box with Button size `icon`, whose 4px
+of padding makes the button **40** overall, wider than its neighbours. Here the padding is
+dropped instead and the 32px box IS the button, so it measures 32 x 32 like every icon
+button beside it and the row stays even.
 
 **Tooltips at the row's ends were clipped.** The bottom row now pins groups to BOTH edges,
 so a button at either end sits 16 from the card and any bubble wider than 32 overhangs.

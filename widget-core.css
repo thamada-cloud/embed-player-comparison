@@ -428,17 +428,23 @@ a.thumb-link:hover { opacity: .92; }
    frame it came from is not one. */
 /* button-2, like the bar card's speed control. The -0.4 tracking it carried
    is not a value the system has; the kind's is -0.2. */
-/* A text button, not an icon one. The label cycles 1x, 1.25x, 1.5x, 2x, 0.75x,
-   and 1.25x needs 34px, so a fixed 24px box let the text spill outside the
-   button's own hover background. min-width is sized to the longest label rather
-   than left to grow, so the button keeps one width through the whole cycle and
-   the group beside it never shifts. */
-.h-speed { display: block; min-width: 40px; width: auto; height: var(--fs-24);
-           line-height: var(--lh-24); text-align: center; white-space: nowrap;
-           font-size: var(--fs-14); font-weight: 600;
+/* The speed control, sized the way iheart.com sizes it. Production keeps the
+   box FIXED and drops the type rather than letting the button grow: its
+   PlaybackSpeed puts the label in a 3.2rem square and sets caption-3 on small
+   screens, 12 / 16 / 600, stepping up to caption-1 at 14 only when there is
+   room. Measured at 12px SemiBold the widest label, 1.25x, is 29.5, so a 32px
+   box holds every step of the cycle with room to spare. At 14 it needed 34.5
+   and nothing under 32 could hold it.
+
+   The one departure: production pairs that 32px box with Button size `icon`,
+   whose 4px of padding makes the button 40 overall, wider than its neighbours.
+   Here the padding is dropped instead and the 32px box IS the button, so it
+   matches the icon buttons beside it exactly and the row stays even. */
+.h-btn[data-act="speed"], .icon-btn[data-act="speed"] { aspect-ratio: auto; padding: 0; }
+.h-speed { display: block; width: 32px; height: 32px; line-height: 32px;
+           text-align: center; white-space: nowrap;
+           font-size: var(--fs-12); font-weight: 600;
            letter-spacing: var(--ls-0); color: var(--true-white); }
-/* aspect-ratio comes from Button size `icon`, which this is not. */
-.h-btn[data-act="speed"], .icon-btn[data-act="speed"] { aspect-ratio: auto; }
 /* Same variant as the bar card's icon buttons: tertiary / white. */
 .h-btn:hover, .h-btn:active, .h-btn[aria-pressed="true"] {
   background-color: var(--ihr-gray-400);
