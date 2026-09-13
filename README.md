@@ -1919,3 +1919,48 @@ right edge, which was correct while the row only had a right group. Applied to t
 group it would push those bubbles further off the card rather than back onto it.
 
 Measured at 352 and 1280, podcast and live: **no tooltip overhangs the card on any button**.
+
+## Music content mode
+
+The gallery's Content control now has a third setting, **Music**, alongside Live Radio and
+Podcast. One track across every player that can embed one, so the mode compares chrome
+rather than content.
+
+Three players carry it: **Spotify**, **Apple Music** and **Deezer**. Apple Music is a new
+entry, added because two players is a thin comparison; it is a `caveat`, since a signed-out
+viewer gets a 30 second preview and a Sign In button, so any preference it attracts is
+partly about the paywall.
+
+### Music has no fallback chain, on purpose
+
+The other modes fall back, because a podcast player showing the wrong show still tells you
+something about its chrome. Music is different: a player with no track embed has nothing to
+substitute, and filling the grid with 26 podcast cards under a Music heading would answer a
+question nobody asked. `FALLBACK.music` is deliberately empty, so those players resolve to
+blocked and drop out of the grid on their own.
+
+### What failed the paint check
+
+Every id came from the service's own public endpoint. Every embed was then loaded in a real
+cross-origin iframe and checked that it PAINTS, which is this registry's standing rule, and
+it earned its keep: **four of the eight candidates returned 200 and rendered something
+wrong rather than nothing.**
+
+| | what actually happened |
+| --- | --- |
+| iHeart | **No track embed exists.** `?embed=true` on a song URL serves the full site chrome with a mini player on an unrelated station |
+| YouTube | **Error 153**, embedding disabled. True of the official video and the official audio upload alike, which is normal for major label music |
+| TIDAL | Has a track embed, but no public endpoint to resolve an id from, and a guessed id resolved to an unrelated track |
+| SoundCloud | Same. Its track endpoint needs a client id to search |
+| Audiomack | Refused the frame |
+
+Those are recorded in `MUSIC_NOTES` in `players.js` so nobody re-tries them from memory.
+The iHeart one is the finding worth carrying: there is no way to embed a single song.
+
+### One knock-on fix
+
+Apple Music only does music, so under Podcast or Live Radio it resolves to blocked. The
+gallery already drops blocked players, but `index.html` deliberately SHOWS them with their
+reason, and would have rendered a "Cannot be embedded" card for a player that embeds
+perfectly well. Its roster now separates the two cases: genuinely blocked players stay,
+players that simply carry nothing for the current mode drop out.

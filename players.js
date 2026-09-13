@@ -23,6 +23,14 @@
 
 const LIVE_LABEL = 'Z100 New York (WHTZ-FM)';
 
+/* One track across every player that can embed one, so music mode compares the
+   chrome rather than the content. Each id was resolved from the service's own
+   public endpoint, never guessed, and every embed below was loaded in a real
+   cross-origin iframe and checked that it PAINTS. That check earned its keep:
+   four of the eight candidates rendered something wrong rather than nothing.
+   See MUSIC_NOTES for what failed and why. */
+const MUSIC_LABEL = 'Blinding Lights, The Weeknd';
+
 /* Two podcasts, switchable. Each maps to its own mode key in a player's `modes`,
    so a player can carry one, both, or neither, and the fallback chain below
    handles the gaps honestly instead of showing the wrong show silently. */
@@ -122,7 +130,8 @@ const PLAYERS = [
     id: 'spotify', name: 'Spotify', status: 'ok', group: 'parity',
     allow: 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture',
     modes: { podcast: { src: 'https://open.spotify.com/embed/episode/6naVnsbI9VWEMSrqnJpIEI', h: 152 },
-             podcastCJ: { src: 'https://open.spotify.com/embed/episode/3OxGBFEZ5mUzXC1pG0kX2d', h: 152 } },
+             podcastCJ: { src: 'https://open.spotify.com/embed/episode/3OxGBFEZ5mUzXC1pG0kX2d', h: 152 },
+             music: { src: 'https://open.spotify.com/embed/track/0VjIjW4GlUZAMYd2vXMi3b', h: 152 } },
     facts: {
       'Content': 'The exact target episode of both shows',
       'Sign-in': 'Not required. Podcast episodes play in full anonymously, unlike music tracks which cut to a 30 second preview.',
@@ -131,10 +140,27 @@ const PLAYERS = [
     }
   },
   {
+    /* Added for music mode. Apple Podcasts is a separate product and a separate
+       entry; this is the music one, and it is the only other service on the
+       roster that embeds a single on-demand track. */
+    id: 'applemusic', name: 'Apple Music', status: 'caveat', group: 'parity',
+    why: 'Plays a 30 second preview unless the viewer is signed in to a subscription.',
+    allow: 'autoplay; encrypted-media; clipboard-write',
+    sandbox: 'allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation',
+    modes: { music: { src: 'https://embed.music.apple.com/us/album/blinding-lights/1499378108?i=1499378607', h: 175 } },
+    facts: {
+      'Content': 'The target track (Apple album 1499378108, track 1499378607)',
+      'Sign-in': 'A signed-out viewer gets a 30 second preview and a Sign In button, so any preference it attracts is partly about the paywall rather than the player.',
+      'Podcasts elsewhere': 'Apple serves podcasts from a different host and a different embed, which is the separate Apple Podcasts entry.',
+      'Height': 'Ships at 175px for a single track.'
+    }
+  },
+  {
     id: 'deezer', name: 'Deezer', status: 'ok', group: 'parity', themed: true,
     allow: 'encrypted-media; clipboard-write',
     modes: { podcast: { src: 'https://widget.deezer.com/widget/{theme}/episode/929240302', h: 300 },
-             podcastCJ: { src: 'https://widget.deezer.com/widget/{theme}/episode/930917952', h: 300 } },
+             podcastCJ: { src: 'https://widget.deezer.com/widget/{theme}/episode/930917952', h: 300 },
+             music: { src: 'https://widget.deezer.com/widget/{theme}/track/908604612', h: 300 } },
     facts: {
       'Content': 'The exact target episode of both shows (Deezer 929240302 and 930917952)',
       'Sign-in': 'Not required for podcasts. Music tracks are capped at 30 second previews.',
@@ -363,7 +389,24 @@ const PLAYERS = [
 const FALLBACK = {
   live:      ['podcast', 'podcastCJ'],
   podcast:   ['podcastCJ', 'live'],
-  podcastCJ: ['podcast', 'live']
+  podcastCJ: ['podcast', 'live'],
+  /* Deliberately empty. The other modes fall back because a podcast player
+     showing the wrong show still tells you something about its chrome. Music is
+     different: a player with no track embed has nothing to substitute, and
+     filling the grid with podcast cards under a Music heading would answer a
+     question nobody asked. Music mode shows only the players that do music. */
+  music:     []
+};
+
+/* What failed the paint check, kept here so nobody re-tries them from memory.
+   Every one returned a 200 and rendered something, which is exactly why the
+   registry's rule is to look at the frame rather than the status code. */
+const MUSIC_NOTES = {
+  iheart:     'No track embed exists. ?embed=true on a song URL serves the full site chrome with a mini player on an unrelated station.',
+  youtube:    'Error 153, embedding disabled. True of the official video and the official audio upload alike, which is normal for major label music.',
+  tidal:      'Has a track embed, but no public endpoint to resolve an id from, and a guessed id resolved to an unrelated track.',
+  soundcloud: 'Same. The track endpoint needs a client id to search.',
+  audiomack:  'Refused the frame.'
 };
 
 /* Which mode entry does this player actually show, and did it fall back? */

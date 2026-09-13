@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Embed Player Gallery</title>
-<link rel="stylesheet" href="shared.css?v=20260913135455">
+<link rel="stylesheet" href="shared.css?v=20260913140449">
 <style>
 /* ---------- gallery layout, this page only ---------- */
 main { background: var(--stage); padding: 20px 20px 80px; }
@@ -80,6 +80,7 @@ section { margin: 0; }
     <div class="seg" id="modeSeg">
       <button data-mode="live" aria-pressed="false">Live Radio</button>
       <button data-mode="podcast" aria-pressed="true">Podcast</button>
+      <button data-mode="music" aria-pressed="false">Music</button>
     </div>
   </div>
 
@@ -128,7 +129,7 @@ section { margin: 0; }
   </div>
 </main>
 
-<script src="players.js?v=20260913135455"></script>
+<script src="players.js?v=20260913140449"></script>
 <script>
 /* ============================================================================
    GALLERY
@@ -154,9 +155,11 @@ const state = {
   cols: 3
 };
 
-/* The mode key actually handed to the registry. Live ignores the show picker. */
+/* The mode key actually handed to the registry. Live and music both ignore the
+   show picker, which only chooses between the two podcasts. */
 function effectiveMode() {
-  return state.mode === 'live' ? 'live' : SHOWS[state.show].mode;
+  if (state.mode === 'live' || state.mode === 'music') return state.mode;
+  return SHOWS[state.show].mode;
 }
 
 const $ = (s) => document.querySelector(s);
@@ -259,7 +262,11 @@ function build() {
   /* Blocked players are left out of the grid entirely rather than rendered as a
      reason. Blocking is per MODE, not per player, so this is filtered on every
      build rather than once: a service can be fine for podcasts and refuse the
-     frame for live. The count under the header already counted this way. */
+     frame for live. The count under the header already counted this way.
+     Music has no fallback chain, so a player without a track embed resolves to
+     blocked here and drops out on its own. That is the intent: the mode exists
+     to see players PLAYING MUSIC, and filling the grid with podcast cards under
+     a Music heading would answer a question nobody asked. */
   PLAYERS.filter((p) => !resolveEntry(p, effectiveMode()).blocked).forEach((p) => {
     const c = cardFor(p);
     const wrap = c.querySelector('.frame-wrap');

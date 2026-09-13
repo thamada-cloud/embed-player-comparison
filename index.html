@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Embed Player Comparison</title>
-<link rel="stylesheet" href="shared.css?v=20260913135455">
+<link rel="stylesheet" href="shared.css?v=20260913140449">
 <style>
 /* ---------- stage, one-at-a-time page only ---------- */
 /* ---------- stage ---------- */
@@ -88,7 +88,7 @@ footer {
   <span class="hint">Arrow keys navigate</span>
 </footer>
 
-<script src="players.js?v=20260913135455"></script>
+<script src="players.js?v=20260913140449"></script>
 <script>
 /* The 50-player registry and the shared helpers live in players.js,
    loaded above, so this page and gallery.html cannot drift apart. */
@@ -113,7 +113,18 @@ function effectiveMode() {
 
 /* Every player, in the current shuffle order. No filtering. */
 function visible() {
-  return state.order;
+  /* Players that genuinely cannot be embedded stay in the roster: this page
+     shows them with their reason on purpose, so the team stops re-asking.
+     What is filtered out is the other case, a player that embeds perfectly well
+     but carries nothing for the mode being viewed and has no fallback. Apple
+     Music is the one that does this: it only does music, so under Podcast or
+     Live Radio it would otherwise render a "Cannot be embedded" card, which is
+     not true of it. */
+  return state.order.filter((n) => {
+    const p = PLAYERS[n];
+    if (p.status === 'blocked') return true;
+    return !resolveEntry(p, effectiveMode()).blocked;
+  });
 }
 
 const $ = (s) => document.querySelector(s);
