@@ -893,16 +893,11 @@ function makeWidget(rootId, statusId, colourId, variant) {
   function act(kind, btn) {
     const a = w.audio;
     if (kind === 'play') return toggle();
-    if (kind === 'speed') {
-      const steps = [1, 1.25, 1.5, 2, .75];
-      w.speed = steps[(steps.indexOf(w.speed) + 1) % steps.length];
-      if (a) a.playbackRate = w.speed;
-      /* The bar design writes the rate into the button; the hero design's
-         button is an icon with nowhere to put it, so it is reported instead. */
-      const lbl = btn.querySelector('span');
-      if (lbl) lbl.textContent = w.speed + 'x';
-      else status('Playback speed ' + w.speed + 'x');
-    }
+    /* A list, not a cycle. iheart.com opens an accomplice Menu from this button
+       rather than stepping through rates blind, which is what PlaybackSpeed in
+       apps/listen/app/playback/actions does. A cycle makes you press four times
+       to go back one, and never shows you what the options are. */
+    if (kind === 'speed') speedMenu(btn);
     if (kind === 'back' && a) a.currentTime = Math.max(0, a.currentTime - 15);
     if (kind === 'fwd' && a) a.currentTime = Math.min(a.duration || 1e9, a.currentTime + 30);
     /* Saving needs an account, and an embed is never signed in, so the honest
@@ -1231,6 +1226,78 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const GLYPH_X =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  /* The rates production offers, in its order. Speed.Slow through
+     Speed.Fastest in packages/playback/src/player/schemas.ts. Note 0.5 rather
+     than the 0.75 this prototype cycled through: the enum has no 0.75. */
+  const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
+
+  function closeSpeedMenu() {
+    const open = root.querySelector('.speed-menu');
+    if (open) open.remove();
+    document.removeEventListener('keydown', onSpeedKey, true);
+    document.removeEventListener('pointerdown', onSpeedAway, true);
+  }
+  function onSpeedKey(e) { if (e.key === 'Escape') { e.stopPropagation(); closeSpeedMenu(); } }
+  function onSpeedAway(e) {
+    const m = root.querySelector('.speed-menu');
+    if (m && !m.contains(e.target) && !e.target.closest('[data-act="speed"]')) closeSpeedMenu();
+  }
+
+  function speedMenu(btn) {
+    const card = root.querySelector('.widget');
+    if (!card) return;
+    /* Pressing the button again closes it, the way a menu trigger behaves. */
+    if (root.querySelector('.speed-menu')) { closeSpeedMenu(); return; }
+
+    const menu = document.createElement('div');
+    menu.className = 'speed-menu';
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', 'Playback speed');
+    menu.innerHTML = SPEEDS.map((v) =>
+      '<button type="button" role="menuitemradio" data-speed="' + v + '"' +
+      ' aria-checked="' + (v === w.speed ? 'true' : 'false') + '">' + v + 'x</button>'
+    ).join('');
+
+    menu.addEventListener('click', (e) => {
+      const item = e.target.closest('button[data-speed]');
+      if (!item) return;
+      w.speed = Number(item.dataset.speed);
+      if (w.audio) w.audio.playbackRate = w.speed;
+      /* The label lives in the button on every design that has one. */
+      const lbl = btn.querySelector('span');
+      if (lbl) lbl.textContent = w.speed + 'x';
+      else status('Playback speed ' + w.speed + 'x');
+      closeSpeedMenu();
+      btn.focus();
+    });
+    /* The artwork cards play on any click, so the menu keeps its own. */
+    menu.addEventListener('pointerdown', (e) => e.stopPropagation());
+    menu.addEventListener('click', (e) => e.stopPropagation());
+
+    card.appendChild(menu);
+
+    /* Opens upward: this button sits low in every design and the card clips its
+       own overflow, so downward would open into nothing. Measured after it is
+       in the DOM, then clamped so neither edge leaves the card. */
+    const cb = card.getBoundingClientRect();
+    const bb = btn.getBoundingClientRect();
+    const mb = menu.getBoundingClientRect();
+    let left = bb.left - cb.left;
+    left = Math.max(8, Math.min(left, cb.width - mb.width - 8));
+    let top = bb.top - cb.top - mb.height - 4;
+    /* A short card cannot fit the list above the button. Sit it against the top
+       and let the menu's own overflow scroll rather than spill off the card. */
+    if (top < 8) top = 8;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    if (mb.height > cb.height - 16) menu.style.maxHeight = (cb.height - 16) + 'px';
+
+    document.addEventListener('keydown', onSpeedKey, true);
+    document.addEventListener('pointerdown', onSpeedAway, true);
+    const checked = menu.querySelector('[aria-checked="true"]') || menu.firstElementChild;
+    if (checked) checked.focus();
+  }
 
   function shareDialog() {
     const card = root.querySelector('.widget');

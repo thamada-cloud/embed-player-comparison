@@ -1326,3 +1326,41 @@ a.thumb-link:hover { opacity: .92; }
 @media (pointer: fine) { .share-copy:hover { background-color: var(--ihr-gray-300); } }
 .share-copy:active { background-color: var(--ihr-gray-300); transform: scale(.95); }
 .share-copy:focus-visible { outline: var(--border-2) solid var(--ihr-blue-400); outline-offset: 2px; }
+
+/* ---------- accomplice Menu, the playback speed list ----------
+   From components/menu/menu.css.ts, and the item set from
+   apps/listen/app/playback/actions/playback-speed.tsx, which opens exactly this
+   menu from exactly this button.
+
+     content   lightDark(brandWhite, gray600) surface, radius[2], elevation4,
+               min-width 15.6rem, max-height 50vh, scrolls if it must
+     item      14 / 18 / 400 at letterSpacing[1], space[8] padding, 4rem cap
+     hover     lightDark(gray250, gray450)
+     pressed   lightDark(gray200, gray500)
+     motion    400ms ease, sliding in from 1rem on the opening side
+
+   These cards are dark surfaces, so every pair takes its dark half. The menu
+   opens UPWARD: this button sits low in every design, and the card clips its
+   own overflow, so downward would open into nothing. */
+.speed-menu {
+  position: absolute; z-index: 12;
+  min-width: 156px; max-width: 100%; max-height: 50vh; overflow: hidden auto;
+  background-color: var(--ihr-grey-600); color: var(--true-white);
+  border-radius: var(--rad-2); box-shadow: 0 3px 5px rgba(0, 0, 0, .15);
+  outline: none; padding: 0;
+  animation: speed-menu-in 400ms ease;
+}
+@keyframes speed-menu-in { from { opacity: 0; transform: translateY(1rem); } }
+@media (prefers-reduced-motion: reduce) { .speed-menu { animation: none; } }
+.speed-menu button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: flex; flex-direction: row; align-items: center; width: 100%;
+  max-width: 100%; max-height: 4rem; gap: var(--sp-8); padding: var(--sp-8);
+  color: var(--true-white); font-family: inherit; font-weight: 400;
+  font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-1);
+  text-align: left; user-select: none; overflow: hidden;
+}
+.speed-menu button:hover, .speed-menu button:focus-visible,
+.speed-menu button[aria-checked="true"] { background-color: var(--ihr-grey-450); }
+.speed-menu button:active { background-color: var(--ihr-gray-500); }
+.speed-menu button:focus-visible { outline: none; }

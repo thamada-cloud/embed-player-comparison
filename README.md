@@ -2000,3 +2000,37 @@ live. It is one of the four in Live Radio, where it belongs.
 
 The four that carry live radio are iHeartRadio, TuneIn, YouTube and Zeno.fm. That is the
 whole embeddable live radio field, which is worth knowing on its own.
+
+## The speed button opens a Menu
+
+It used to cycle: one press stepped to the next rate, so going back one meant pressing four
+more times, and the options were never visible. iheart.com does not do that. Its
+`PlaybackSpeed` opens an accomplice **Menu** from this button, and that is what the button
+does now.
+
+Surface from `components/menu/menu.css.ts`, item set from
+`apps/listen/app/playback/actions/playback-speed.tsx`:
+
+| | value |
+| --- | --- |
+| content | `lightDark(brandWhite, gray600)`, `radius[2]`, `elevation4`, min-width 15.6rem |
+| item | 14 / 18 / 400 at `letterSpacing[1]`, `space[8]` padding, 4rem cap |
+| hover, focus | `lightDark(gray250, gray450)` |
+| pressed | `lightDark(gray200, gray500)` |
+| motion | 400ms ease, sliding in from 1rem |
+| items | **0.5x, 1x, 1.25x, 1.5x, 2x** |
+
+These cards are dark surfaces, so each pair takes its dark half.
+
+**The rates changed.** Production's `Speed` enum runs 0.5, 1, 1.25, 1.5, 2. This prototype
+cycled through 0.75, which is not one of them, so the slow step is now 0.5.
+
+**It opens upward, inside the card.** Production's menu is a viewport-level popover; an
+embed has no viewport worth speaking of and the card clips its own overflow, so the menu is
+positioned against the card, opens above the button, and is clamped to stay inside. A card
+too short to fit the list above the button gets it pinned to the top with its own scroll
+rather than spilling off. The current rate carries `aria-checked` and is highlighted, as
+the reference shows.
+
+Escape closes it, a click outside closes it, pressing the button again closes it, and it
+stops its own clicks reaching the card, which otherwise plays on any click.
