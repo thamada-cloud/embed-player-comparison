@@ -2115,9 +2115,9 @@ point of having ported to it.
 
 | drawer | before | after |
 | --- | --- | --- |
-| Episodes | 100% of the card, 0.28s | **80%, 600ms** |
-| Info | 100% of the card, 0.28s | **80%, 600ms** |
-| Share | 80%, 600ms | unchanged |
+| Episodes | 100% of the card, 0.28s | 100%, **600ms** |
+| Info | 100% of the card, 0.28s | 100%, **600ms** |
+| Share | 80%, 600ms | **100%**, 600ms |
 
 ### The shape, and why it is not simply `bottom: 0`
 
@@ -2129,6 +2129,16 @@ Anchoring the panel itself with `bottom: 0` does not work here: on the bar card 
 wraps the player AND the episode list, so the bottom of it sits below the list rather than
 at the bottom of the card you can see. That is the same trap the share drawer hit.
 
-`max-height` is a cap, not a height, so a drawer with little content is shorter: the info
-drawer runs from 50.8% on design C live to 80% on design C podcast. Verified on all six
-cards, every drawer inside its card, bottom aligned, with a reachable close.
+### Full height, not the component's 80%
+
+The Drawer caps its bottom placement at 80vh, and that is the one piece of its geometry
+these cards overrule. 80% reads fine on a full page, where a fifth of a tall viewport is
+still a lot of drawer. These cards are 180 to 444 tall, so the same fraction left barely
+enough room to read an episode list or a show description in.
+
+`height: 100%` rather than `max-height`, so a drawer with little content still fills the
+card instead of sitting in a short strip. Under the cap the info drawer had been ranging
+from 50.8% on design C live to 80% on design C podcast, depending on how much description
+the show happened to have.
+
+Verified on all six cards: every drawer at 100%, inside its card, with a reachable close.

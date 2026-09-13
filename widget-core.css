@@ -571,7 +571,14 @@ a.thumb-link:hover { opacity: .92; }
   visibility: hidden; transition: visibility 0s linear .6s;
 }
 .sheet-panel {
-  pointer-events: auto; width: 100%; max-height: 80%;
+  /* Full height, not the component's 80% cap. 80% reads fine on a full page,
+     where a fifth of a tall viewport is still a lot of drawer. These cards are
+     180 to 444 tall, so the same fraction left barely enough room to read an
+     episode list or a show description in. Height rather than max-height, so a
+     drawer with little content still fills the card instead of sitting in a
+     short strip. This is the one place the Drawer's own geometry is overruled,
+     and the reason is the container it is in. */
+  pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--true-white);
   border-radius: var(--rad-6) var(--rad-6) 0 0;
@@ -1234,7 +1241,8 @@ a.thumb-link:hover { opacity: .92; }
 }
 .widget.share-open .share-sheet { visibility: visible; transition: visibility 0s; }
 .share-panel {
-  pointer-events: auto; width: 100%; max-height: 80%;
+  /* Full height, for the reason .sheet-panel is. */
+  pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
   background-color: var(--true-white); color: var(--ihr-gray-500);
   border-radius: var(--rad-6) var(--rad-6) 0 0;
   display: flex; flex-direction: column; justify-content: flex-start;
