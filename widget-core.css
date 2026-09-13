@@ -1172,82 +1172,98 @@ a.thumb-link:hover { opacity: .92; }
   outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px;
 }
 
-/* ---------- accomplice Dialog, the share sheet ----------
-   Surface from components/dialog/dialog.css.ts, contents from
-   apps/listen/app/components/social-share/social-share-dialog.tsx:
+/* ---------- accomplice Drawer, the share sheet ----------
+   This was a Dialog, and a Dialog was the wrong component for it inside a card.
+   Its close button is absolute at top -40, which works on a full page where the
+   modal is centred with room above it, and fails completely in a box that clips
+   its own overflow: the close landed outside the card on five of six designs,
+   so the sheet could not be closed at all.
 
-     underlay   rgba(0 0 0 / 0.8), centred, fading in over 350ms
-     modal      column, 8 gap, 35.5rem wide and 40.1rem from large up,
-                scaling in from .75 over 350ms on cubic-bezier(.16,1,.3,1)
-     dialog     brandWhite, radius[6], column with 16 gap, centred text,
-                body-3 base, 24 top and bottom, 16 sides and 24 from medium up
-     heading    h5, and h4 from medium up
-     close      absolute, top -40, brandWhite, aligned to the end
-     artwork    5.6rem square, radius[6], elevation1
-     name       subtitle-4 on mobile, subtitle-3 from medium
-     desc       caption-4 on mobile, caption-2 from medium, gray450
-     section    "Share on" and "Embed widget", subtitle-5 then subtitle-4
-     embed row  input flushed and disabled, 4 gap, then a small primary button
+   A Drawer has nowhere to put a button outside itself. Its heading is a real
+   bar inside the surface, 5.6rem tall and justified space-between, which is
+   where the close belongs. From components/drawer/drawer.css.ts:
 
-   The underlay is fixed to the viewport in the original. Here it is absolute
-   inside the card, for the same reason the toast is: an embed's viewport is
-   the card, and on the prototype page six cards share one, so a fixed overlay
-   would dim all of them and name none. The dialog keeps the component's own
-   overflow:auto, so on a short card it scrolls rather than spilling. */
-.share-underlay {
+     overlay   rgba(0 0 0 / 0.8) with a 10px backdrop blur, over 600ms
+     drawer    right, bottom, left 0, width 100%, max-height 80vh,
+               radius 6px 6px 0 0, sliding up from translateY(100%) over 600ms
+     heading   5.6rem tall, space-between, gray200 on light, 18px at
+               letterSpacing[1], 16 of side padding
+     body      overflow auto, 16 / 24
+
+   The light half of each pair, matching the episodes drawer already on these
+   cards. Built the same way as that drawer too: rendered into the card and
+   toggled by a class, not appended at click time. Appending fought the card,
+   because an inset:0 overlay resolves against a box that is not the one you
+   see, and the sheet escaped the card entirely. 80% rather than 80vh, since
+   the card is what it must fit, not the viewport. */
+.share-scrim {
+  position: absolute; inset: 0; z-index: 19;
+  background: rgba(0 0 0 / 0.8); backdrop-filter: blur(10px);
+  opacity: 0; visibility: hidden;
+  transition: opacity .6s ease, visibility 0s linear .6s;
+}
+.widget.share-open .share-scrim {
+  opacity: 1; visibility: visible;
+  transition: opacity .6s ease, visibility 0s;
+}
+/* inset:0 with the drawer nested inside, rather than the drawer itself
+   anchored with bottom:0. The card's own drawers all position this way and all
+   work; bottom:0 does not, because on the bar card .widget wraps the player AND
+   the episode list, so the bottom of it is below the list rather than the
+   bottom of the card you can see. Filling the card and pushing the panel to the
+   end of a flex column lands it in the right place on every design. */
+.share-sheet {
   position: absolute; inset: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0 0 0 / 0.8);
-  animation: share-fade 350ms;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden; outline: none; pointer-events: none;
+  visibility: hidden; transition: visibility 0s linear .6s;
 }
-@keyframes share-fade { from { opacity: 0; } }
-.share-modal {
-  box-sizing: border-box; position: relative; z-index: 20;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: var(--sp-8); width: min(355px, 100%); max-height: 100%;
-  animation: share-scale 350ms cubic-bezier(.16, 1, .3, 1);
+.widget.share-open .share-sheet { visibility: visible; transition: visibility 0s; }
+.share-panel {
+  pointer-events: auto; width: 100%; max-height: 80%;
+  background-color: var(--true-white); color: var(--ihr-gray-500);
+  border-radius: var(--rad-6) var(--rad-6) 0 0;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform .6s ease;
 }
-@keyframes share-scale { from { opacity: 0; transform: scale(.75); } }
-@media (min-width: 1025px) { .share-modal { width: min(401px, 100%); } }
+.widget.share-open .share-panel { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {
-  .share-underlay, .share-modal { animation: none; }
+  .share-scrim, .share-sheet, .share-panel { transition: none; }
 }
-.share-dialog {
-  box-sizing: border-box; position: relative; width: 100%;
-  background-color: var(--true-white); color: var(--ihr-grey-600);
-  border-radius: var(--rad-6);
-  display: flex; flex-direction: column; gap: var(--sp-16);
-  max-height: inherit; overflow: auto; text-align: center;
-  font-size: var(--fs-16); line-height: var(--lh-24); letter-spacing: var(--ls-1);
-  padding: var(--sp-24) var(--sp-16);
+.share-head {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; flex: none; width: 100%; overflow: hidden; margin: 0;
+  padding: 0 var(--sp-16); box-sizing: border-box;
+  background-color: var(--ihr-gray-200); color: var(--ihr-grey-600);
+  font-weight: 700; font-size: var(--fs-18); letter-spacing: var(--ls-1);
 }
-@container (min-width: 769px) { .share-dialog { padding: var(--sp-24); } }
-.share-dialog h2 {
-  margin: 0; text-align: center; width: 100%;
-  font-size: var(--fs-18); line-height: var(--lh-24); font-weight: 700;
-  letter-spacing: var(--ls-4);
-}
-@container (min-width: 769px) {
-  .share-dialog h2 { font-size: var(--fs-20); line-height: var(--lh-24); }
-}
+.share-head h2 { margin: 0; font: inherit; }
 .share-close {
-  position: absolute; top: -40px; align-self: end;
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  color: var(--true-white); display: flex; align-items: center; justify-content: center;
-  padding: var(--sp-4); border-radius: var(--rad-999);
+  flex: 0 0 auto; padding: var(--sp-4); aspect-ratio: 1 / 1;
+  border-radius: var(--rad-999);
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.share-close svg { width: 24px; height: 24px; display: block; }
-.share-close:hover { background-color: rgba(255,255,255,.16); }
+.share-close img { width: 24px; height: 24px; display: block; }
+.share-close:hover, .share-close:active { background-color: var(--ihr-gray-300); }
+.share-close:focus-visible { outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: -2px; }
 
-.share-head { display: flex; flex-direction: row; gap: var(--sp-12); }
+.share-body {
+  overflow: auto; padding: var(--sp-16); display: flex; flex-direction: column;
+  gap: var(--sp-16); font-size: var(--fs-16); line-height: var(--lh-24);
+  letter-spacing: var(--ls-1);
+}
+.share-head-row { display: flex; flex-direction: row; gap: var(--sp-12); }
 .share-art {
   min-width: 56px; width: 56px; height: 56px; border-radius: var(--rad-6);
   box-shadow: var(--elevation1); object-fit: cover; background: var(--true-white);
 }
 .share-live .share-art { object-fit: contain; padding: 3px; }
 .share-names {
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  min-width: 0; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start;
+  justify-content: center; min-width: 0; text-align: left;
 }
 .share-name {
   margin: 0; color: var(--ihr-grey-600);
@@ -1261,10 +1277,6 @@ a.thumb-link:hover { opacity: .92; }
   letter-spacing: var(--ls-4);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
-@container (min-width: 769px) {
-  .share-name { font-size: var(--fs-15); line-height: var(--lh-20); }
-  .share-desc { font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-0); }
-}
 .share-section {
   display: flex; flex-direction: column; align-items: flex-start;
   justify-content: center; gap: var(--sp-8);
@@ -1274,23 +1286,14 @@ a.thumb-link:hover { opacity: .92; }
   font-size: var(--fs-13); line-height: var(--lh-16); font-weight: 600;
   letter-spacing: var(--ls-0);
 }
-@container (min-width: 769px) {
-  .share-section > p { font-size: var(--fs-14); line-height: var(--lh-18); }
-}
-.share-targets { display: flex; flex-direction: row; gap: var(--sp-8); justify-content: center; }
+.share-targets { display: flex; flex-direction: row; gap: var(--sp-8); }
 .share-target {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-8);
   font-family: inherit; color: var(--ihr-grey-600);
-  /* overline-2: 10 / 14 / 400, no tracking. */
   font-size: var(--fs-10); line-height: var(--lh-14); font-weight: 400;
-  letter-spacing: var(--ls-4);
-  padding: 0; text-decoration: none;
+  letter-spacing: var(--ls-4); padding: 0; text-decoration: none;
 }
-/* SocialShareOption: a 4.8rem square, which is 48 on accomplice's 10px root,
-   with radius[999], elevation1 and space[4] of padding. brandWhite on light.
-   No border: the shadow is what lifts it off the sheet. The glyph sizes are
-   the call sites' own, Copy at 40 and the two social marks at 32. */
 .share-target span.ring {
   width: 48px; height: 48px; padding: var(--sp-4);
   border-radius: var(--rad-999); background-color: var(--true-white);

@@ -497,6 +497,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         </div>
         ${isLive ? '' : listMarkup(d)}
         ${infoMarkup(d)}
+        ${shareMarkup(d)}
       </div>`;
   }
 
@@ -570,6 +571,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           ${isLive ? '' : sheetMarkup(d)}
         </div>
         ${infoMarkup(d)}
+        ${shareMarkup(d)}
       </div>`;
   }
 
@@ -684,6 +686,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         </div>
         ${isLive ? '' : listMarkup(d)}
         ${infoMarkup(d)}
+        ${shareMarkup(d)}
       </div>`;
     afterRender();
   }
@@ -795,6 +798,32 @@ function makeWidget(rootId, statusId, colourId, variant) {
         act('info', root.querySelector('[data-act="info"]:not(.sheet-close)'));
       }
     };
+    /* The two copy controls live in the rendered sheet, so they are wired on
+       every render rather than when the sheet is built. Both revert after five
+       seconds, which is what EmbedWidget and CopyLink do. */
+    const sheetEl = q('.share-sheet');
+    if (sheetEl) {
+      const flash = (labelEl) => {
+        if (!labelEl) return;
+        const was = labelEl.textContent;
+        labelEl.textContent = 'Copied!';
+        setTimeout(() => { labelEl.textContent = was; }, 5000);
+      };
+      sheetEl.addEventListener('click', (e) => {
+        const code = e.target.closest('.share-copy');
+        if (code) {
+          if (navigator.clipboard) navigator.clipboard.writeText(code.dataset.code || '');
+          flash(code.querySelector('.lbl'));
+          return;
+        }
+        const link = e.target.closest('[data-share="copy"]');
+        if (link) {
+          if (navigator.clipboard) navigator.clipboard.writeText(sheetEl.dataset.url || '');
+          flash(link.querySelector('.lbl'));
+        }
+      });
+    }
+
     const track = q('.track');
     if (track) {
       const elapsed = q('.elapsed'), thumbEl = q('.thumb'), preview = q('.preview');
@@ -1227,6 +1256,15 @@ function makeWidget(rootId, statusId, colourId, variant) {
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
+  /* Where an overlay anchored to the card should actually attach. The .widget
+     is NOT reliable: on design C its content runs to 468 inside a 234 box, so
+     an inset:0 child resolves against a padding box that is not what you see
+     and lands 162px off. The .stage is the card's own visible box and is what
+     the episodes drawer already anchors to. Bar cards have no stage, so they
+     fall back to .player, then to the widget. */
+  const overlayHost = () =>
+    root.querySelector('.stage') || root.querySelector('.player') || root.querySelector('.widget');
+
   /* The rates production offers, in its order. Speed.Slow through
      Speed.Fastest in packages/playback/src/player/schemas.ts. Note 0.5 rather
      than the 0.75 this prototype cycled through: the enum has no 0.75. */
@@ -1245,7 +1283,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
   }
 
   function speedMenu(btn) {
-    const card = root.querySelector('.widget');
+    const card = overlayHost();
     if (!card) return;
     /* Pressing the button again closes it, the way a menu trigger behaves. */
     if (root.querySelector('.speed-menu')) { closeSpeedMenu(); return; }
@@ -1299,91 +1337,73 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (checked) checked.focus();
   }
 
-  function shareDialog() {
-    const card = root.querySelector('.widget');
-    const d = w.data;
-    if (!card || !d) return;
-    const open = card.querySelector('.share-underlay');
-    if (open) open.remove();
-
+  /* The share sheet is part of the rendered card, like the episodes and info
+     drawers, and opens by a class on the widget. It used to be built at click
+     time and appended, and that fought the card: an inset:0 overlay resolved
+     against a box that is not the one you see, and the sheet escaped the card
+     entirely. The drawers that already worked here were all template-rendered,
+     so this one is too. */
+  function shareMarkup(d) {
+    if (!d) return '';
     const isLive = d.kind === 'live';
-    /* SHARE_TITLE_BY_TYPE. A podcast card is showing an episode, so it shares
-       one; the live card shares the station. */
     const title = isLive ? 'Share Station' : 'Share Episode';
     const pageUrl = isLive ? stationUrl(d) : episodeUrl(d);
-    /* EmbedWidget builds exactly this, height and all. */
     const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
       (pageUrl.includes('?') ? pageUrl + '&embed=true' : pageUrl + '?embed=true') +
       '" frameborder="0"></iframe>';
+    return `
+      <div class="share-scrim" data-act="share" aria-hidden="true"></div>
+      <div class="share-sheet${isLive ? ' share-live' : ''}" role="dialog"
+           aria-label="${esc(title)}" aria-hidden="true" data-url="${esc(pageUrl)}">
+       <div class="share-panel">
+        <div class="share-head">
+          <h2>${esc(title)}</h2>
+          <button class="share-close" data-act="share" type="button" aria-label="Close">
+            <img src="assets/sheet-close.svg" alt=""></button>
+        </div>
+        <div class="share-body">
+          <div class="share-head-row">
+            <img class="share-art" src="${esc(d.art || '')}" alt="">
+            <div class="share-names">
+              <p class="share-name">${esc(d.title || '')}</p>
+              <p class="share-desc">${esc((isLive ? d.desc : d.subtitle) || '')}</p>
+            </div>
+          </div>
+          <div class="share-section"><p>Share on</p><div class="share-targets">
+            <button class="share-target" type="button" data-share="copy">
+              <span class="ring">${GLYPH_COPY}</span><span class="lbl">Copy Link</span></button>
+            <a class="share-target" data-share="facebook" target="_blank" rel="noopener"
+               href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}">
+              <span class="ring">${GLYPH_OUT}</span><span class="lbl">Facebook</span></a>
+            <a class="share-target" data-share="x" target="_blank" rel="noopener"
+               href="https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(d.title || '')}">
+              <span class="ring">${GLYPH_OUT}</span><span class="lbl">X</span></a>
+          </div></div>
+          <div class="share-section" style="width:100%"><p>Embed widget</p>
+            <div class="share-embed">
+              <input name="embed-code" readonly disabled value="${esc(embedCode)}">
+              <button class="share-copy" type="button" data-code="${esc(embedCode)}">
+                ${GLYPH_COPY}<span class="lbl">Copy Code</span></button>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>`;
+  }
 
-    const under = document.createElement('div');
-    under.className = 'share-underlay';
-    under.innerHTML =
-      '<div class="share-modal">' +
-        '<button class="share-close" type="button" aria-label="Close">' + GLYPH_X + '</button>' +
-        '<div class="share-dialog' + (isLive ? ' share-live' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
-          '<h2>' + esc(title) + '</h2>' +
-          '<div class="share-head">' +
-            '<img class="share-art" src="' + esc(d.art || '') + '" alt="">' +
-            '<div class="share-names">' +
-              '<p class="share-name">' + esc(d.title || '') + '</p>' +
-              /* d.subtitle is the composed line, station name and description
-                 joined, which would repeat the name already on the row above.
-                 The raw description is kept separately as d.desc for exactly
-                 this reason; podcast has no second field, so it keeps subtitle,
-                 which there is the show name rather than a repeat. */
-              '<p class="share-desc">' + esc((isLive ? d.desc : d.subtitle) || '') + '</p>' +
-            '</div>' +
-          '</div>' +
-          '<div class="share-section"><p>Share on</p><div class="share-targets">' +
-            '<button class="share-target" type="button" data-share="copy">' +
-              '<span class="ring">' + GLYPH_COPY + '</span>Copy Link</button>' +
-            '<a class="share-target" data-share="facebook" target="_blank" rel="noopener"' +
-              ' href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(pageUrl) + '">' +
-              '<span class="ring">' + GLYPH_OUT + '</span>Facebook</a>' +
-            '<a class="share-target" data-share="x" target="_blank" rel="noopener"' +
-              ' href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(pageUrl) +
-              '&text=' + encodeURIComponent(d.title || '') + '">' +
-              '<span class="ring">' + GLYPH_OUT + '</span>X</a>' +
-          '</div></div>' +
-          '<div class="share-section" style="width:100%"><p>Embed widget</p>' +
-            '<div class="share-embed">' +
-              '<input name="embed-code" readonly disabled value="' + esc(embedCode) + '">' +
-              '<button class="share-copy" type="button">' + GLYPH_COPY +
-                '<span class="label">Copy Code</span></button>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-
-    const close = () => { under.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
-    under.querySelector('.share-close').addEventListener('click', close);
-    /* Clicking the dimmed area closes, clicking the sheet does not. */
-    under.addEventListener('click', (e) => { if (e.target === under) close(); });
-    document.addEventListener('keydown', onKey);
-    /* The artwork cards play on any click, so the sheet keeps its own. */
-    under.addEventListener('click', (e) => e.stopPropagation());
-
-    /* Both copies revert after 5 seconds, which is what EmbedWidget does. */
-    const flash = (el, labelEl, done) => {
-      const was = labelEl.textContent;
-      labelEl.textContent = done;
-      setTimeout(() => { labelEl.textContent = was; }, 5000);
-    };
-    const copyBtn = under.querySelector('.share-copy');
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard && navigator.clipboard.writeText(embedCode);
-      flash(copyBtn, copyBtn.querySelector('.label'), 'Copied!');
-    });
-    const linkBtn = under.querySelector('[data-share="copy"]');
-    linkBtn.addEventListener('click', () => {
-      navigator.clipboard && navigator.clipboard.writeText(pageUrl);
-      flash(linkBtn, linkBtn.lastChild, 'Copied!');
-    });
-
-    card.appendChild(under);
-    under.querySelector('.share-close').focus();
+  /* Opening closes the other drawers, which cover the same space. */
+  function shareDialog() {
+    const card = root.querySelector('.widget');
+    if (!card) return;
+    const opening = !card.classList.contains('share-open');
+    card.classList.remove('sheet-open');
+    card.classList.toggle('share-open', opening);
+    const sheet = root.querySelector('.share-sheet');
+    if (sheet) sheet.setAttribute('aria-hidden', String(!opening));
+    if (opening) {
+      const c = root.querySelector('.share-close');
+      if (c) c.focus();
+    }
   }
 
   function drawPreview() {
@@ -1408,7 +1428,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const SIGNUP_URL = 'https://www.iheart.com/signup/';
 
   function authToast() {
-    const card = root.querySelector('.widget');
+    const card = overlayHost();
     if (!card) return;
     /* One at a time. Pressing the button again re-raises it rather than
        stacking a second copy behind the first. */

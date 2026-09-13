@@ -2034,3 +2034,38 @@ the reference shows.
 
 Escape closes it, a click outside closes it, pressing the button again closes it, and it
 stops its own clicks reaching the card, which otherwise plays on any click.
+
+## The share sheet is a Drawer, not a Dialog
+
+A Dialog was the wrong component for this inside a card. Its close button is absolute at
+`top: -40px`, which works on a full page where the modal is centred with room above it, and
+fails completely in a box that clips its own overflow. Measured: the close landed outside
+the card on **five of the six designs**, so the sheet could not be closed at all. Only
+design B's podcast card, the tallest at 444, had room.
+
+A Drawer has nowhere to put a button outside itself. Its heading is a real bar inside the
+surface, 5.6rem tall and justified `space-between`, which is where a close belongs. From
+`components/drawer/drawer.css.ts`:
+
+| | value |
+| --- | --- |
+| scrim | `rgba(0 0 0 / 0.8)` with a 10px backdrop blur, over 600ms |
+| panel | width 100%, max-height 80%, radius `6px 6px 0 0`, sliding up from `translateY(100%)` over 600ms |
+| heading | 56 tall, `space-between`, `gray200`, 18px at `letterSpacing[1]`, 16 side padding |
+| body | `overflow: auto`, 16 / 24 |
+
+### Two things that had to change structurally
+
+**It is rendered into the card, not appended at click time.** Building the sheet on click
+and appending it fought the card's layout: an `inset: 0` overlay resolved against a box
+that is not the one you see, and the sheet escaped the card entirely. Every drawer that
+already worked here is template-rendered and toggled by a class, so this one is too.
+
+**The sheet fills the card and the panel is pushed to the end of it**, rather than the
+panel itself being anchored with `bottom: 0`. On the bar card `.widget` wraps the player
+AND the episode list, so the bottom of it sits below the list rather than at the bottom of
+the card you can see. Filling the card and using `justify-content: flex-end` lands the
+panel correctly on all three designs.
+
+Verified on all six cards: the panel is inside the card, aligned to its bottom, 80% of its
+height or less, with a 56px heading and a close that is reachable and works.
