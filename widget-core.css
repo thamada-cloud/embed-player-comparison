@@ -402,6 +402,20 @@ a.thumb-link:hover { opacity: .92; }
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; padding: 0 24px; box-sizing: border-box;
 }
+/* Design C's centre row is a three column grid rather than a centred flex row,
+   so the play button is centred on the CARD rather than on whatever happens to
+   be beside it. A flex row centres the group, and design C's group is lopsided:
+   speed and back to the left of the button, forward alone to the right. That
+   put the button right of centre the moment playback revealed them, and it
+   moved again whenever the set changed.
+   `1fr auto 1fr` fixes the two sides to the same width whatever they hold,
+   including nothing, so live radio's lone button lands in exactly the same
+   place as the podcast card's. Design B keeps the flex row: its group is
+   symmetrical by construction, three each side. */
+.widget.c .hero-controls { display: grid; grid-template-columns: 1fr auto 1fr; }
+.widget.c .cc-side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.widget.c .cc-side:first-child { justify-content: flex-end; }
+.widget.c .cc-side:last-child { justify-content: flex-start; }
 .widget.hero.live .hero-controls { top: calc(50% - 1px); }
 .h-btn { appearance: none; border: 0; background: transparent; cursor: pointer;
          padding: 4px; border-radius: 999px; display: flex; flex: 0 0 auto; }

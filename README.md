@@ -1836,3 +1836,20 @@ The reveal rule is now scoped to `.hero-controls` rather than excluding the list
 attribute. The transport still hides until the first play, but design C's actions are no
 longer in that row and both of its frames show all of them on a card nobody has played
 yet, so they stay put. Design B keeps everything in `.hero-controls` and is untouched.
+
+## Design C's play button stays centred on the card
+
+`.hero-controls` is a centred flex row, which centres the GROUP. Design C's group is
+lopsided once playback reveals it, speed and back to the left of the button and forward
+alone to the right, so the button sat right of centre from the moment you pressed play,
+and it would move again whenever the set changed.
+
+Design C's row is now a three column grid, `1fr auto 1fr`, with the side groups wrapped in
+`.cc-side`. The two sides are the same width whatever they hold, including nothing, so the
+button is centred on the card rather than on whatever happens to be beside it. Live
+radio's lone button lands in exactly the same place as the podcast card's.
+
+Design B keeps the flex row: its group is symmetrical by construction, three each side.
+
+Measured as the distance between the button's centre and the card's, at 352 and 1280, at
+rest and playing: **0 in all sixteen cases**, designs B and C, podcast and live.

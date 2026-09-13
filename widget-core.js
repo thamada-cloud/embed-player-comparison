@@ -531,16 +531,20 @@ function makeWidget(rootId, statusId, colourId, variant) {
                aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
           </div>
           <div class="hero-controls">
-            ${isLive ? '' : `
-              <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
-              <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
-            `}
+            <span class="cc-side">
+              ${isLive ? '' : `
+                <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
+                <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
+              `}
+            </span>
             <button class="hero-play" data-act="play" aria-label="Play">
               <img class="pi" src="${GLYPH.play}" alt="">
               <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
             </button>
-            ${isLive ? '' : `
-              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+            <span class="cc-side">
+              ${isLive ? '' : `
+                <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+            </span>
           </div>
           ${isLive ? `
             <div class="hero-bottom">
