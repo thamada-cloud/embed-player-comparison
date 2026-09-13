@@ -427,12 +427,16 @@ a.thumb-link:hover { opacity: .92; }
    centred play button and the waveform, no control row, no scrubber and no list
    button. An earlier build read C's live frame, which is drawn idle with its
    icons showing, and generalised from it. */
-/* The list button is the exception: design C shows it at rest, so the episodes
-   are reachable before anything is playing. Written as an exclusion from the
-   hide rather than a re-show, so it never has to restate a display value that
-   the button's own rule already owns. Design C is the only card that puts a
-   list button in this row, so the attribute selector needs no design scoping. */
-.widget.hero:not(.playing) .h-btn:not([data-act="list"]) { display: none; }
+/* `started`, not `playing`. The controls appear on the first play and then
+   stay, including while paused: a card you have played is no longer pristine,
+   and hiding its transport every time you pause it makes the controls feel
+   like they are fleeing the pointer. Only the untouched card is bare.
+   The list button is the further exception: design C shows it even then, so
+   the episodes are reachable before anything plays. Written as an exclusion
+   from the hide rather than a re-show, so it never has to restate a display
+   value that the button's own rule already owns, and design C is the only card
+   with a list button in this row, so no design scoping is needed. */
+.widget.hero:not(.started) .h-btn:not([data-act="list"]) { display: none; }
 /* The live frame keeps a speed button at opacity 0 on the left. It is a
    spacer: two icons sit to the right of the red button and only one to the
    left, so without it the red button would not be centred. Kept as the frame
@@ -460,7 +464,9 @@ a.thumb-link:hover { opacity: .92; }
    in a column with the frame's 4px gap; live radio has no duration and so
    never gets one. */
 .hero-bottom { position: relative; display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.widget.hero:not(.playing) .slider { display: none; }
+/* The scrubber follows the controls. Hiding it on pause would take away the
+   one thing a paused player most needs to show, which is where it stopped. */
+.widget.hero:not(.started) .slider { display: none; }
 .widget.hero .slider { padding: 0 16px; box-sizing: border-box; }
 /* The hero card used to carry its own smaller scrubber geometry, and its own
    track colour, because the old track was a padded box whose padding had to be

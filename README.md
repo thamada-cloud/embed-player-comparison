@@ -1739,3 +1739,23 @@ They are drawn with neutral glyphs rather than the platforms' own marks. Those a
 trademarks and this is a public repository. The row's structure, sizes and labels are what
 the prototype is testing, and a circle with the platform's name beneath it carries both.
 The links themselves are real.
+
+## Controls latch on after the first play
+
+The artwork cards used to key their controls off `playing`, so pausing hid them again.
+They now key off `started`, which latches on the first play and clears only when new
+content is loaded. Pristine cards are still bare; a card you have played keeps its
+controls whether it is playing or paused.
+
+| state | design B | design C |
+| --- | --- | --- |
+| pristine | no icons, no scrubber | list button only |
+| playing | 6 icons, scrubber | 6 icons, list, scrubber |
+| paused | 6 icons, scrubber | 6 icons, list, scrubber |
+
+`started` lives on the widget object rather than the element, because `render()` rebuilds
+the element and a class set on the old one would be lost.
+
+The scrubber follows the same rule rather than staying tied to `playing`. Hiding it on
+pause would take away the one thing a paused player most needs to show, which is where it
+stopped. Live radio has no scrubber either way.

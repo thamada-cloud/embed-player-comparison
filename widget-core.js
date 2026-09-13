@@ -380,7 +380,16 @@ function makeWidget(rootId, statusId, colourId, variant) {
      buffering, it lives on the widget object so a re-render cannot lose it. */
   const setPlayingClass = () => {
     const el = root.querySelector('.widget');
-    if (el) el.classList.toggle('playing', !!w.playing);
+    if (!el) return;
+    el.classList.toggle('playing', !!w.playing);
+    /* `started` latches on the first play and never clears while this content
+       is loaded. The artwork cards use it instead of `playing` to decide
+       whether the controls are on screen, so pausing keeps them: only the
+       pristine card, the one nobody has pressed play on yet, hides them.
+       It lives on the widget object rather than the element, because render()
+       rebuilds the element and a class set on the old one would be lost. */
+    if (w.playing) w.started = true;
+    el.classList.toggle('started', !!w.started);
   };
 
   /* The ring is DERIVED from the element's state, never latched by an event.
@@ -1400,6 +1409,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (w.hls) { w.hls.destroy(); w.hls = null; }
     if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }
     w.audio = null; w.analyser = null; w.src = null; w.playing = false; w.speed = 1;
+    /* New content is a new pristine card, so the controls hide again. */
+    w.started = false;
     /* New content means nobody has asked for audio yet, and a pending ring
        timer from the previous item must not land on the new one. */
     w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
