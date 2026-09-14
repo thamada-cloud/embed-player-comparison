@@ -2419,3 +2419,74 @@ they Tab, because the existing trap pulls focus in on the first Tab while a
 modal is up, and the veil is first in that chain since it sits above the other
 three. Escape closes it. Verified: Tab enters, Tab wraps, Enter on the close
 button closes.
+
+## The waveform is two crossing strokes now
+
+Frame 2600:136700 replaces the bar spectrum. Two curves, drawn once at the
+frame's own 573.208 x 76.7922 and stretched to whatever slot the card gives
+them, white, 2px.
+
+### The stroke has to be pinned
+
+The frame is a 7.5:1 box and the slots are far wider and much shorter, so the
+drawing takes a heavy non-uniform squeeze. Left alone that squeeze would take
+the 2px stroke down to about a third of a pixel, so the paths carry
+`vector-effect: non-scaling-stroke` and the stroke stays a true 2px. The hero
+card draws it at 1.5px instead, because at a 12px slot a 2px stroke closes up
+the gaps where the two curves cross.
+
+The frame's own stroke runs from y -0.93 to 78.52 inside a 76.79 box, past the
+frame on both edges, which is why Figma's export wraps it in a box inset by
+-1.34%. The viewBox carries that overflow rather than clipping the peaks flat.
+
+### The drawing is the envelope, not the middle
+
+A resting card shows the wave exactly as drawn, at amplitude 1. Playing only
+ever pulls the curves in towards the centre line, between 0.55 and 1.
+
+That is deliberate. The frame already fills its own viewBox with about a unit
+to spare, so any amplitude above 1 would shave the tallest peaks flat against
+the viewport instead of growing them. Loud still reads as bigger, because loud
+maps to the top of the range.
+
+### Two bands, measured not guessed
+
+One amplitude on both curves would just be the whole drawing breathing. Split
+in HERTZ rather than in bins, for the reason the bar version worked that way
+too: a fraction of the Nyquist rate covers a different range of frequencies on
+every device. 40 to 500 on one curve, 500 to 11000 on the other, so the two
+strokes move against each other and cross in different places.
+
+Sampled 90 frames a minute into each real stream:
+
+| band | source | min | p25 | med | p75 | max |
+| --- | --- | --- | --- | --- | --- | --- |
+| low | podcast | .110 | .491 | .696 | .757 | .825 |
+| low | live | .686 | .746 | .761 | .776 | .828 |
+| high | podcast | .001 | .079 | .231 | .341 | .451 |
+| high | live | .371 | .489 | .509 | .540 | .583 |
+
+Two things follow. A band is read as a MEAN and not as a peak, because these
+bands are wide and the loudest bin in one sits pinned near 255 almost all the
+time, so a peak reading barely moves. And the bands need different windows,
+since the low one never approaches zero on either source while the high one
+lives in the bottom half of its scale. Windows are .35 to .85 and .02 to .60.
+
+Measured again through the finished mapping, on air:
+
+| source | low curve | high curve |
+| --- | --- | --- |
+| podcast | .55 to .95, swing .40 | .57 to .88, swing .31 |
+| live | .60 to .81, swing .20 | .69 to .86, swing .17 |
+
+Live moves less, and that is the material rather than the mapping. Broadcast is
+compressed hard enough that its low band spans .686 to .828 where the podcast
+covers .110 to .825.
+
+### What the slot costs it
+
+The frame is 7.5:1. The slots are 26:1 on the bar card at 420 wide, 35:1 on the
+hero, 17.5:1 on design C. So the curve is real but much flatter than the frame
+draws it. Matching the frame's proportions at 420 wide would need a 55px slot
+against the 16, 12 and 24 the cards currently give it, which is 30 to 40px of
+extra card height per design, so the slots were left alone.

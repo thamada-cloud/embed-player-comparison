@@ -515,8 +515,11 @@ a.thumb-link:hover { opacity: .92; }
    tuned per design. The accomplice Slider separates the hit area from the line,
    so one rule now serves all three and the hero override is gone: the 16px
    min-height it wanted is the component's own default. */
-.stage .wave { position: relative; height: 12px; }
-.widget.c .stage .wave { height: 24px; }
+/* The artwork cards give the wave a shorter slot, and at 12 a 2px stroke on two
+   crossing curves closes up the gaps where they cross, so the hero card draws
+   it a little finer. Design C is back at a height where 2 reads properly. */
+.stage .wave { position: relative; height: 12px; --wave-stroke: 1.5px; }
+.widget.c .stage .wave { height: 24px; --wave-stroke: 2px; }
 /* The hero list sits on the card, not on the page, so it keeps square top
    corners against the stage above it. */
 .widget.hero .list { border-radius: 0; }
@@ -1031,11 +1034,20 @@ a.thumb-link:hover { opacity: .92; }
    Figma frames use 3px bars at 350 (70 of them, flexed) and 4px at 1280, so
    flexing a fixed 70 bars across a wide widget ballooned them to 15px, several
    times the design. Width is fixed here and the count is derived instead. */
-.wave { display: flex; gap: var(--bar-gap, 2px); height: 16px; width: 100%; align-items: flex-end;
-        opacity: .8; overflow: hidden; }
-.wave i { flex: 0 0 var(--bar-w, 3px); width: var(--bar-w, 3px); display: block;
-          background: var(--ihr-grey-300); border-radius: 2px 2px 0 0; height: 3px;
-          transition: height 90ms linear; }
+/* The waveform, frame 2600:136700. Two crossing strokes drawn once and
+   stretched to the card, rather than a row of bars sized to it.
+
+   preserveAspectRatio is none because the frame is 573 x 77, a 7.5:1 box, and
+   the slots it has to fill are wider and much shorter than that. The drawing
+   therefore takes a heavy vertical squeeze, which is why the stroke is pinned:
+   non-scaling-stroke keeps it at a true 2px instead of letting the same squeeze
+   flatten it to a third of a pixel. */
+.wave { display: block; height: 16px; width: 100%; opacity: .8; overflow: hidden; }
+.wave svg { display: block; width: 100%; height: 100%; }
+.wave path {
+  fill: none; stroke: var(--true-white);
+  stroke-width: var(--wave-stroke, 2px); vector-effect: non-scaling-stroke;
+}
 
 /* No bottom padding. In the frame the rows region runs from y=48 to the list's
    own bottom edge at 220, a 172px viewport, and the rows are clipped there
