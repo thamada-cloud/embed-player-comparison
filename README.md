@@ -2186,3 +2186,46 @@ The 4px of Button `size: icon` padding still applies, so the button grows to 48.
 control row is a `1fr auto 1fr` grid, so the sides absorb it and the play button stays on
 the card's centre, measured at 0 offset at both 352 and 1280. The row's height is still set
 by the 64px play button, so design C's 234 floor is untouched.
+
+## Keyboard review, and three fixes
+
+### The focus ring was cut on the text lines
+
+Every metadata line sits inside a marquee, which is `overflow: hidden` so the text can
+ellipsise, and the link fills that box exactly: measured at zero pixels of room on the left
+and minus one at the top. The Link component's ring is drawn at `outline-offset: 1px`, so
+it had nowhere to go and was clipped on two sides.
+
+Those links now inset it at `-1px`, which is the same technique the episode rows already
+used at `-2px`. The artwork links keep the component's `+1`, because they are not inside a
+clip. The rows were never actually broken; an early check flagged them because it did not
+account for a negative offset.
+
+### Design A tabbed the logo before the text
+
+`.ihr-link` is absolutely positioned, so where it sits in the DOM decides nothing but the
+tab order, and it sat second, ahead of two lines of text that read to its left. It now
+follows the text, which matches the eye and matches designs B and C, where it is the last
+item in the top bar.
+
+| | design A before | design A now | designs B and C |
+| --- | --- | --- | --- |
+| 1 | artwork | artwork | artwork |
+| 2 | **logo** | episode | episode |
+| 3 | episode | show | show |
+| 4 | show | **logo** | logo |
+
+Everything after that was already in visual order on all three: play, then the transport,
+then the actions, then the episode rows.
+
+### Tab walked out of every open drawer
+
+All three drawers are `aria-modal`, and a modal that lets Tab walk out into the content it
+covers is only pretending: focus lands on controls nobody can see, behind a scrim. Measured
+before the fix, all three escaped. Focus now cycles within whichever drawer is open, at both
+ends, and is pulled back in if it is somewhere else entirely.
+
+Escape also closes the share drawer now. It already closed the other two, and that gap was
+only there because the share drawer was added last.
+
+Verified: 12 tabs inside each of the three drawers, zero escapes, and Escape closes each.

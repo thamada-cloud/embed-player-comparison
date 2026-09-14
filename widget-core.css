@@ -217,6 +217,14 @@ a.line-link:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible 
   outline: 1px solid var(--true-white); outline-offset: 1px;
   border-radius: var(--rad-2); text-decoration: none;
 }
+/* The text lines INSET their ring instead. Every one of them sits inside a
+   marquee, which is overflow:hidden so the text can ellipsise, and the link
+   fills that box exactly: measured, zero pixels to the left and minus one at
+   the top. A ring drawn at +1 offset has nowhere to go and gets cut on two
+   sides. Drawing it at -1 puts it inside the box the clip respects, which is
+   the same technique the episode rows already use at -2. The component's +1 is
+   kept for the artwork links, which are not inside a clip. */
+a.line-link:focus-visible { outline-offset: -1px; }
 a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
 a.thumb-link:hover { opacity: .92; }
 /* Station logos are transparent PNGs drawn for a white tile. Left on the dark

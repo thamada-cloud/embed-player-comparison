@@ -658,8 +658,6 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="body">
             <a class="art-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous"></a>
-            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
-               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
             <div class="col">
             <div class="meta">
               ${isLive ? `
@@ -670,6 +668,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <p class="title mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                 <p class="subtitle mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
+            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
+               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="${GLYPH.play}" alt="">
                 <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
@@ -805,10 +805,37 @@ function makeWidget(rootId, statusId, colourId, variant) {
         act('row', row);
         return;
       }
-      if (e.key !== 'Escape') return;
       const card = root.querySelector('.widget');
       if (!card) return;
-      if (card.classList.contains('sheet-open')) {
+
+      /* Which drawer, if any, is covering the card. Each is aria-modal, and a
+         modal that lets Tab walk out into the content it is covering is only
+         pretending: focus lands on controls nobody can see, behind a scrim.
+         Measured before this: Tab escaped every one of the three. */
+      const openDrawer =
+        card.classList.contains('share-open') ? root.querySelector('.share-sheet') :
+        card.classList.contains('info-open')  ? root.querySelector('.info-sheet') :
+        card.classList.contains('sheet-open') ? root.querySelector('.sheet:not(.info-sheet)') :
+        null;
+
+      if (e.key === 'Tab' && openDrawer) {
+        const items = [...openDrawer.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+          .filter((el) => el.offsetParent !== null);
+        if (!items.length) return;
+        const first = items[0], last = items[items.length - 1];
+        /* Wrap at whichever end the next Tab would leave by. */
+        if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!openDrawer.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        return;
+      }
+
+      if (e.key !== 'Escape') return;
+      if (card.classList.contains('share-open')) {
+        e.stopPropagation();
+        shareDialog();
+      } else if (card.classList.contains('sheet-open')) {
         e.stopPropagation();
         act('list', root.querySelector('[data-act="list"]'));
       } else if (card.classList.contains('info-open')) {
