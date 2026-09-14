@@ -2369,16 +2369,30 @@ play, pause shows it again, but pausing twice in one sitting does not prompt
 twice. Frequency is not something the frame specifies, so this is a choice, and
 `w.veilSeen` is where to change it.
 
-### Geometry, measured not inferred
+### Geometry, and where the close actually goes
 
-The frame nests the close button in a header inside a 16px padded body, which
-reads as a 16px inset. It is not: the header runs x 32..350 y 0..32 and the
-32px button sits at x 286 within it, so the button is flush to the card's
-corner and its own 4px padding is the only inset. The content group is 318 wide
-(the card less 32) and 136 tall, centred in the card, with 8px between the
-logo, the copy and the CTA. All of that reproduces exactly, measured at 420
-wide: group 388x136, logo 107x24, copy 48, CTA 176x48, close 32x32 at the
-corner.
+The content group is 318 wide (the card less 32) and 136 tall, centred in the
+card, with 8px between the logo, the copy and the CTA. That reproduces exactly:
+at 420 wide the group is 388x136, logo 107x24, copy 48, CTA 176x48.
+
+The close button took two passes. The frame's header reports x 32..350 with its
+32px button flush to the right end, which reads as a button jammed into the
+card's corner, and that is what went in first. It is wrong. The header is 318
+wide, a 350 card less 32, so it is inset 16 on the left and 0 on the right, and
+nothing else in the frame is asymmetric like that.
+
+Three independent landmarks in the same frame settle it, all at 350 wide:
+
+| landmark | right edge |
+| --- | --- |
+| the card's own iHeart badge, node 2581:363625 | 334 |
+| the veil's content group | 334 |
+| the card's 16px padding | 334 |
+
+So the button is inset 16, not flush, putting its right edge on 334 with the
+other three and its top on 16 with the badge. Verified on all six cards at
+280/350/420/760: close right edge equals badge right edge equals group right
+edge, every time.
 
 The logotype is generated from accomplice's `LogotypeSecondary` at its own
 107x24 viewBox, dark theme, so the wordmark is white and the heart is

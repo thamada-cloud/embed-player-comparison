@@ -1484,12 +1484,18 @@ a.thumb-link:hover { opacity: .92; }
 .pv-cta:active { background-color: var(--ihr-red-400); transform: scale(.95); }
 .pv-cta:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; }
 
-/* Header 2581:364648. Measured, not inferred from the padded body it sits in:
-   the header runs x 32..350 y 0..32 and its 32px button sits at x 286 inside
-   that, so the button is flush to the card's top right corner. The 4px padding
-   inside it is the only inset, which puts the glyph 4px off both edges. */
+/* Header 2581:364648, inset by the body's own 16px padding.
+
+   The frame's header reports x 32..350 with the 32px button flush to its right
+   end, which reads as a button jammed into the card's corner. That is a stale
+   placement, not the intent: the header is 318 wide, the width of a 350 card
+   less 32, so it is inset 16 on the left and 0 on the right, and nothing else
+   in the frame is asymmetric like that. The content group directly below it
+   sits at 16..334. Every other drawer in this file puts its close inside a
+   16px padded header, giving the same 16px inset. So the button lines up with
+   the group's right edge rather than with the card's. */
 .pv-close {
-  position: absolute; top: 0; right: 0; z-index: 1;
+  position: absolute; top: 16px; right: 16px; z-index: 1;
   appearance: none; border: 0; background: transparent; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   padding: var(--sp-4); border-radius: var(--rad-999);
