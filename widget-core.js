@@ -130,32 +130,25 @@ function stripHtml(html) {
   return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
 }
 
-/* The waveform, frame 2600:136700. Two crossing strokes, not the bar spectrum
-   this used to draw.
-
-   The frame is 573.208 x 76.7922 and the drawn stroke runs from y -0.93 to
-   78.52, past the frame on both edges, which is why Figma's own export wraps it
-   in a box inset by -1.34%. The viewBox below carries that overflow instead of
-   clipping the peaks flat. */
-const WAVE_D = [
-  'M0.432751 48.0096L6.39075 50.8696C12.3498 53.7296 24.2658 59.4496 36.1828 53.7296C48.0998 48.0096 60.0158 30.8496 71.9328 20.9986C83.8498 11.1476 95.7658 8.60558 107.683 18.7736C119.6 28.9426 131.516 51.8226 143.433 64.2166C155.35 76.6096 167.266 78.5166 179.183 72.4786C191.1 66.4406 203.016 52.4586 214.933 38.7936C226.85 25.1296 238.766 11.7826 250.683 5.42758C262.6 -0.928418 274.516 -0.292415 286.433 6.38058C298.35 13.0536 310.266 25.7656 322.183 29.5786C334.1 33.3916 346.016 28.3076 357.933 22.9056C369.85 17.5026 381.766 11.7826 393.683 21.3166C405.6 30.8496 417.516 55.6366 429.433 64.8516C441.35 74.0676 453.266 67.7116 465.183 54.0476C477.1 40.3826 489.016 19.4096 500.933 12.1006C512.85 4.79158 524.766 11.1476 536.683 21.6336C548.6 32.1206 560.516 46.7386 566.475 54.0476L572.433 61.3566',
-  'M0.432751 49.9166L6.39075 48.9626C12.3498 48.0096 24.2658 46.1026 36.1828 45.7856C48.0998 45.4676 60.0158 46.7386 71.9328 43.2426C83.8498 39.7476 95.7658 31.4856 107.683 24.4936C119.6 17.5026 131.516 11.7826 143.433 20.0456C155.35 28.3076 167.266 50.5516 179.183 52.7766C191.1 55.0006 203.016 37.2056 214.933 31.1676C226.85 25.1296 238.766 30.8496 250.683 38.4766C262.6 46.1026 274.516 55.6366 286.433 62.6276C298.35 69.6186 310.266 74.0676 322.183 66.1226C334.1 58.1786 346.016 37.8406 357.933 34.9806C369.85 32.1206 381.766 46.7386 393.683 52.1406C405.6 57.5426 417.516 53.7296 429.433 49.9166C441.35 46.1026 453.266 42.2896 465.183 46.1026C477.1 49.9166 489.016 61.3566 500.933 64.8516C512.85 68.3476 524.766 63.8986 536.683 56.9076C548.6 49.9166 560.516 40.3826 566.475 35.6166L572.433 30.8496'
-];
-const WAVE_VB = '0 -2 573.208 80.8';
-/* The frame's centre line. Both curves sit on it, so it is what an amplitude
-   change scales about. */
-const WAVE_MID = 38.4;
-/* The drawing is the ENVELOPE, not the middle of the swing. A resting card
-   shows it at 1, exactly as drawn, and playing only ever pulls the curves in
-   towards the centre line, between this and 1.
-
-   That is what keeps the peaks intact. The frame's own stroke already runs
-   from y -0.93 to 78.52 inside a 76.79 box, so it fills its viewBox with about
-   a unit to spare; any amplitude above 1 would have the tallest peaks shaved
-   flat against the viewport instead of growing. Loud still reads as bigger,
-   because loud maps to the top of the range. */
-const WAVE_REST = .55;
-
+/* The design's own resting waveform, read off the Figma frame. */
+const IDLE = [3,3,3,5,5,5,11,5,11,8,11,13,11,13,13,16,13,13,11,13,11,13,16,13,11,11,13,13,11,8,
+              13,13,11,13,16,13,13,11,13,8,11,5,11,11,13,11,5,11,5,11,5,8,5,5,11,5,5,3,5,3,3,5,
+              3,3,3,3,3,3,3,3];
+const WAVE_MAX = 16;
+/* The hero frames draw the same waveform shape at a smaller scale, 2 to 12
+   rather than 3 to 16, on 4px bars set with justify-between. At 350 that is 70
+   bars of 4 in 350, so the gap is 1. Read off 2510:109552 and 2512:111980. */
+const IDLE_HERO = [2,2,2,4,4,4,8,4,8,6,8,10,8,10,10,12,10,10,8,10,8,10,12,10,8,8,10,10,8,6,
+                   10,10,8,10,12,10,10,8,10,6,8,4,8,8,10,8,4,8,4,8,4,6,4,4,8,4,4,2,4,2,2,4,
+                   2,2,2,2,2,2,2,2];
+/* Design C's waveform is the same shape again at exactly double the hero's
+   scale, 4 to 24 rather than 2 to 12, read off 2533:85718. Same 4px bars. */
+const IDLE_C = IDLE_HERO.map((h) => h * 2);
+const WAVE = {
+  bar:  { idle: IDLE,      max: 16, floor: 3, gap: 2, barW: (width) => width < 560 ? 3 : 4 },
+  hero: { idle: IDLE_HERO, max: 12, floor: 2, gap: 1, barW: () => 4 },
+  c:    { idle: IDLE_C,    max: 24, floor: 4, gap: 1, barW: () => 4 }
+};
 const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
 /* Every clipping line of text is written as a span inside its box so the span
    can be translated on hover while the box does the clipping. */
@@ -328,6 +321,7 @@ const INSTANCES = [];
 
 function makeWidget(rootId, statusId, colourId, variant) {
   variant = variant || 'bar';
+  const wave = WAVE[variant];
   /* The hero button is brand red, so its glyphs are the white cuts, and all
      three are Figma exports from these frames: the playing states carry a real
      Web Internal / Pause and Web Internal / Stop at 56, which replaced the
@@ -970,32 +964,27 @@ function makeWidget(rootId, statusId, colourId, variant) {
      the 70 design heights are resampled across however many bars now fit. */
   function buildBars() {
     const el = q('.wave'); if (!el) return;
-    /* Nothing to recompute on a resize: the drawing stretches to whatever box
-       it is given. It is still rebuilt from the live DOM rather than from
-       cached state, because loading new content replaces the widget's markup
-       and leaves an empty .wave behind while w.wv still points at the old
-       detached paths. */
-    if (!el.querySelector('svg')) {
-      el.innerHTML =
-        `<svg viewBox="${WAVE_VB}" preserveAspectRatio="none" aria-hidden="true" focusable="false">`
-        + WAVE_D.map((d) => `<path d="${d}"/>`).join('')
-        + '</svg>';
-    }
-    w.wv = [...el.querySelectorAll('path')];
-    w.amp = [1, 1];
-    setAmp(0, 1); setAmp(1, 1);
+    const width = el.getBoundingClientRect().width;
+    if (!width) return;
+    const barW = wave.barW(width);
+    const pitch = barW + wave.gap;
+    const n = Math.max(12, Math.floor((width + 2) / pitch));
+    /* Compare against the LIVE DOM, not cached state. Loading new content
+       replaces the widget's markup, which leaves an empty .wave while w.bars
+       still points at the old detached bars. Testing the cache meant that at an
+       unchanged width the counts matched, the rebuild was skipped, and the
+       waveform vanished on every content switch. */
+    if (n === el.children.length && barW === w.barW) return;
+    w.barW = barW;
+    el.style.setProperty('--bar-w', barW + 'px');
+    el.style.setProperty('--bar-gap', wave.gap + 'px');
+    el.innerHTML = Array.from({ length: n }, (_, i) =>
+      `<i style="height:${wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / n))]}px"></i>`).join('');
+    w.bars = [...el.querySelectorAll('i')];
+    w.smooth = new Array(n).fill(0);
+    w.bands = null;                      /* bar count changed, so the bands must be rebuilt */
   }
-
-  /* Scaling about the frame's own centre line, so a curve swells symmetrically
-     rather than lifting off the bottom the way a bar did. The transform goes on
-     the attribute rather than in CSS because a CSS transform-origin on an SVG
-     path resolves against that path's own bounding box, which differs between
-     the two curves and would pivot them about different lines. */
-  function setAmp(i, k) {
-    const p = w.wv && w.wv[i]; if (!p) return;
-    p.setAttribute('transform',
-      `translate(0 ${WAVE_MID}) scale(1 ${k.toFixed(3)}) translate(0 ${-WAVE_MID})`);
-  }
+  const idleAt = (i) => wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / w.bars.length))];
 
   function act(kind, btn) {
     const a = w.audio;
@@ -1241,7 +1230,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
              bass end; at 512 the lowest bands all landed in the same bin. */
           w.analyser.fftSize = 2048; w.analyser.smoothingTimeConstant = .6;
           w.freq = new Uint8Array(w.analyser.frequencyBinCount);
-          w.edges = null;
+          w.bands = null;
           w.src.connect(w.analyser); w.analyser.connect(w.ctx.destination);
         }
         if (w.ctx.state === 'suspended') await w.ctx.resume();
@@ -1687,76 +1676,65 @@ function makeWidget(rootId, statusId, colourId, variant) {
     drawPreview();
   }
 
-  /* Two curves, so two bands rather than seventy.
-
-     The split stays in HERTZ rather than in bins, for the same reason the bar
-     version worked that way: a fraction of the Nyquist rate covers a different
-     range of frequencies on every device. 40 to 500 against 500 to 11000 puts
-     the fundamentals of speech and the bass of music on one curve and
-     everything above them on the other, which is what makes the two strokes
-     move against each other rather than together. A single amplitude on both
-     would just be the whole drawing breathing. */
-  const F_MIN = 40, F_SPLIT = 500, F_MAX = 11000;
-  function edges() {
-    if (w.edges) return w.edges;
+  /* Low frequencies carry nearly all the energy in speech and music, so a
+     linear map would leave the right half of the strip dead. */
+  /* Bars are frequency BANDS, not single bins.
+     The old mapping read one bin per bar, spread over a fixed fraction of the
+     spectrum with a power curve. Two things went wrong with that. The fraction
+     is a fraction of the Nyquist rate, so the strip showed a different range of
+     frequencies depending on the device's sample rate, and the mapping put the
+     whole right half of the strip above 5kHz, where recorded music and speech
+     carry almost no energy. Measured on an episode, the left third averaged
+     15.5px of a 16px cap, pinned at the ceiling and therefore not moving, while
+     the right third sat at 9.8px.
+     Log spacing over a range in HERTZ fixes both: every bar gets a band of real
+     content, the same bands on every device. Each band takes the loudest bin it
+     covers rather than an average, which keeps a bar lively when its band is
+     wide, and a tilt lifts the higher bands, which are genuinely quieter in
+     almost all material. */
+  const F_MIN = 40, F_MAX = 11000;
+  function bands(n) {
+    if (w.bands && w.bands.length === n) return w.bands;
     const bins = w.freq.length;
     const binHz = (w.ctx.sampleRate / 2) / bins;
-    const at = (f) => Math.max(1, Math.min(bins, Math.round(f / binHz)));
-    w.edges = [at(F_MIN), at(F_SPLIT), at(Math.min(F_MAX, (w.ctx.sampleRate / 2) * .95))];
-    return w.edges;
-  }
-  /* Each band's own working range, measured off the real streams rather than
-     picked, sampling 90 frames a minute into each:
-
-                     min    p25    med    p75    max
-       low   podcast  .110   .491   .696   .757   .825
-       low   live     .686   .746   .761   .776   .828
-       high  podcast  .001   .079   .231   .341   .451
-       high  live     .371   .489   .509   .540   .583
-
-     Two things follow. A band is read as a MEAN and not as a peak: these bands
-     are wide, so the loudest bin in one is pinned near 255 almost all the time
-     and a peak reading barely moves. And the two bands need different windows,
-     because the low one never goes near zero on either source while the high
-     one lives in the bottom half of its scale.
-
-     Live radio moves less than a podcast here, and that is the material rather
-     than the mapping. Broadcast is compressed hard enough that its low band
-     spans .686 to .828 where the podcast covers .110 to .825. */
-  const WAVE_BAND = [
-    { lo: .35, hi: .85 },     /* 40 to 500 Hz */
-    { lo: .02, hi: .60 }      /* 500 Hz up */
-  ];
-  function level(from, to) {
-    let sum = 0;
-    for (let k = from; k < to; k++) sum += w.freq[k];
-    return sum / Math.max(1, (to - from) * 255);
+    const top = Math.min(F_MAX, (w.ctx.sampleRate / 2) * .95);
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const f0 = F_MIN * Math.pow(top / F_MIN, i / n);
+      const f1 = F_MIN * Math.pow(top / F_MIN, (i + 1) / n);
+      const lo = Math.min(bins - 1, Math.floor(f0 / binHz));
+      const hi = Math.max(lo + 1, Math.min(bins, Math.ceil(f1 / binHz)));
+      /* Rising gain. The spectrum of most material falls with frequency, so a
+         flat gain draws a ramp sloping down to the right however loud the
+         track. Tuned against the measured profile rather than picked. */
+      out.push([lo, hi, .62 + 1.05 * Math.pow(i / (n - 1), .85)]);
+    }
+    w.bands = out;
+    return out;
   }
   function loop() {
     w.raf = requestAnimationFrame(loop);
-    if (!w.analyser || !w.wv || !w.amp) return;
+    if (!w.analyser) return;
     w.analyser.getByteFrequencyData(w.freq);
-    const e = edges();
-    for (let i = 0; i < 2; i++) {
-      const band = WAVE_BAND[i];
-      const v = level(e[i], e[i + 1]);
-      const norm = Math.max(0, Math.min(1, (v - band.lo) / (band.hi - band.lo)));
-      const target = WAVE_REST + norm * (1 - WAVE_REST);
-      w.amp[i] = w.amp[i] * .78 + target * .22;
-      setAmp(i, Math.min(1, w.amp[i]));
+    const n = w.bars.length, bs = bands(n);
+    for (let i = 0; i < n; i++) {
+      const b = bs[i];
+      let peak = 0;
+      for (let k = b[0]; k < b[1]; k++) if (w.freq[k] > peak) peak = w.freq[k];
+      w.smooth[i] = w.smooth[i] * .55 + (peak / 255) * b[2] * .45;
+      const h = wave.floor + w.smooth[i] * (wave.max - wave.floor) * .80;
+      w.bars[i].style.height = Math.max(wave.floor, Math.min(wave.max, h)).toFixed(1) + 'px';
     }
   }
-  /* Back to the frame's own amplitude when the audio stops, since 1 is the
-     shape the card is drawn with at rest. */
   function settle() {
-    if (!w.amp) return;
-    const from = [w.amp[0], w.amp[1]];
     let k = 0;
     const step = () => {
-      k = Math.min(1, k + .06);
-      for (let i = 0; i < 2; i++) setAmp(i, from[i] + (1 - from[i]) * k);
+      k += .12;
+      w.bars.forEach((b, i) => {
+        const cur = parseFloat(b.style.height) || 3;
+        b.style.height = (cur + (idleAt(i) - cur) * Math.min(1, k)).toFixed(1) + 'px';
+      });
       if (k < 1) requestAnimationFrame(step);
-      else { w.amp[0] = 1; w.amp[1] = 1; }
     };
     step();
   }
@@ -1769,7 +1747,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (w.ro) { w.ro.disconnect(); w.ro = null; }
     if (w.hls) { w.hls.destroy(); w.hls = null; }
     if (w.audio) { w.audio.pause(); w.audio.removeAttribute('src'); w.audio.load(); }
-    w.audio = null; w.analyser = null; w.src = null; w.edges = null; w.playing = false; w.speed = 1;
+    w.audio = null; w.analyser = null; w.src = null; w.playing = false; w.speed = 1;
     /* New content is a new pristine card, so the controls hide again. */
     w.started = false;
     /* New content means nobody has asked for audio yet, and a pending ring
