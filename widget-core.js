@@ -31,9 +31,11 @@ async function loadPodcast(id) {
        the same episode rather than a hard coded one that goes stale. */
     showId: id, episodeId: eps[0].id, showSlug: show.slug || 'podcast',
     title: first.title, subtitle: show.title,
-    /* The info drawer's paragraph. Shows carry HTML in their description, so it
-       is stripped rather than injected. */
-    infoTitle: show.title, infoBody: String(show.description || '').replace(/<[^>]*>/g, '').trim(),
+    /* The info drawer describes the EPISODE, which is what the card is playing,
+       not the show it belongs to. The show's own description is one level up
+       from what you are listening to, and the episode carries its own in both
+       the list and the single episode endpoint. */
+    infoTitle: first.title, infoBody: stripHtml(first.description),
     art: show.imageUrl, audio: first.mediaUrl, hls: false,
     listTitle: 'Episodes',
     /* Which row reads as playing. It starts on the episode the widget loads and
@@ -43,7 +45,10 @@ async function loadPodcast(id) {
       id: e.id, title: e.title,
       sub: new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
            (e.duration ? ' • ' + Math.round(e.duration / 60) + ' min' : ''),
-      badge: e.isExplicit ? 'e' : null, art: e.imageUrl || show.imageUrl
+      badge: e.isExplicit ? 'e' : null, art: e.imageUrl || show.imageUrl,
+      /* Kept per row so choosing an episode can update the info drawer without
+         waiting on a second request. */
+      info: stripHtml(e.description)
     }))
   };
 }
@@ -114,6 +119,15 @@ async function loadStation(id) {
     audio: url, hls: /\.m3u8/.test(url || ''),
     rows: []
   };
+}
+
+/* Descriptions arrive as HTML. Stripping tags with a regex leaves the entities
+   behind, so &nbsp; and &amp; showed up as text. Parsing it and reading the
+   text content handles both, and never injects the markup anywhere. */
+function stripHtml(html) {
+  if (!html) return '';
+  const doc = new DOMParser().parseFromString(String(html), 'text/html');
+  return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
 }
 
 /* The design's own resting waveform, read off the Figma frame. */
@@ -1071,6 +1085,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
       d.title = ep.title;
       d.episodeId = ep.id;
       d.currentEpisodeId = ep.id;
+      /* The info drawer follows the episode, so it must move when one is
+         chosen. The single episode endpoint carries a description too. */
+      d.infoTitle = ep.title;
+      d.infoBody = stripHtml(ep.description);
       d.audio = ep.mediaUrl;
       d.hls = false;
       /* The card keeps the SHOW's artwork, which is what the frames draw. Only
@@ -1328,7 +1346,13 @@ function makeWidget(rootId, statusId, colourId, variant) {
   }
 
   function speedMenu(btn) {
-    const card = overlayHost();
+    /* The WIDGET, not the visible card. On designs A and B the card is only the
+       player: the episode list sits under it, inside the same widget, and the
+       menu was being confined to the card and made to scroll while 246 and 316
+       px of room sat unused just below. A menu may overlay a list; that is what
+       menus do. Design C is the one case where the widget IS the card, so it
+       has nowhere else to go and still trims. */
+    const card = root.querySelector('.widget') || overlayHost();
     if (!card) return;
     /* Pressing the button again closes it, the way a menu trigger behaves. */
     if (root.querySelector('.speed-menu')) { closeSpeedMenu(); return; }

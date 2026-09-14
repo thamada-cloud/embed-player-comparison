@@ -2229,3 +2229,36 @@ Escape also closes the share drawer now. It already closed the other two, and th
 only there because the share drawer was added last.
 
 Verified: 12 tabs inside each of the three drawers, zero escapes, and Escape closes each.
+
+## The info drawer describes the episode
+
+It was showing the SHOW's title and description, which is one level up from what the card
+is actually playing. Episodes carry their own `description` in both the list endpoint and
+the single episode endpoint, so the drawer now uses the episode's, and follows it when a
+different episode is chosen. Each row carries its description too, so switching needs no
+extra request.
+
+Descriptions arrive as HTML, and the old strip was a regex over tags, which left the
+entities behind: `&nbsp;` and `&amp;` were rendering as text. It now parses the markup and
+reads the text content, which handles both and never injects the markup anywhere.
+
+## The speed menu stopped needing a scroll
+
+The menu is 170 tall and was being confined to the visible card, so on designs A and B it
+was trimmed to 110 and 84 and had to scroll, while 246 and 316 px of room sat unused just
+below it. That room is the episode list, which is inside the same widget: the card is only
+the player.
+
+The menu is now bounded by the widget rather than the card, so it opens downward across
+both and shows every rate at once. A menu may overlay a list; that is what menus do.
+
+| design | before | after |
+| --- | --- | --- |
+| A | 110 of 170, **scrolled** | **170, all five, no scroll** |
+| B | 84 of 170, **scrolled** | **170, all five, no scroll** |
+| C | 140 of 170, scrolled | unchanged |
+
+Design C is the one case with nowhere to go: its widget IS its card, 236 tall, so a 170
+menu fits neither above the button nor below it. It takes the larger gap, 140, and shows
+four of the five with the fifth a scroll away. The alternatives are letting it cover the
+button, which was the bug fixed before this, or a shorter item on that design alone.
