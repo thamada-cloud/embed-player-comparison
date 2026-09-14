@@ -2291,3 +2291,43 @@ bubble sits 3px lower so the overlap is 4px rather than 1, which is more than th
 
 iheart.com has no such line because there the arrow is a child of the tooltip rather than a
 second box behind it, so the shadow is cast around both together.
+
+## The duration shows before you press play
+
+The scrubber read `--:--` until playback started, for three stacked reasons: the media
+element was not created until the first play, it carried `preload: 'none'` so the browser
+fetched nothing, and `--:--` is the markup default with nothing to overwrite it.
+
+It is now `preload: 'metadata'`, and the element is created and pointed at the audio when
+the card loads, so the header arrives and the real duration is on screen from the start.
+Not `'auto'`: this is an embed and should not pull the audio itself before anyone asks.
+
+### Not the duration the API gives us
+
+The obvious fix is the `duration` field already on every episode, which the rows already
+render as "81 min". It is wrong for this purpose:
+
+| source | episode 1 |
+| --- | --- |
+| API `duration` | 4859s, **80:59** |
+| the actual file | 5792s, **96:32** |
+| difference | **933s, 15 and a half minutes** |
+
+Dynamic ad insertion. The API reports the base episode; the served file has ads stitched
+in. Using it would put a wrong number on screen that silently corrects itself on play, and
+would mis-calibrate the scrubber against it.
+
+The row subtitles still carry the API figure, so a card can say "81 min" on a row and 96:32
+on the scrubber for the same episode. Reading the real length of every episode in the list
+would mean a header fetch per row, which is not worth it; the rows are a rough guide and
+the scrubber is the truth.
+
+### What it costs, and what it does not
+
+One header fetch per on demand card at load, about a second. Live radio prefetches nothing:
+a stream has no duration to learn and attaching one would pull the broadcast before anyone
+asked, which is the opposite of what preload is for here.
+
+The buffering ring is unaffected. `stuck()` gates on `w.want`, the play intent, and a
+prefetch never sets it. Verified: duration on screen at rest on all three podcast designs,
+no ring, nothing playing, and play still works on all three plus live.

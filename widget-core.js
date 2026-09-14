@@ -1110,7 +1110,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
     if (w.audio) return;
     const a = new Audio();
     a.crossOrigin = 'anonymous';     /* required before the analyser can read samples */
-    a.preload = 'none';
+    /* metadata, not none. The duration lives in the file's header, and with
+       'none' the browser fetches nothing until playback, so the scrubber read
+       --:-- until you pressed play. A header fetch is a few KB and lands in
+       about a second. Not 'auto': this is still an embed and should not pull
+       the audio itself before anyone asks. */
+    a.preload = 'metadata';
     a.addEventListener('timeupdate', tick);
     a.addEventListener('loadedmetadata', tick);
     a.addEventListener('ended', () => setPlaying(false));
@@ -1121,6 +1126,20 @@ function makeWidget(rootId, statusId, colourId, variant) {
      'timeupdate', 'seeking', 'seeked', 'pause', 'play', 'error', 'ended',
      'loadstart', 'emptied'].forEach((ev) => a.addEventListener(ev, refreshBuffering));
     w.audio = a;
+  }
+
+  /* Loading the header needs a src, and a src is only set when play is pressed,
+     so the element has to exist and be pointed at the audio up front.
+     On demand only. A live stream has no duration to learn and attaching one
+     would start pulling the broadcast before anyone asked for it, which is the
+     opposite of what preload is for here.
+     This never raises the buffering ring: stuck() gates on w.want, the play
+     intent, and a prefetch does not set it. */
+  function prefetchDuration() {
+    const d = w.data;
+    if (!d || d.kind === 'live' || d.hls || !d.audio) return;
+    ensureAudio();
+    if (!w.audio.src) w.audio.src = d.audio;
   }
 
   function attachSource() {
@@ -1652,7 +1671,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
     /* New content means nobody has asked for audio yet, and a pending ring
        timer from the previous item must not land on the new one. */
     w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
-    w.data = data; status(''); render(); startNowPlaying();
+    w.data = data; status(''); render(); startNowPlaying(); prefetchDuration();
   };
   return w;
 }
