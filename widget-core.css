@@ -908,7 +908,11 @@ a.thumb-link:hover { opacity: .92; }
 .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
 .play-btn[aria-label]::after, .hero-play[aria-label]::after {
   content: attr(aria-label);
-  position: absolute; bottom: calc(100% + 11px); left: 50%;
+  /* 8, not 11. The beak has to overlap the bubble by more than the shadow
+     spreads, or the shadow draws a line across the join. elevation1 is
+     0 1px 3px, so 4px of overlap covers it and the 1px border under it.
+     The beak's tip stays 4 from the button either way. */
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
   background-color: var(--true-white); color: var(--ihr-grey-600);
   border: 1px solid var(--ihr-gray-350); border-radius: var(--rad-2);
   box-shadow: var(--elevation1);
@@ -924,6 +928,12 @@ a.thumb-link:hover { opacity: .92; }
   background: no-repeat center/16px 8px
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 0 L8 8 L16 0' fill='%23ffffff' stroke='%23ffffff' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
 }
+/* The beak paints OVER the bubble. Same z-index meant ::after won on document
+   order, so the bubble and its shadow were drawn on top of the beak and the
+   join showed as a grey line. iheart.com has no such line, because there the
+   arrow is a child of the tooltip rather than a second box behind it. */
+.icon-btn[aria-label]::before, .h-btn[aria-label]::before,
+.play-btn[aria-label]::before, .hero-play[aria-label]::before { z-index: 7; }
 /* Shared rest and motion. The component enters over 200ms from an 8px offset
    and leaves over 100ms, reversed and eased out. */
 .icon-btn[aria-label]::after, .h-btn[aria-label]::after,

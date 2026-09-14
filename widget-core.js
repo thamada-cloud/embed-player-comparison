@@ -499,15 +499,15 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
             ` : `
               <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
-              <button class="h-btn" data-act="speed" aria-label="Playback speed"><span class="h-speed">1x</span></button>
-              <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
+              <button class="h-btn" data-act="speed" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
+              <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
             `}
             <button class="hero-play" data-act="play" aria-label="Play">
               <img class="pi" src="${GLYPH.play}" alt="">
               <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
             </button>
             ${isLive ? '' : `
-              <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+              <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>`}
             <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
             <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
           </div>
@@ -562,7 +562,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="hero-controls">
             <span class="cc-side">
               ${isLive ? '' : `
-                <button class="h-btn" data-act="back" aria-label="Back 15 seconds"><img src="assets/back15.svg" alt=""></button>
+                <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
               `}
             </span>
             <button class="hero-play" data-act="play" aria-label="Play">
@@ -571,7 +571,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             </button>
             <span class="cc-side">
               ${isLive ? '' : `
-                <button class="h-btn" data-act="fwd" aria-label="Forward 30 seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+                <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>`}
             </span>
           </div>
           ${isLive ? `
@@ -616,7 +616,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
        <div class="sheet-panel">
         <div class="sheet-head">
           <h3>${esc(d.infoTitle || d.subtitle)}</h3>
-          <button class="sheet-close" data-act="info" aria-label="Close information"><img src="assets/sheet-close.svg" alt=""></button>
+          <button class="sheet-close" data-act="info" aria-label="Close Information"><img src="assets/sheet-close.svg" alt=""></button>
         </div>
         <div class="sheet-body">
           <p class="info-body">${esc(d.infoBody || 'No description available.')}</p>
@@ -636,7 +636,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
        <div class="sheet-panel">
         <div class="sheet-head">
           <h3>${esc(d.listTitle)}</h3>
-          <button class="sheet-close" data-act="list" aria-label="Close episodes"><img src="assets/sheet-close.svg" alt=""></button>
+          <button class="sheet-close" data-act="list" aria-label="Close Episodes"><img src="assets/sheet-close.svg" alt=""></button>
         </div>
         <div class="sheet-body">
           <div class="rows">
@@ -700,9 +700,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <div class="btn-row">
                   ${isLive ? '' : `
                   <div class="btn-group">
-                    <button class="icon-btn speed-btn" data-act="speed" aria-label="Playback speed"><span>1x</span></button>
-                    <button class="icon-btn" data-act="back" aria-label="Back 15 seconds">${icon('back15')}</button>
-                    <button class="icon-btn" data-act="fwd" aria-label="Forward 30 seconds">${icon('fwd30')}</button>
+                    <button class="icon-btn speed-btn" data-act="speed" aria-label="Change Playback Speed"><span>1x</span></button>
+                    <button class="icon-btn" data-act="back" aria-label="Back 15 Seconds">${icon('back15')}</button>
+                    <button class="icon-btn" data-act="fwd" aria-label="Forward 30 Seconds">${icon('fwd30')}</button>
                   </div>`}
                   <div class="btn-group">
                     <button class="icon-btn" data-act="save" aria-pressed="false" aria-label="Save">${icon('plus')}</button>
@@ -1025,7 +1025,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         const opener = root.querySelector('[data-act="list"].h-btn');
         if (opener) {
           opener.setAttribute('aria-pressed', String(opening));
-          opener.setAttribute('aria-label', opening ? 'Hide episodes' : 'Show episodes');
+          opener.setAttribute('aria-label', opening ? 'Hide Episodes' : 'Show Episodes');
         }
         /* Focus follows the sheet, since it covers the controls underneath and
            a keyboard would otherwise be tabbing through a hidden player. */
@@ -1281,9 +1281,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const cActions = (isPodcast) =>
     '<span class="lr-side">' +
       (isPodcast ?
-        '<button class="h-btn" data-act="speed" aria-label="Playback speed">' +
+        '<button class="h-btn" data-act="speed" aria-label="Change Playback Speed">' +
           '<span class="h-speed">1x</span></button>' +
-        '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show episodes">' +
+        '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
           '<img src="assets/h-list.svg" alt=""></button>' : '') +
     '</span>' +
     '<span class="lr-side">' +

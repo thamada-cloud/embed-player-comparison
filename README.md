@@ -2262,3 +2262,32 @@ Design C is the one case with nowhere to go: its widget IS its card, 236 tall, s
 menu fits neither above the button nor below it. It takes the larger gap, 140, and shows
 four of the five with the fifth a scroll away. The alternatives are letting it cover the
 button, which was the bug fixed before this, or a shorter item on that design alone.
+
+## Three tooltip fixes
+
+**Title case.** Production writes these in title case, and three of ours are its strings
+verbatim, from `content={t('...')}` in `apps/listen/app/playback`:
+
+| was | now |
+| --- | --- |
+| Back 15 seconds | **Back 15 Seconds** |
+| Forward 30 seconds | **Forward 30 Seconds** |
+| Playback speed | **Change Playback Speed** |
+| Show / Hide episodes | Show / Hide Episodes |
+| Close episodes, Close information | Close Episodes, Close Information |
+
+The speed one is not just casing: production says **Change** Playback Speed, which names the
+action rather than the setting. Save, Info, Share and Play have no counterpart in
+production's player, so they keep their own wording under the same convention.
+
+These strings are the buttons' `aria-label`, which the tooltip reads, so the accessible
+name and the tooltip stay the same string.
+
+**The shadow across the beak.** The bubble and the beak were both at `z-index: 6`, so
+`::after` won on document order and the bubble painted over the beak, laying its
+`elevation1` shadow across the join as a grey line. The beak now sits a layer above, and the
+bubble sits 3px lower so the overlap is 4px rather than 1, which is more than the shadow's
+3px spread and the 1px border under it. The beak's tip stays 4 from the button either way.
+
+iheart.com has no such line because there the arrow is a child of the tooltip rather than a
+second box behind it, so the shadow is cast around both together.
