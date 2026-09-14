@@ -2331,3 +2331,77 @@ asked, which is the opposite of what preload is for here.
 The buffering ring is unaffected. `stuck()` gates on `w.want`, the play intent, and a
 prefetch never sets it. Verified: duration on screen at rest on all three podcast designs,
 no ring, nothing playing, and play still works on all three plus live.
+
+## The pause veil
+
+Frame 2581:363615. Five seconds after listening stops, the card covers itself
+with the iHeart prompt: the secondary logotype, one line of copy, and a red CTA
+to iHeart.com, over a flat 85% black. A close X sits in the top right corner.
+
+### The delay is the feature
+
+Pausing is usually a two second interruption. Someone takes a call, or answers
+the person next to them, and comes straight back. A prompt that lands on the
+same frame as the pause punishes exactly those listeners. Waiting five seconds
+means it only meets people who actually stopped. Resuming inside the five
+seconds cancels it outright, so a short interruption never sees it at all.
+
+`VEIL_DELAY` in `widget-core.js` is the knob.
+
+### Only a pause the listener asked for
+
+`setPlaying(false)` is also how a card is stopped when another one starts, and
+how the episode switcher clears the old track. A prompt raised by either would
+be covering a card nobody touched, which on the prototype page means five
+cards prompting at once because you pressed play on the sixth. So the intent is
+passed in: `toggle()` calls `setPlaying(on, true)` and nothing else does, and
+only that path arms the timer. Verified on the six-card page, where starting a
+second card raises no prompt on the first.
+
+Live radio gets it too. Live stops rather than pauses, and a stop is the same
+moment the prompt is there for. The frame's content says nothing about the
+episode, only about iHeart, so one markup serves both.
+
+### How often
+
+Once per listening session. Pressing play resets the flag, so pause, dismiss,
+play, pause shows it again, but pausing twice in one sitting does not prompt
+twice. Frequency is not something the frame specifies, so this is a choice, and
+`w.veilSeen` is where to change it.
+
+### Geometry, measured not inferred
+
+The frame nests the close button in a header inside a 16px padded body, which
+reads as a 16px inset. It is not: the header runs x 32..350 y 0..32 and the
+32px button sits at x 286 within it, so the button is flush to the card's
+corner and its own 4px padding is the only inset. The content group is 318 wide
+(the card less 32) and 136 tall, centred in the card, with 8px between the
+logo, the copy and the CTA. All of that reproduces exactly, measured at 420
+wide: group 388x136, logo 107x24, copy 48, CTA 176x48, close 32x32 at the
+corner.
+
+The logotype is generated from accomplice's `LogotypeSecondary` at its own
+107x24 viewBox, dark theme, so the wordmark is white and the heart is
+brandRed #C6002B. The CTA is ihr_Red-550 #CC032E, which is a different token
+and deliberately so.
+
+### The one width that needed a step
+
+Below 320 the sentence needs a third line, which takes the group to 160 and
+overflows the shortest card in the set by 12: the bar card's live variant, 180
+tall because it carries no episode list. Measured across 280/320/360/420/560/
+760 on all six cards, that is the only combination that fails, so the step down
+is keyed to where the wrap happens rather than applied per design.
+
+A height query would express this better than a width one, but `.shell` is
+`container-type: inline-size` and cannot answer about height.
+
+### Keyboard
+
+Focus is deliberately not moved when it opens. This opens on a timer, not on a
+keypress, and pulling focus five seconds after someone pressed pause would take
+it from wherever they had moved on to. The close button is reachable the moment
+they Tab, because the existing trap pulls focus in on the first Tab while a
+modal is up, and the veil is first in that chain since it sits above the other
+three. Escape closes it. Verified: Tab enters, Tab wraps, Enter on the close
+button closes.

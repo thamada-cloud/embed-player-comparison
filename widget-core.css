@@ -1414,3 +1414,102 @@ a.thumb-link:hover { opacity: .92; }
 .speed-menu button[aria-checked="true"] { background-color: var(--ihr-grey-450); }
 .speed-menu button:active { background-color: var(--ihr-gray-500); }
 .speed-menu button:focus-visible { outline: none; }
+
+/* ---------------------------------------------------------------------------
+   Pause veil, frame 2581:363615.
+
+   The prompt that covers the card once listening stops. It is drawn over the
+   whole card rather than as a drawer at the bottom, so it is built like the
+   scrim rather than like the sheets: inset 0 on .widget, which is the element
+   that clips, and a flat 85% black instead of the drawer scrim's 80% plus
+   blur. The frame has no blur behind it.
+
+   It is armed on a pause rather than shown with one, so the transition is a
+   plain fade with nothing to slide. Visibility is what makes it inert while
+   hidden; opacity alone would leave the CTA clickable over the controls.
+   --------------------------------------------------------------------------- */
+.pause-veil {
+  position: absolute; inset: 0; z-index: 22;
+  display: flex; flex-direction: column;
+  background: rgba(0, 0, 0, .85);
+  overflow: hidden;
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+}
+.widget.veil-open .pause-veil {
+  opacity: 1; visibility: visible;
+  transition: opacity .3s ease, visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) { .pause-veil { transition: none; } }
+
+/* Drawer Body 2581:363725. Fills the veil and centres its one group. */
+.pv-body {
+  flex: 1 0 0; min-height: 0; position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--sp-8); padding: 16px; width: 100%; box-sizing: border-box;
+}
+.pv-group {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--sp-8); width: 100%;
+}
+/* Logotype Secondary, dark theme, at the component's own 107x24 box. */
+.pv-logo { display: block; width: 107px; height: 24px; flex: none; }
+
+/* Digital Brand H5. Bold 18/24, centred, breaking inside a word rather than
+   overflowing, which is what the frame's word-break carries. */
+.pv-copy {
+  margin: 0; width: 100%; text-align: center;
+  font-family: inherit; font-weight: 700;
+  font-size: var(--fs-18); line-height: var(--lh-24); letter-spacing: 0;
+  color: var(--true-white); word-break: break-word;
+}
+
+/* Digital Brand Button 1 on the primary pill. Sized by its padding, not by a
+   height, so the label sets the box exactly as the frame does. */
+.pv-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
+  padding: 12px 24px; border: 0; border-radius: 99px;
+  background: var(--ihr-red-550); color: var(--true-white);
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .15);
+  font-family: inherit; font-weight: 600;
+  font-size: var(--fs-16); line-height: var(--lh-24); letter-spacing: var(--ls-0);
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color .2s ease, transform .2s ease;
+}
+/* Coloured buttons in accomplice hover only where there is a real pointer, and
+   share their pressed colour with hover, the two told apart by the scale. */
+@media (pointer: fine) {
+  .pv-cta:hover { background-color: var(--ihr-red-400); }
+}
+.pv-cta:active { background-color: var(--ihr-red-400); transform: scale(.95); }
+.pv-cta:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; }
+
+/* Header 2581:364648. Measured, not inferred from the padded body it sits in:
+   the header runs x 32..350 y 0..32 and its 32px button sits at x 286 inside
+   that, so the button is flush to the card's top right corner. The 4px padding
+   inside it is the only inset, which puts the glyph 4px off both edges. */
+.pv-close {
+  position: absolute; top: 0; right: 0; z-index: 1;
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-4); border-radius: var(--rad-999);
+  transition: background-color .2s ease, transform .2s ease;
+}
+.pv-close img { display: block; width: 24px; height: 24px; }
+.pv-close:hover, .pv-close:active { background-color: var(--ihr-gray-400); }
+.pv-close:active { transform: scale(.95); }
+.pv-close:focus-visible { outline: 2px solid var(--true-white); outline-offset: -1px; }
+
+/* Below 320 the sentence needs a third line, which takes the group to 160 and
+   overflows the shortest card in the set by 12: the bar card's live variant,
+   which is 180 tall because it carries no episode list. Measured across
+   280/320/360/420/560/760 on all six cards, and that is the only combination
+   that fails, so the step is keyed to where the wrap happens rather than
+   applied by design.
+   The close button is unaffected: it resolves against the body's padding box,
+   which the padding change does not move. */
+@container (max-width: 319px) {
+  .pv-body { padding: 8px 16px; }
+  .pv-copy { font-size: var(--fs-14); line-height: var(--lh-18); }
+  .pv-cta { padding: 8px 20px; font-size: var(--fs-14); line-height: var(--lh-18); }
+}

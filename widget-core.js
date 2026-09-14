@@ -526,6 +526,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         ${isLive ? '' : listMarkup(d)}
         ${infoMarkup(d)}
         ${shareMarkup(d)}
+        ${veilMarkup()}
       </div>`;
   }
 
@@ -600,6 +601,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         </div>
         ${infoMarkup(d)}
         ${shareMarkup(d)}
+        ${veilMarkup()}
       </div>`;
   }
 
@@ -719,6 +721,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         ${isLive ? '' : listMarkup(d)}
         ${infoMarkup(d)}
         ${shareMarkup(d)}
+        ${veilMarkup()}
       </div>`;
     afterRender();
   }
@@ -827,6 +830,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
          pretending: focus lands on controls nobody can see, behind a scrim.
          Measured before this: Tab escaped every one of the three. */
       const openDrawer =
+        /* The veil sits above all three, so it answers first when it is up. */
+        card.classList.contains('veil-open')  ? root.querySelector('.pause-veil') :
         card.classList.contains('share-open') ? root.querySelector('.share-sheet') :
         card.classList.contains('info-open')  ? root.querySelector('.info-sheet') :
         card.classList.contains('sheet-open') ? root.querySelector('.sheet:not(.info-sheet)') :
@@ -846,7 +851,10 @@ function makeWidget(rootId, statusId, colourId, variant) {
       }
 
       if (e.key !== 'Escape') return;
-      if (card.classList.contains('share-open')) {
+      if (card.classList.contains('veil-open')) {
+        e.stopPropagation();
+        dismissVeil();
+      } else if (card.classList.contains('share-open')) {
         e.stopPropagation();
         shareDialog();
       } else if (card.classList.contains('sheet-open')) {
@@ -994,6 +1002,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
        LIBRARY_AUTHENTICATION_MESSAGE verbatim from
        apps/listen/app/utilities/constants.ts. */
     if (kind === 'save') authToast();
+    if (kind === 'veil') dismissVeil();
     if (kind === 'row') {
       /* Chosen from inside design C's drawer, the drawer has done its job and
          gets out of the way so the card it just changed can be seen. */
@@ -1156,9 +1165,53 @@ function makeWidget(rootId, statusId, colourId, variant) {
     return true;
   }
 
-  async function toggle() { setPlaying(!w.playing); }
+  /* ---------------------------------------------------------------------
+     The pause veil, frame 2581:363615.
 
-  async function setPlaying(on) {
+     Five seconds after listening stops, the card covers itself with the
+     iHeart prompt. The delay is the whole point of the thing: pausing is
+     usually a two second interruption, someone taking a call or talking to
+     the person next to them, and a prompt that lands on the same frame as
+     the pause punishes a listener who is coming straight back. Waiting five
+     seconds means the prompt only meets people who actually stopped.
+
+     Only a pause the listener asked for arms it. setPlaying(false) is also
+     how a card is stopped when another one starts, and how the episode
+     switcher clears the old track, and a prompt raised by either of those
+     would be covering a card the listener never touched.
+     --------------------------------------------------------------------- */
+  const VEIL_DELAY = 5000;
+
+  function clearVeil() { clearTimeout(w.veilTimer); w.veilTimer = null; }
+
+  function showVeil(on) {
+    const card = root.querySelector('.widget');
+    const veil = root.querySelector('.pause-veil');
+    if (!card || !veil) return;
+    card.classList.toggle('veil-open', on);
+    veil.setAttribute('aria-hidden', on ? 'false' : 'true');
+    /* Focus is deliberately not moved here. This opens on a timer rather than
+       on a keypress, and pulling focus five seconds after someone pressed
+       pause would take it from wherever they had moved on to. The close
+       button is reachable the moment they Tab, because the trap pulls focus
+       in on the first Tab while the veil is up. */
+  }
+
+  function armVeil() {
+    if (w.veilSeen) return;          /* once per listening session, not per pause */
+    clearVeil();
+    w.veilTimer = setTimeout(() => { w.veilTimer = null; showVeil(true); }, VEIL_DELAY);
+  }
+
+  function dismissVeil() {
+    w.veilSeen = true;
+    clearVeil();
+    showVeil(false);
+  }
+
+  async function toggle() { setPlaying(!w.playing, true); }
+
+  async function setPlaying(on, byUser) {
     if (on) {
       INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
       if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
@@ -1202,6 +1255,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
     const pb = q('[data-act="play"]');
     if (pb) pb.setAttribute('aria-label', on ? (stopper ? 'Stop' : 'Pause') : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
+
+    /* Playing clears the prompt and resets the once-per-session flag, so the
+       next deliberate stop is eligible again. */
+    if (on) { clearVeil(); showVeil(false); w.veilSeen = false; }
+    else if (byUser) armVeil();
+    else clearVeil();
   }
   w.pause = () => setPlaying(false);
 
@@ -1463,6 +1522,29 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const isCurrentRow = (d, r) =>
     !!w.started && String(r.id) === String(d.currentEpisodeId);
 
+  /* The pause veil, frame 2581:363615.
+
+     The frame draws it over a podcast card, but it is emitted for live radio
+     too: live stops rather than pauses, and a stop is the same moment the
+     prompt is there for. One markup for both, since the frame's content says
+     nothing about the episode, only about iHeart. */
+  function veilMarkup() {
+    return `
+      <div class="pause-veil" role="dialog" aria-label="Listen on iHeart" aria-hidden="true">
+        <div class="pv-body">
+          <button class="pv-close" type="button" data-act="veil" aria-label="Close">
+            <img src="assets/close-white.svg" alt=""></button>
+          <div class="pv-group">
+            <img class="pv-logo" src="assets/ihr-logotype-white.svg" alt="iHeart"
+                 width="107" height="24">
+            <p class="pv-copy">Listen to live radio, podcasts, and music for free.</p>
+            <a class="pv-cta" href="https://www.iheart.com/" target="_blank"
+               rel="noopener">Go to iHeart.com</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
   function shareMarkup(d) {
     if (!d) return '';
     const isLive = d.kind === 'live';
@@ -1671,6 +1753,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
     /* New content means nobody has asked for audio yet, and a pending ring
        timer from the previous item must not land on the new one. */
     w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
+    clearVeil(); w.veilSeen = false;
     w.data = data; status(''); render(); startNowPlaying(); prefetchDuration();
   };
   return w;
