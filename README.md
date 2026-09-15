@@ -3057,3 +3057,24 @@ Verified: waveform hidden on all four cards on load, toggling back to On shows
 them again, zero `.colourline` elements in the page, and `--dominant` still set
 on all four, `#554646` for the podcast artwork and `#ed4979` for Z100. The
 standalone embeds are unaffected and still play.
+
+## The waveform-off state left its own height as dead space
+
+`visibility: hidden` kept the strip's box. That was deliberate, so nothing above
+it would shift, but the card does not get shorter either way, so all the box did
+was leave the waveform's own height empty under the bottom row: 24 on design C,
+12 on design B.
+
+It is `display: none` now, with 16px of padding under the bottom block in its
+place. Removing the box outright would have pushed the row flat against the
+card's edge. Frame 2613:77793 draws design C without a waveform and leaves 17
+under the row, and 16 is what the rest of the card is inset by, so the two
+agree.
+
+Measured with the waveform off and playing: 16px below the last visible row on
+both designs, design C's `.list-row` and design B's `.slider`. With it on,
+0 below the waveform, unchanged.
+
+One thing that is correct rather than broken: design B at rest with the waveform
+off has an empty bottom block, because its slider only appears once playback
+starts and the waveform was the only other thing in there.

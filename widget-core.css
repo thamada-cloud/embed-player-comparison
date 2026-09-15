@@ -71,10 +71,18 @@ header {
 .hint { font-size: 12px; color: var(--ihr-grey-450); }
 /* Hiding the waveform on the artwork cards. .widget.hero covers design B and
    design C, since C carries both classes, and leaves the bar card alone.
-   Visibility rather than display: the stage is a fixed 224 on design B and a
-   ratio on design C, so neither card gets shorter either way, and keeping the
-   strip's box means nothing above it shifts when it goes. */
-main[data-wave="off"] .widget.hero .wave { visibility: hidden; }
+
+   `display`, not `visibility`. Visibility kept the strip's box, which was the
+   point at the time, but the card does not get shorter either way, so all that
+   box did was leave the waveform's own height as dead space under the bottom
+   row: 24 on design C, 12 on design B.
+
+   Taking the box out entirely would push the row flat against the card's edge,
+   so the strip's height is replaced by 16 of padding. Frame 2613:77793 draws
+   design C without a waveform and leaves 17 under the row, and 16 is what the
+   rest of the card is inset by, so the two agree. */
+main[data-wave="off"] .widget.hero .wave { display: none; }
+main[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: 16px; }
 
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
