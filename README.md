@@ -2536,3 +2536,49 @@ wants.
 Both menus run through one opener, so the speed trigger picked up the
 `aria-haspopup` and `aria-expanded` the row overflow needed. It had neither
 before.
+
+## Design A live radio with nothing on air
+
+Frame 2600:92969, "350px / Live Radio wo/track".
+
+The block used to be one line here, the station name and its description joined
+with a bullet, and that line was bumped from 12/16 up to the title's size
+because as the only line in the block a caption read as an orphan. The README
+called that "a deliberate step past the frame, which drew this state at 12/16".
+
+The new frame answers it properly. With nothing on air the block splits in two:
+
+| line | content | type |
+| --- | --- | --- |
+| 1 | the station **name**, linked | 14 / 18, 600, -0.2 |
+| 2 | its description, plain | 12 / 16, 400, 0 |
+
+So each line is already the size it should be and the override has nothing left
+to do. Both are gone, the 14/18 one and the 16/24 one inside the container
+query.
+
+Measured against the frame at 350 wide: line 1 at y 29 where the frame has
+16 + 13 = 29, line 2 at y 51 where the frame has 29 + 22 = 51, both types exact.
+The two lines sit 4 apart rather than the 2 a three line block uses, which is
+the only way the frame's 38 tall block adds up from an 18 and a 16.
+
+The data already carried what this needs. `title` is the station name and `desc`
+its description, kept apart as well as joined because the artwork cards have
+always split them. Designs B and C were already drawing it this way, so this
+brings the bar card into line with them rather than inventing a third
+treatment.
+
+With a track on air nothing changes: station line, artist, track, three lines at
+2 apart, which is what frame 2600:92866 draws.
+
+### One thing I did not change
+
+Both live frames in this series, with a track and without, show **plus and share
+only**. The info button is hidden in each. That is not a no-track quirk, it is
+live radio losing the info button the way podcast just did.
+
+I left all three buttons in place, because the instruction with the podcast
+change was to keep live radio the same and this frame was sent about the layout.
+It is a one line change if the intent is that live drops info too. Worth
+settling either way, since live and podcast now disagree about what sits in that
+row.

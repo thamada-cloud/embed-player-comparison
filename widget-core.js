@@ -100,8 +100,10 @@ async function loadStation(id) {
   const url = st.secure_hls_stream || st.hls_stream || st.secure_shoutcast_stream || st.shoutcast_stream;
   return {
     kind: 'live', stationId: id,
-    /* Three lines, per the updated live frames: track, artist, then the
-       station line. No list, so no rows. */
+    /* With a track on air the block is three lines, the station line then
+       artist then track. With nothing on air it is two, the station NAME and
+       its description, which is why both are carried apart as well as joined.
+       No list, so no rows. */
     /* Left null when the station reports nothing playing. The widget then
        shows only the station line rather than repeating the station name on
        the artist row. */
@@ -688,11 +690,12 @@ ${rowMarkup(d, r)}`).join('')}
                aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous"></a>
             <div class="col">
             <div class="meta">
-              ${isLive ? `
+              ${isLive ? (d.track && d.artist ? `
                 <p class="subtitle mq">${lineLink(stationUrl(d), d.subtitle)}</p>
-                ${d.track && d.artist ? `
                 <p class="title np-artist mq">${maybeLink(artistUrl(d), d.artist, 'Open this artist on iHeart')}</p>
-                <p class="title np-track mq">${maybeLink(trackUrl(d), d.track, 'Open this song on iHeart')}</p>` : ''}` : `
+                <p class="title np-track mq">${maybeLink(trackUrl(d), d.track, 'Open this song on iHeart')}</p>` : `
+                <p class="title mq">${lineLink(stationUrl(d), d.title)}</p>
+                <p class="subtitle mq">${mqs(d.desc || '')}</p>`) : `
                 <p class="title mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                 <p class="subtitle mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>

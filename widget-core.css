@@ -240,6 +240,10 @@ a.thumb-link:hover { opacity: .92; }
 /* 2px for live, which is what all three revised frames draw between the three
    lines. Podcast keeps 4 between its pair. */
 .widget.live .meta { gap: 2px; }
+/* Two lines rather than three, and frame 2600:92969 sets them 4 apart: the
+   block is 38 tall for an 18 and a 16, which only adds up at 4. Three lines
+   under a track keep the 2 their own frame draws. */
+.widget.live.notrack .meta { gap: 4px; }
 /* 33px is what holds the lines off the logo, and it is the only thing that
    does on any of the three designs: the logo is 25 wide and sits 16 in from the
    card's right edge, so 33 of text padding against the same edge leaves 8 of
@@ -286,13 +290,12 @@ a.thumb-link:hover { opacity: .92; }
 /* caption-4 */
 .subtitle { font-size: var(--fs-12); line-height: var(--lh-16); letter-spacing: var(--ls-4);
             margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* With no track playing the station line is the only line in the block, so it
-   takes the podcast title's size at each width rather than the 12/16 it uses
-   as a third line under a track and artist. A deliberate step past the frame,
-   which drew this state at 12/16. Declared here, ahead of the container query,
-   so the wide override inside the query wins on order as well as specificity. */
-.widget.live.notrack .subtitle { font-size: var(--fs-14); line-height: var(--lh-18);
-                                 letter-spacing: var(--ls-0); font-weight: 600; }
+/* Nothing here for the no-track state any more. It used to bump this single
+   joined line to the title's size, because the station line was the only line
+   in the block and 12/16 read as a caption with nothing above it. Frame
+   2600:92969 answers it properly instead: with nothing on air the block splits
+   into the station NAME on the title line and its description underneath, so
+   each line is already the right size and the override has nothing left to do. */
 /* accomplice Logo sizes the mark by HEIGHT off a fixed scale, and 26 is not on
    it: the scale runs 12, 16, 18, 24, 32, 36, 40, 48, 52, 56 and up. 24 is the
    nearest rung, so the mark is 24 tall here and the width follows its ratio
@@ -722,12 +725,6 @@ a.thumb-link:hover { opacity: .92; }
   }
   /* The 5px is the podcast frame's top offset. Live centres instead. */
   .widget.live .meta { padding-top: 0; }
-  /* With no track the station line is the only line in the block, so it takes
-     the podcast title's size rather than the 12/16 it uses as a third line
-     under a track and artist. A deliberate step past the frame, which drew
-     this state at 12/16. */
-  .widget.live.notrack .subtitle { font-size: var(--fs-16); line-height: var(--lh-24);
-                                   letter-spacing: var(--ls-0); font-weight: 600; }
 }
 
 .controls-row { grid-area: controls; display: flex; gap: 16px; align-items: center; width: 100%; min-width: 0; }
