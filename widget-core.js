@@ -1225,6 +1225,11 @@ ${rowMarkup(d, r)}`).join('')}
      how a card is stopped when another one starts, and how the episode
      switcher clears the old track, and a prompt raised by either of those
      would be covering a card the listener never touched.
+
+     And it shows ONCE. Closing it is an answer, so playing again does not
+     make the card eligible again, and neither does loading different content
+     into it. Asking a second time after someone has already said no is the
+     same nagging the five second delay exists to avoid.
      --------------------------------------------------------------------- */
   const VEIL_DELAY = 5000;
 
@@ -1244,7 +1249,7 @@ ${rowMarkup(d, r)}`).join('')}
   }
 
   function armVeil() {
-    if (w.veilSeen) return;          /* once per listening session, not per pause */
+    if (w.veilSeen) return;          /* once per card, and never again after a close */
     clearVeil();
     w.veilTimer = setTimeout(() => { w.veilTimer = null; showVeil(true); }, VEIL_DELAY);
   }
@@ -1302,9 +1307,10 @@ ${rowMarkup(d, r)}`).join('')}
     if (pb) pb.setAttribute('aria-label', on ? (stopper ? 'Stop' : 'Pause') : 'Play');
     if (on) loop(); else { cancelAnimationFrame(w.raf); settle(); }
 
-    /* Playing clears the prompt and resets the once-per-session flag, so the
-       next deliberate stop is eligible again. */
-    if (on) { clearVeil(); showVeil(false); w.veilSeen = false; }
+    /* Playing clears a pending prompt, but it does NOT make the card eligible
+       again. Closing the veil is an answer, and asking a second time after
+       someone has already said no is the behaviour the delay exists to avoid. */
+    if (on) { clearVeil(); showVeil(false); }
     else if (byUser) armVeil();
     else clearVeil();
   }
@@ -1407,15 +1413,15 @@ ${rowMarkup(d, r)}`).join('')}
      They are not part of the transport, so they do not hide with it: both
      frames show all of them on a card nobody has pressed play on yet. */
   const cActions = (isPodcast) =>
+    /* The left group is empty on both now and still emitted, because
+       space-between with a single child pushes that child to the start. */
+    '<span class="lr-side"></span>' +
     '<span class="lr-side">' +
       (isPodcast ?
         '<button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed">' +
           '<span class="h-speed">1x</span></button>' +
         '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
-          '<img src="assets/h-list.svg" alt=""></button>' : '') +
-    '</span>' +
-    '<span class="lr-side">' +
-      (isPodcast ? '' :
+          '<img src="assets/h-list.svg" alt=""></button>' :
         '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
           '<img src="assets/h-plus.svg" alt=""></button>' +
         '<button class="h-btn" data-act="info" aria-label="Info">' +
@@ -1713,7 +1719,13 @@ ${rowMarkup(d, r)}`).join('')}
   const SIGNUP_URL = 'https://www.iheart.com/signup/';
 
   function authToast() {
-    const card = overlayHost();
+    /* The WIDGET, not overlayHost(). overlayHost() hands back .stage on the
+       artwork cards, which is the picture and nothing else, so the toast was
+       being centred inside the player while the episode list sat untouched
+       below it. It reads as belonging to the artwork rather than to the card.
+       Hung off .widget it lands along the bottom edge of the whole thing,
+       which is where a toast belongs and where the component puts it. */
+    const card = root.querySelector('.widget') || overlayHost();
     if (!card) return;
     /* One at a time. Pressing the button again re-raises it rather than
        stacking a second copy behind the first. */
@@ -1836,7 +1848,9 @@ ${rowMarkup(d, r)}`).join('')}
     /* New content means nobody has asked for audio yet, and a pending ring
        timer from the previous item must not land on the new one. */
     w.want = false; clearTimeout(w.bufTimer); w.bufTimer = null; w.buffering = false;
-    clearVeil(); w.veilSeen = false;
+    /* A pending timer must not land on the new content, but a dismissal is
+       not undone by loading something else either. */
+    clearVeil();
     w.data = data; status(''); render(); startNowPlaying(); prefetchDuration();
   };
   return w;

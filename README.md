@@ -2370,10 +2370,12 @@ episode, only about iHeart, so one markup serves both.
 
 ### How often
 
-Once per listening session. Pressing play resets the flag, so pause, dismiss,
-play, pause shows it again, but pausing twice in one sitting does not prompt
-twice. Frequency is not something the frame specifies, so this is a choice, and
-`w.veilSeen` is where to change it.
+Once. Closing it is an answer, so playing again does not make the card eligible
+again and neither does loading different content into it. Asking a second time
+after someone has already said no is the same nagging the five second delay
+exists to avoid. Verified across three pause cycles on one card: raised on the
+first, silent on the second and third, while an untouched card still gets its
+one prompt.
 
 ### Geometry, and where the close actually goes
 
@@ -2501,3 +2503,36 @@ wins and it is a one line change.
 bar card, 350 by 400 with the same inline list, not the 350 by 444 hero card.
 The menu and its contents are identical to 2609:36099, so nothing was lost, but
 if there was meant to be a hero specific overflow frame it is not at that node.
+
+## Three follow-ups on the podcast change
+
+### The auth toast belongs to the card, not to the artwork
+
+It was hung off `overlayHost()`, which hands back `.stage` on the artwork cards.
+`.stage` is the picture and nothing else, so on designs B and C the toast was
+centred inside the player while the episode list sat untouched below it, reading
+as if it belonged to the artwork. It now hangs off `.widget` on all three, which
+puts it along the bottom edge of the whole card, full width, which is where the
+component puts it. Measured on all six cards: host `.widget`, 0px gap to the
+card's bottom edge, width equal to the card's, fully inside it.
+
+Design A had the same problem in a milder form, since `.player` is most of that
+card, so it moved too rather than leaving three cards disagreeing.
+
+### Design C's speed and list joined the share button
+
+Frame 2600:95711. The bottom row was split, speed and list left, actions right.
+All three now sit together at the right, 16 in from the card edge, with the left
+group emitted empty so `space-between` still pushes them to the end. Live radio
+keeps plus, info and share in the same place, unchanged.
+
+A side effect worth knowing: the tooltip alignment rules key off
+`.lr-side:first-child` and `:last-child`, so with the left group now always
+empty every tooltip in that row right-aligns, which is what a right-hand group
+wants.
+
+### The rate button now announces itself
+
+Both menus run through one opener, so the speed trigger picked up the
+`aria-haspopup` and `aria-expanded` the row overflow needed. It had neither
+before.
