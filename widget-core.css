@@ -558,10 +558,16 @@ a.thumb-link:hover { opacity: .92; }
    16:9 reaches 234 at a width of 416, so the floor applies on phones.
    The ceiling is the other end of the same argument. A video can be any size
    because it scales; this card cannot, so past a point 16:9 is just a taller
-   and taller field of artwork around the same 64px button. 400 holds the ratio
-   through every width an embed slot realistically gets, phones and article
-   columns up to 711, and past that the card grows wider rather than taller. */
-.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 400px; }
+   and taller field of artwork around the same 64px button. Past the ceiling the
+   card grows wider rather than taller.
+
+   360, asked for. 16:9 reaches it at 640 wide, so the ratio holds true from 416
+   to 640 and the card caps beyond that. The clamps only ever trim the artwork:
+   nothing inside is laid out against the stage height except the control row,
+   which is centred, so there is no width at which the ceiling can clip a
+   control. The floor is the only end that can, which is what 234 is protecting
+   against. */
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 360px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
 /* Live C ends in a waveform running to the edge, like every other card here,
    so it takes no bottom padding. Its own frame parked three icons at the bottom

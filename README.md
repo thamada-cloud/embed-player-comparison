@@ -2680,3 +2680,31 @@ A's bar card paints it behind its text and because the contrast readout reports
 it. And the readout needed no change: it already judges the artwork cards on
 "80% black guarantees 11.86 to 1 on ANY artwork, since the worst a picture can
 be is pure white", which is exactly the case a white plate creates.
+
+## Design C caps at 360
+
+`max-height` on `.widget.c .stage` goes 400 to 360. The ratio is unchanged.
+
+```css
+.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 360px; }
+```
+
+16:9 reaches 360 at a width of 640, so the band where the card is genuinely 16:9
+is now **416 to 640**, and past that it grows wider rather than taller. It was
+416 to 711 before.
+
+| width | stage | ratio | governed by |
+| --- | --- | --- | --- |
+| 280 | 280 x 234 | 1.197 | the 234 floor |
+| 416 | 416 x 234 | 1.778 | floor and 16:9 meet |
+| 500 | 500 x 281 | 1.779 | 16:9 |
+| 640 | 640 x 360 | 1.778 | 16:9 and the ceiling meet |
+| 760 | 760 x 360 | 2.111 | the 360 ceiling |
+| 1160 | 1160 x 360 | 3.222 | the 360 ceiling |
+
+Nothing clips. The clamps only ever trim artwork, because the only thing laid
+out against the stage height is the control row and that is centred. Checked on
+both content types at 280, 350, 416, 500, 640, 760 and 1160, playing: the
+topbar, the control row and the bottom block all sit inside the stage and clear
+each other at every one. The floor is the end that can clip, which is what the
+234 is there for, and it is untouched.
