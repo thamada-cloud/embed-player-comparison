@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260915203930">
+<link rel="stylesheet" href="widget-core.css?v=20260915204550">
 </head>
 <body>
 
@@ -27,6 +27,13 @@
     <button type="button" id="widthFill">Fill</button>
   </div>
   <div class="colctl">
+    <label for="wavetog">Waveform</label>
+    <span class="seg">
+      <button type="button" id="wavetog" data-wave="on" aria-pressed="true">On</button>
+      <button type="button" data-wave="off" aria-pressed="false">Off</button>
+    </span>
+  </div>
+  <div class="colctl">
     <label for="cols1">Columns</label>
     <span class="seg">
       <button type="button" id="cols1" data-cols="1" aria-pressed="true">1</button>
@@ -35,7 +42,7 @@
   </div>
 </header>
 
-<main data-cols="1">
+<main data-cols="1" data-wave="on">
   <section class="full">
     <div class="h2row"><h2>Widget player</h2></div>
     <div class="embeds">
@@ -53,6 +60,12 @@
     <p class="status" id="s-embeds"></p>
   </section>
 
+  <!-- Design A is hidden for now. Commented out rather than deleted, for the
+       same reason design B was: the roster in widget-core.js builds itself from
+       whichever roots exist in the page, so with w-podcast and w-live gone no
+       bar widget is created, nothing is loaded for it and no audio element is
+       made. Put the block back to bring it back. -->
+  <!--
   <div class="band band-proto" data-design="a">
     <h2>Design A</h2>
   </div>
@@ -79,16 +92,13 @@
     <div class="colourline" id="c-live"></div>
   </section>
 
-  <!-- Design B is hidden for now. Commented out rather than deleted: the roster
-       in widget-core.js builds itself from whichever roots exist in the page,
-       so with these two gone no hero widget is created, nothing is loaded for
-       it and no audio element is made. Put the block back to bring it back. -->
-  <!--
-  <div class="band band-proto">
+  -->
+
+  <div class="band band-proto" data-design="b">
     <h2>Design B</h2>
   </div>
 
-  <section>
+  <section data-design="b" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast-hero"></span></div>
     <div class="search" data-for="podcast-hero">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
@@ -99,7 +109,7 @@
     <div class="colourline" id="c-podcast-hero"></div>
   </section>
 
-  <section>
+  <section data-design="b" data-kind="live">
     <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live-hero"></span></div>
     <div class="search" data-for="live-hero">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
@@ -109,8 +119,6 @@
     <p class="status" id="s-live-hero"></p>
     <div class="colourline" id="c-live-hero"></div>
   </section>
-
-  -->
 
   <div class="band band-proto" data-design="c">
     <h2>Design C</h2>
@@ -145,7 +153,19 @@
    halves when the designs go side by side. */
 (function () {
   const main = document.querySelector('main');
-  const seg = document.querySelector('.colctl .seg');
+  /* The waveform switch. Designs B and C only: the bar card's strip is not part
+     of what is being asked about here. */
+  const wseg = document.getElementById('wavetog').parentElement;
+  wseg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-wave]'); if (!b) return;
+    [...wseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    main.dataset.wave = b.dataset.wave;
+  });
+
+  /* Anchored on its own button, not on '.colctl .seg'. There are two of those
+     rows now and that selector quietly started returning the waveform one, so
+     the columns toggle stopped doing anything at all. */
+  const seg = document.getElementById('cols1').parentElement;
   seg.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-cols]'); if (!b) return;
     [...seg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
@@ -159,6 +179,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260915203930"></script>
+<script src="widget-core.js?v=20260915204550"></script>
 </body>
 </html>

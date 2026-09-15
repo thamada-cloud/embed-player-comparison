@@ -2878,3 +2878,55 @@ the initial load and the search, so the two can never disagree. Verified: on
 load "Las Culturistas ... Yumming My Yuck" and "Z100", after a podcast search
 "Stuff You Should Know • How Boredom Works", after a live search "KFI AM 640",
 each changing only with its own kind.
+
+## Design B back, design A hidden, and three other changes
+
+### The swap
+
+Design A is commented out and design B is back, on `widget.html` and in
+`host-home.html`'s picker. Same mechanism as before: the roster builds itself
+from whichever roots exist, so with `w-podcast` and `w-live` gone no bar widget
+is created and nothing is fetched for it. `embed.html?design=a` still works and
+`host-home.html?w=a-live` still resolves, since `SOURCES` keeps every key.
+
+The two column rules now read `[data-design="a"], [data-design="b"]` for the
+left column. A and B are alternatives and only one is ever in the page, so
+swapping which is commented out needs no CSS change next time.
+
+### A waveform switch for designs B and C
+
+`Waveform On | Off` in the header. `visibility`, not `display`: design B's stage
+is a fixed 224 and design C's is a ratio, so neither card gets shorter either
+way, and keeping the strip's box means nothing above it moves when it goes. The
+bar card is untouched by the switch, which is what was asked.
+
+### Follow Podcast is out of the row overflow
+
+Which leaves one item, View Episode Info. Worth knowing that Follow Podcast was
+where the player's plus button went when podcast lost it, so that action now
+exists nowhere.
+
+### The plus is out of live radio
+
+All three designs. Live now carries info and share.
+
+Design B needed care. Its live row is spacer, plus, PLAY, info, share, and the
+spacer exists so the play button sits centred. Removing the plus would have left
+one item on the left against two on the right and pushed the button off centre,
+the same bug the spacer itself caused two changes ago. There are two spacers
+now. Measured: design B live's play button at 210 against a card centre of 210.
+
+### What this leaves with no trigger
+
+`authToast()`, the auth CTA. It was raised by the plus button and by Follow
+Podcast, and both are gone, so no card can raise it. The action and the function
+are left wired rather than deleted, so putting either button back is a markup
+change and nothing else.
+
+### One bug this introduced and the fix
+
+Adding a second control to the header broke the column toggle. Its handler read
+`document.querySelector('.colctl .seg')`, which quietly started returning the
+waveform row instead, so clicking 1 or 2 did nothing. Both toggles are anchored
+on their own button now. Caught by measuring the grid placement rather than by
+looking, since the page simply stayed in one column.

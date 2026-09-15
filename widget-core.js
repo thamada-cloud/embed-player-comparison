@@ -523,7 +523,7 @@ ${rowMarkup(d, r)}`).join('')}
           <div class="hero-controls">
             ${isLive ? `
               <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
-              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
+              <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
             ` : `
               <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
               <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
@@ -723,7 +723,6 @@ ${rowMarkup(d, r)}`).join('')}
                   </div>`}
                   <div class="btn-group">
                     ${isLive ? `
-                    <button class="icon-btn" data-act="save" aria-pressed="false" aria-label="Save">${icon('plus')}</button>
                     <button class="icon-btn" data-act="info" aria-label="Info">${icon('info')}</button>` : ''}
                     <button class="icon-btn" data-act="share" aria-label="Share">${icon('share')}</button>
                   </div>
@@ -1017,6 +1016,11 @@ ${rowMarkup(d, r)}`).join('')}
        longer pretends to latch a saved state it cannot have. The copy is
        LIBRARY_AUTHENTICATION_MESSAGE verbatim from
        apps/listen/app/utilities/constants.ts. */
+    /* Nothing raises this any more: the plus is gone from live radio and
+       Follow Podcast is gone from the row overflow, so no card has a save
+       control. The action and authToast() below are left wired rather than
+       deleted, so putting either button back is a markup change and nothing
+       else. */
     if (kind === 'save') authToast();
     if (kind === 'veil') dismissVeil();
     if (kind === 'row') {
@@ -1088,10 +1092,10 @@ ${rowMarkup(d, r)}`).join('')}
 
   /* The episode row overflow, frames 2609:36099 and 2609:37074. Two items, and
      they are where the player's plus and info went rather than new behaviour:
-     Follow Podcast raises the same auth CTA the plus button did, and View
-     Episode Info opens the same drawer the info button did. The difference is
-     that the drawer now describes the row you asked from, not whatever is
-     loaded, which is the whole reason the action reads better here. */
+     It carried Follow Podcast and View Episode Info; Follow Podcast has since
+     been removed, so one item is left. View Episode Info opens the same drawer
+     the info button did, describing the row you asked from rather than whatever
+     is loaded, which is the whole reason the action reads better here. */
   function rowMenu(btn) {
     const d = w.data;
     const r = d && (d.rows || []).find((x) => String(x.id) === String(btn.dataset.ep));
@@ -1099,12 +1103,12 @@ ${rowMarkup(d, r)}`).join('')}
       label: 'Episode options',
       className: 'row-menu',
       alignRight: true,
+      /* Follow Podcast was here, and it was where the player's plus button went
+         when podcast lost it. Removed on request, which leaves one item. */
       items: [
-        { value: 'follow', label: 'Follow Podcast' },
         { value: 'epinfo', label: 'View Episode Info' }
       ],
-      onPick: (value) => {
-        if (value === 'follow') { authToast(); return; }
+      onPick: () => {
         const sheet = root.querySelector('.info-sheet');
         if (sheet && r) {
           const h = sheet.querySelector('h3'), body = sheet.querySelector('.info-body');
@@ -1425,8 +1429,6 @@ ${rowMarkup(d, r)}`).join('')}
           '<span class="h-speed">1x</span></button>' +
         '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
           '<img src="assets/h-list.svg" alt=""></button>' :
-        '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
-          '<img src="assets/h-plus.svg" alt=""></button>' +
         '<button class="h-btn" data-act="info" aria-label="Info">' +
           '<img src="assets/h-info.svg" alt=""></button>') +
       '<button class="h-btn" data-act="share" aria-label="Share">' +

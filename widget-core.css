@@ -69,6 +69,13 @@ header {
 .brand { font-weight: 600; }
 .brand span { font-weight: 400; font-size: 12px; color: var(--ihr-grey-450); margin-left: 8px; }
 .hint { font-size: 12px; color: var(--ihr-grey-450); }
+/* Hiding the waveform on the artwork cards. .widget.hero covers design B and
+   design C, since C carries both classes, and leaves the bar card alone.
+   Visibility rather than display: the stage is a fixed 224 on design B and a
+   ratio on design C, so neither card gets shorter either way, and keeping the
+   strip's box means nothing above it shifts when it goes. */
+main[data-wave="off"] .widget.hero .wave { visibility: hidden; }
+
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
 .colctl label { font-size: 12px; color: var(--ihr-grey-450); }
@@ -100,7 +107,11 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="2"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
                         column-gap: 28px; align-items: start; }
   main[data-cols="2"] > section.full { grid-column: 1 / -1; }
-  main[data-cols="2"] > [data-design="a"] { grid-column: 1; }
+  /* A and B are alternatives and only ever one of them is in the page, so they
+     share the left column and design C keeps the right. Swapping which of the
+     two is commented out therefore needs no CSS change. */
+  main[data-cols="2"] > [data-design="a"],
+  main[data-cols="2"] > [data-design="b"] { grid-column: 1; }
   main[data-cols="2"] > [data-design="c"] { grid-column: 2; }
   main[data-cols="2"] > .band[data-design] { grid-row: 2; }
   main[data-cols="2"] > [data-design][data-kind="podcast"] { grid-row: 3; }
