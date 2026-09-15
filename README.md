@@ -3112,3 +3112,22 @@ apart, which is as close as the two can sit without nudging the logo.
 
 The lockup is 118 wide now, down from 123, which does not change the point at
 which the words drop on a narrow card.
+
+## Design C's share tooltip opens downward
+
+It is the only tooltip on any card that does. Every other one opens above its
+button, which is right for a control in the middle or at the foot of the card.
+This one is 24px from the card's TOP edge inside a stage that clips its
+overflow, so a bubble above it landed at -8 and was cut in half. Measured before
+the fix: `top: -32px` against a button at y 24.
+
+The bubble and the beak both flip to the underside, the beak's path is redrawn
+pointing up, `M0 8 L8 0 L16 8` rather than `M0 0 L8 8 L16 0`, and the entry
+offset is negated so it still slides IN towards the button rather than away
+from it. The 4px overlap that hides the shadow across the join comes out the
+same either way: the beak runs from +4 to +12 and the bubble starts at +8.
+
+Verified at 280, 350, 420 and 560: the bubble fully inside the card every time.
+The other tooltips are untouched and still open upward, with 64 to 142 of
+clearance above them, which is what makes upward the right default everywhere
+else.

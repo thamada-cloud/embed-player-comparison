@@ -682,14 +682,42 @@ a.thumb-link:hover { opacity: .92; }
 
 /* Design C's share sits in the top bar now, as a real flex child at the end of
    the row rather than absolutely placed the way the badge was, so the metadata
-   shortens to make room for it instead of running underneath. Its tooltip
-   anchors to the right edge for the same reason the bottom row's does: a bubble
-   centred on a button 16 from the card edge overhangs at every width. */
+   shortens to make room for it instead of running underneath. */
 .tb-share { flex: 0 0 auto; }
-.topbar .tb-share[aria-label]::after { left: auto; right: 0; transform: translateX(0) translateY(var(--sp-8)); }
+
+/* Its tooltip is the only one on any card that has to open DOWNWARD.
+
+   Every other one opens above its button, which is right for controls sitting
+   in the middle or at the foot of the card. This button is 24px from the card's
+   top edge inside a stage that clips its overflow, so a bubble above it landed
+   at -8 and was cut in half. Measured before the fix: `top: -32px` against a
+   button at y 24.
+
+   So the bubble and the beak both flip to the underside, the beak's path is
+   drawn pointing up, and the entry offset is negated so it still slides IN
+   towards the button rather than away from it. The 4px overlap that hides the
+   shadow across the join works out the same either way: the beak runs from +4
+   to +12 and the bubble starts at +8.
+
+   It also anchors to the right edge, for the reason the bottom row's do: a
+   bubble centred on a button 16 in from the card edge overhangs at every
+   width. */
+.topbar .tb-share[aria-label]::after {
+  bottom: auto; top: calc(100% + 8px);
+  left: auto; right: 0;
+  transform: translateX(0) translateY(calc(var(--sp-8) * -1));
+}
+.topbar .tb-share[aria-label]::before {
+  bottom: auto; top: calc(100% + 4px);
+  left: auto; right: 8px;
+  transform: translateX(0) translateY(calc(var(--sp-8) * -1));
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 8 L8 0 L16 8' fill='%23ffffff' stroke='%23ffffff' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+}
 .topbar .tb-share[aria-label]:hover::after,
-.topbar .tb-share[aria-label]:focus-visible::after { transform: translateX(0) translateY(0); }
-.topbar .tb-share[aria-label]::before { left: auto; right: 8px; transform: translateX(0); }
+.topbar .tb-share[aria-label]:hover::before,
+.topbar .tb-share[aria-label]:focus-visible::after,
+.topbar .tb-share[aria-label]:focus-visible::before { transform: translateX(0) translateY(0); }
 /* Two groups, one at each end: speed and list to the left, plus, info and
    share to the right, which is what frame 2533:85625 draws. gap 4 within each
    group, 16 in from each edge. space-between rather than flex-end, so the row
