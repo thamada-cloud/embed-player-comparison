@@ -173,7 +173,14 @@ section.is-live > .band-note { color: #14532d; }
    takes the full width, the same as the prototype cards below it. */
 .embeds { display: grid; gap: 16px; grid-template-columns: 1fr; }
 .embed { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.embed-label { font-size: 12px; color: var(--ihr-grey-450); }
+.embed-label { font-size: 12px; color: var(--ihr-grey-450);
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* What this frame is currently showing. The embed has always followed a search;
+   this is how you can tell, since the frame itself redraws to a player that
+   looks much the same whatever is in it. */
+.embed-now { color: var(--ihr-grey-600); font-weight: 600; }
+.embed-now:not(:empty)::before { content: '\2022'; margin: 0 6px; color: var(--ihr-grey-300);
+                                 font-weight: 400; }
 .embed iframe { width: 100%; height: 200px; border: 0; display: block;
                 border-radius: var(--radius-widget); background: var(--ihr-grey-150); }
 
@@ -541,13 +548,20 @@ a.thumb-link:hover { opacity: .92; }
    left, so without it the red button would not be centred. Kept as the frame
    has it rather than replaced with a margin. */
 .h-btn.spacer { visibility: hidden; pointer-events: none; }
+/* Same treatment as the bar card's button, different arithmetic because this
+   one is CENTRED rather than offset from the left: it needs clearance on both
+   sides, so `100cqw - 8px` leaves 4 either end. The min() means nothing changes
+   until the card is under 72 wide. At 50 the button is 42. */
 .hero-play {
+  --play: min(64px, 100cqw - 8px);
   position: relative;
   appearance: none; border: 0; cursor: pointer; background: var(--ihr-red-600);
-  border-radius: 999px; padding: 4px; display: flex; flex: 0 0 auto;
+  border-radius: 999px; display: flex; flex: 0 0 auto;
+  width: var(--play); height: var(--play);
+  padding: calc(var(--play) * .0625); box-sizing: border-box;
   filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.12));
 }
-.hero-play img { width: 56px; height: 56px; display: block; }
+.hero-play img { width: calc(var(--play) * .875); height: calc(var(--play) * .875); display: block; }
 /* kind `primary`, color `red`: red550 at rest, red400 for hover and pressed.
    The frames drew this fill as red600, so the resting colour shifts by one step
    here. That is the port doing its job rather than a slip: red550 is the value
@@ -794,9 +808,27 @@ a.thumb-link:hover { opacity: .92; }
    60px row, which is exactly centred. */
 .widget.live .controls-row { align-items: center; }
 
+/* The play button shrinks rather than hanging off the card.
+
+   60 is the frame's size and it is what the button is at any width that can
+   hold it. Below that it takes whatever is left instead: it sits 16 in from the
+   left edge, so `100cqw - 20px` keeps 4px clear on the right, and the min()
+   means the rule does nothing at all until the card is under 80 wide, which is
+   exactly where the measurement said it starts to run off. At 50 the button is
+   30 and clears the edge by 4.
+
+   `cqw` resolves against .shell, which is the only inline-size container on the
+   page, so it is the card's own width and not the viewport's.
+
+   The padding and the glyph are ratios of the whole rather than fixed pixels,
+   0.0625 and 0.875, which are the frame's own 3.75 and 52.5 over 60. Left as
+   pixels they would have overflowed the button the moment it shrank. */
 .play-btn {
+  --play: min(60px, 100cqw - 20px);
   appearance: none; border: 0; cursor: pointer; background: var(--true-white);
-  border-radius: 999px; padding: 3.75px; display: flex; flex: 0 0 auto;
+  border-radius: 999px; display: flex; flex: 0 0 auto;
+  width: var(--play); height: var(--play);
+  padding: calc(var(--play) * .0625); box-sizing: border-box;
   position: relative;
   filter: drop-shadow(0 .938px 1.406px rgba(0,0,0,.15));
 }
@@ -826,7 +858,7 @@ a.thumb-link:hover { opacity: .92; }
 /* Still turns, because a stopped ring would read as a hung player, but slowly
    enough not to be the flicker the preference is asking to avoid. */
 @media (prefers-reduced-motion: reduce) { .spin circle { animation-duration: 2.4s; } }
-.play-btn img { width: 52.5px; height: 52.5px; display: block; }
+.play-btn img { width: calc(var(--play) * .875); height: calc(var(--play) * .875); display: block; }
 /* kind `primary`, color `white`: brandWhite at rest with a gray600 glyph, and
    gray300 for both hover and pressed. The hover half sits inside
    (pointer: fine) in the original, so a touch device never paints it. */

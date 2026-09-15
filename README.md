@@ -2832,3 +2832,49 @@ live boxes and the shipping live embed, and left the podcasts alone.
 
 Status messages broadcast the same way, so a failure reports under every card it
 affected rather than only under the box that was typed in.
+
+## The play button shrinks instead of hanging off the card
+
+At 50 wide it was cut off on every design. Measured before: the bar card's 60px
+button sits 16 in from the left, so it ran 26 past the right edge; the artwork
+cards' 64px button is centred, so it ran 7 past on each side.
+
+Both are now sized against the container rather than fixed:
+
+```css
+.play-btn  { --play: min(60px, 100cqw - 20px); }   /* offset 16 from the left */
+.hero-play { --play: min(64px, 100cqw -  8px); }   /* centred, clearance both ends */
+```
+
+`cqw` resolves against `.shell`, the only inline-size container on the page, so
+it is the card's own width and not the viewport's. The `min()` means the rule
+does nothing until the card is under 80 on the bar card and under 72 on the
+artwork cards, which is exactly where the measurement said each starts to run
+off. Confirmed unchanged at 80, 120, 180, 240 and 280 on all six cards.
+
+The padding and the glyph are now ratios of the whole, 0.0625 and 0.875, which
+are the frame's own 3.75 and 52.5 over 60. Left as fixed pixels they would have
+burst out of the button the moment it shrank. At 50 the bar card draws a 30px
+button holding a 26px glyph and the artwork cards a 42px button holding a 37px
+glyph, all fully inside and 4px clear of the card edge.
+
+### What 50 wide still does not fix
+
+Only the play button was asked about and only the play button is fixed. At that
+width everything else still overflows, badly: on design A the artwork by 30, the
+metadata by 75, a title line by 318, the control row by 75, the episode rows by
+34. Design C is the same story. A 50px card is not a layout, it is a sliver, so
+this stops the one control from being clipped rather than pretending the card
+works there.
+
+## The shipping embeds say what they are showing
+
+They have always followed a search. What was missing was any way to tell, since
+the frame is a cross origin iframe that redraws to a player that looks much the
+same whatever is in it, under a label that only ever said "Podcast".
+
+One `showEmbed(kind, data)` now points the frame and sets the name, used by both
+the initial load and the search, so the two can never disagree. Verified: on
+load "Las Culturistas ... Yumming My Yuck" and "Z100", after a podcast search
+"Stuff You Should Know • How Boredom Works", after a live search "KFI AM 640",
+each changing only with its own kind.

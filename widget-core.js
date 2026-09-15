@@ -1918,8 +1918,7 @@ function wireSearch(box, widget) {
             });
             /* The shipping player at the top follows the last thing chosen of
                its kind, so the comparison stays like for like after a search. */
-            const frame = document.getElementById(isPodcast ? 'e-podcast' : 'e-live');
-            if (frame) frame.src = embedUrl[isPodcast ? 'podcast' : 'live'](data);
+            showEmbed(kind, data);
           } catch (err) {
             says('Could not load that. ' + err.message, true);
           }
@@ -2135,6 +2134,19 @@ const embedUrl = {
 /* Nothing is fetched for a source the page is not showing, so the single card
    page makes one API call rather than two. */
 const setIfPresent = (id, apply) => { const el = document.getElementById(id); if (el) apply(el); };
+
+/* Point a shipping embed at some content, and SAY what it is pointing at.
+   It has always followed the search; there was simply no way to tell from
+   looking, because the frame is a cross origin iframe that redraws to a similar
+   looking player and the section had no label beyond "Podcast". */
+function showEmbed(kind, d) {
+  setIfPresent('e-' + kind, (el) => { el.src = embedUrl[kind](d); });
+  setIfPresent('n-' + kind, (el) => {
+    el.textContent = kind === 'live'
+      ? (d.title || '')
+      : [d.subtitle, d.title].filter(Boolean).join(' \u2022 ');
+  });
+}
 const failAll = (kind, e) => WIDGETS[kind].forEach((w) =>
   setIfPresent(w.statusId, (el) => { el.textContent = 'Could not reach the iHeart API. ' + e.message; }));
 
@@ -2147,14 +2159,14 @@ const failAll = (kind, e) => WIDGETS[kind].forEach((w) =>
       /* A copy each, because a widget writes its own playback state onto the
          object it is handed. */
       WIDGETS.podcast.forEach((w) => w.widget.load(Object.assign({}, pod)));
-      setIfPresent('e-podcast', (el) => { el.src = embedUrl.podcast(pod); });
+      showEmbed('podcast', pod);
     } catch (e) { failAll('podcast', e); }
   }
   if (WIDGETS.live.length || document.getElementById('e-live')) {
     try {
       const live = await loadStation(1469);              /* Z100 New York */
       WIDGETS.live.forEach((w) => w.widget.load(Object.assign({}, live)));
-      setIfPresent('e-live', (el) => { el.src = embedUrl.live(live); });
+      showEmbed('live', live);
     } catch (e) { failAll('live', e); }
   }
 })();
