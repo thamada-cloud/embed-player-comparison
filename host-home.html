@@ -206,10 +206,9 @@ body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
       <option value="a-podcast" selected>Design A, podcast</option>
       <option value="a-live">Design A, live radio</option>
     </optgroup>
-    <optgroup label="Prototype, design B hero card">
-      <option value="b-podcast">Design B, podcast</option>
-      <option value="b-live">Design B, live radio</option>
-    </optgroup>
+    <!-- Design B hidden for now, same as on the prototype page. SOURCES still
+         carries b-podcast and b-live, so an existing ?w=b-... link keeps
+         working and only the picker stops offering it. -->
     <optgroup label="Prototype, design C">
       <option value="c-podcast">Design C, podcast</option>
       <option value="c-live">Design C, live radio</option>
@@ -514,8 +513,13 @@ document.getElementById('bounds').addEventListener('change', (e) => {
 
 /* Deep linkable, so a specific design in the slot can be handed to someone. */
 const linked = new URLSearchParams(location.search).get('w');
-if (linked && SOURCES[linked]) pick.value = linked;
-show(pick.value);
+/* Setting pick.value to something the select has no option for silently leaves
+   it blank, which is what hiding design B from the picker would otherwise do to
+   an existing ?w=b-live link. So the link is honoured from SOURCES directly and
+   the select only follows when it actually has that option. */
+const wanted = linked && SOURCES[linked] ? linked : pick.value;
+if ([...pick.options].some((o) => o.value === wanted)) pick.value = wanted;
+show(wanted);
 readSize();
 </script>
 </body>

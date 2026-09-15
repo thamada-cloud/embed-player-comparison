@@ -2605,3 +2605,44 @@ design B live went 210 to 214 at 420 wide.
 This is the same shape of bug as design C's off-centre play button earlier in
 the project: a row that balances only as long as every item in it is the width
 you think it is.
+
+## Design B is hidden for now
+
+Commented out of `widget.html` rather than deleted, and dropped from
+`host-home.html`'s picker. Nothing in `widget-core.js` changed.
+
+That works because `WIDGET_ROSTER` builds itself from whichever roots exist in
+the page and skips the ones that do not:
+
+```js
+WIDGET_ROSTER.forEach((w) => {
+  if (!document.getElementById(w.root)) return;
+  ...
+});
+```
+
+So with `w-podcast-hero` and `w-live-hero` gone, no hero widget is constructed,
+nothing is fetched or loaded for it, and no audio element is made. Measured
+after: two bands rather than three, four widgets rather than six, four search
+boxes, zero hero roots, no console errors.
+
+`embed.html?design=b` is untouched and still plays, on podcast and on live, so
+any link already handed out keeps working.
+
+### One thing hiding it broke, and the fix
+
+`host-home.html` honoured its `?w=` deep link by assigning to the select:
+
+```js
+if (linked && SOURCES[linked]) pick.value = linked;
+show(pick.value);
+```
+
+Assigning a value the select has no option for leaves it blank rather than
+throwing, so removing the design B options silently turned `?w=b-live` into a
+blank slot. `SOURCES` still carries both design B entries, so the link is now
+honoured from there directly and the select only follows when it actually has
+that option. Verified: `?w=b-live` still loads the hero card.
+
+To bring design B back, uncomment the block in `widget.html` and restore the
+`optgroup` in `host-home.html`.
