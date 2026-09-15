@@ -2930,3 +2930,42 @@ Adding a second control to the header broke the column toggle. Its handler read
 waveform row instead, so clicking 1 or 2 did nothing. Both toggles are anchored
 on their own button now. Caught by measuring the grid placement rather than by
 looking, since the page simply stayed in one column.
+
+## Share Episode in the row overflow
+
+Two items again: View Episode Info, then Share Episode. The menu is back to its
+frame size of 206 by 84.
+
+### It shares the row, which took more than opening the sheet
+
+The share sheet is rendered once from whatever is loaded, so asking from a row
+has to retarget it or every row would share episode one. SIX things carry the
+episode and all six move together:
+
+| | |
+| --- | --- |
+| the title | `.share-name` |
+| the artwork | `.share-art` |
+| the link Copy Link reads | the sheet's `data-url` |
+| Facebook | its `href` |
+| X | its `href`, including the title in the tweet text |
+| the embed snippet | the input's value AND the Copy Code button's `data-code` |
+
+Miss one and the sheet names a different episode from the one it copies, which
+is worse than not offering the action at all.
+
+The subtitle is deliberately left alone. It is the SHOW, which is the same for
+every row in the list, and the station line on live radio.
+
+### Retargeting runs on the way in, not only from a row
+
+Because it mutates the sheet in place, sharing a row and then pressing share on
+the player would otherwise have handed you the row's episode while the card
+played another. So the player's own button retargets to the loaded content
+first, and only when the sheet is about to OPEN, since the scrim and the close
+button carry the same action to shut it.
+
+Measured in sequence on design B: player share gives 343504782, row three gives
+342389277, the player again gives 343504782 back, row two gives 342945259, with
+the title and the copy code agreeing every time. Live radio is untouched and
+still shares the station, "Share Station", Z100, `/live/station-1469/`.

@@ -1067,7 +1067,15 @@ ${rowMarkup(d, r)}`).join('')}
        status line rather than stacking one drawer on another. */
     if (kind === 'info') toggleInfo();
     if (kind === 'more') rowMenu(btn);
-    if (kind === 'share') shareDialog();
+    /* Retarget on the way in. A row share mutates the sheet in place, so the
+       player's own button has to put it back on the loaded content. The scrim
+       and the close button carry this same action to CLOSE the sheet, which is
+       why it only retargets when it is about to open. */
+    if (kind === 'share') {
+      const card = root.querySelector('.widget');
+      if (card && !card.classList.contains('share-open')) retargetShare(null);
+      shareDialog();
+    }
   }
 
   /* The info drawer, opened either from the live card's own info button or,
@@ -1103,12 +1111,13 @@ ${rowMarkup(d, r)}`).join('')}
       label: 'Episode options',
       className: 'row-menu',
       alignRight: true,
-      /* Follow Podcast was here, and it was where the player's plus button went
-         when podcast lost it. Removed on request, which leaves one item. */
+      /* Follow Podcast was the first item and has been removed. */
       items: [
-        { value: 'epinfo', label: 'View Episode Info' }
+        { value: 'epinfo', label: 'View Episode Info' },
+        { value: 'share',  label: 'Share Episode' }
       ],
-      onPick: () => {
+      onPick: (value) => {
+        if (value === 'share') { retargetShare(r); shareDialog(true); return; }
         const sheet = root.querySelector('.info-sheet');
         if (sheet && r) {
           const h = sheet.querySelector('h3'), body = sheet.querySelector('.info-body');
@@ -1118,6 +1127,52 @@ ${rowMarkup(d, r)}`).join('')}
         toggleInfo(true);
       }
     });
+  }
+
+  /* What the share sheet should be describing. A row when the action came from
+     a row's overflow, and whatever is loaded otherwise. */
+  function shareFields(d, r) {
+    if (d.kind === 'live') return { title: d.title, art: d.art, url: stationUrl(d) };
+    if (r) return { title: r.title, art: r.art || d.art,
+                    url: showUrl(d) + 'episode/episode-' + r.id + '/' };
+    return { title: d.title, art: d.art, url: episodeUrl(d) };
+  }
+
+  /* Point the share sheet at something.
+
+     The sheet is rendered once from whatever is loaded, so asking from a row
+     has to retarget it or every row would share episode one. SIX things carry
+     the episode: the title, the artwork, the link the copy button reads, the
+     two social hrefs and the embed snippet. Miss one and the sheet says a
+     different episode from the one it copies, which is worse than not offering
+     the action at all.
+
+     It runs on the way IN every time, including from the player's own share
+     button with no row, because retargeting mutates the sheet in place. Without
+     that, sharing a row and then pressing share on the player would hand you
+     the row's episode while the card played another.
+
+     The subtitle is deliberately left alone. It is the SHOW, the same for every
+     row in the list, and the station line on live radio. */
+  function retargetShare(r) {
+    const d = w.data;
+    const sheet = root.querySelector('.share-sheet');
+    if (!d || !sheet) return;
+    const f = shareFields(d, r);
+    const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
+      (f.url.includes('?') ? f.url + '&embed=true' : f.url + '?embed=true') +
+      '" frameborder="0"></iframe>';
+    const set = (sel, fn) => { const el = sheet.querySelector(sel); if (el) fn(el); };
+    sheet.dataset.url = f.url;
+    set('.share-name', (el) => { el.textContent = f.title || ''; });
+    set('.share-art', (el) => { el.src = f.art || ''; });
+    set('[data-share="facebook"]', (el) => {
+      el.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(f.url); });
+    set('[data-share="x"]', (el) => {
+      el.href = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(f.url) +
+                '&text=' + encodeURIComponent(f.title || ''); });
+    set('.share-embed input', (el) => { el.value = embedCode; });
+    set('.share-copy', (el) => { el.dataset.code = embedCode; });
   }
 
   /* Choosing an episode from the list.
@@ -1688,10 +1743,10 @@ ${rowMarkup(d, r)}`).join('')}
   }
 
   /* Opening closes the other drawers, which cover the same space. */
-  function shareDialog() {
+  function shareDialog(force) {
     const card = root.querySelector('.widget');
     if (!card) return;
-    const opening = !card.classList.contains('share-open');
+    const opening = force === undefined ? !card.classList.contains('share-open') : !!force;
     card.classList.remove('sheet-open');
     card.classList.toggle('share-open', opening);
     const sheet = root.querySelector('.share-sheet');
