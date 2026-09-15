@@ -3172,3 +3172,35 @@ down to 0 at 600.
 The info and episode drawers have no scrim at all, so they still rise over an
 undimmed card. Only the share drawer was reported, so only it was changed, but
 the three are now inconsistent in a way they were not before.
+
+## The drawers slide on their own compositor layer now
+
+The main thread was never the problem, which is why the first pass at this found
+nothing: 43 frames in 700ms, mean 16.7, nothing over 17. rAF timing measures the
+main thread and the shimmer was happening on the compositor.
+
+A full card of text, artwork and an input sliding on a PERCENTAGE transform
+lands on sub-pixel offsets every frame, and with no layer the browser
+re-rasterises all of it each time. That reads as the text shimmering rather than
+as dropped frames, which is exactly the kind of "not smooth" that a frame
+counter will tell you is fine. `will-change: transform` on `.share-panel` and
+`.sheet-panel` gets each rasterised once and lets the compositor move the
+texture.
+
+It is declared at REST, not on the open class. On the class, the layer would be
+destroyed the moment the class came off, which is precisely when the closing
+animation still needs it. It costs nothing while a drawer is hidden, since a
+`visibility: hidden` subtree gets no layer either way.
+
+Timing is unchanged, 585 to 617ms to settle, and every drawer on both designs
+still opens and closes: share, episodes and info.
+
+### The next lever, if it still reads wrong
+
+The curve. `ease` is cubic-bezier(.25,.1,.25,1), which is what accomplice's
+drawer gets by declaring `animation: slideInBottom 600ms` with no timing
+function. Its tail is long: the last 40px of design B's 444 take about 200ms,
+measured, and that slow creep at the end can read as the panel not quite
+landing. `ease-out` would start fast and settle, which is the usual choice for
+something entering. That is a deliberate step past the component rather than a
+fix, so it is not taken here.

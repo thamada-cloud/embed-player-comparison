@@ -769,6 +769,9 @@ a.thumb-link:hover { opacity: .92; }
    was therefore being opened by the episodes flag as well. It sits on a higher
    layer, so pressing the list button showed the information instead. */
 .widget.sheet-open .sheet:not(.info-sheet) { visibility: visible; transition: visibility 0s; }
+/* Same promotion as the share panel, and for the same reason: these slide the
+   full height of the card carrying rows of artwork and text. */
+.sheet-panel { will-change: transform; }
 .widget.sheet-open .sheet:not(.info-sheet) .sheet-panel { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {
   .sheet { transition: visibility 0s; }
@@ -1487,6 +1490,22 @@ a.thumb-link:hover { opacity: .92; }
   overflow: hidden;
   transform: translateY(100%);
   transition: transform .6s ease;
+  /* Its own compositor layer, for the whole life of the element rather than
+     only while it moves.
+
+     A full card of text, artwork and an input sliding on a PERCENTAGE transform
+     lands on sub-pixel offsets every frame, and without a layer the browser
+     re-rasterises all of it each time, which shows up as the text shimmering
+     rather than as dropped frames. The main thread was already clean: 43 frames
+     in 700ms, mean 16.7, nothing over 17, so rAF timing was never going to
+     catch this. Promoted, the panel is rasterised once and the compositor just
+     moves the texture.
+
+     Declared at rest, not on the open class. Putting it on the class would
+     destroy the layer the moment the class came off, which is exactly when the
+     close animation still needs it. It costs nothing while the drawer is
+     hidden, because a visibility:hidden subtree gets no layer either way. */
+  will-change: transform;
 }
 .widget.share-open .share-panel { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {
