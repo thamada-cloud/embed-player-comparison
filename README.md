@@ -2969,3 +2969,24 @@ Measured in sequence on design B: player share gives 343504782, row three gives
 342389277, the player again gives 343504782 back, row two gives 342945259, with
 the title and the copy code agreeing every time. Live radio is untouched and
 still shares the station, "Share Station", Z100, `/live/station-1469/`.
+
+## The artwork cards are 16 across, not 24
+
+The top bar's left padding and the control row's both sides were the last things
+on designs B and C still at 24. The slider, the bottom row and the episode rows
+were 16 already, and the top bar's own RIGHT side had been brought to 16 some
+time ago so the text clears the iHeart logo, which left the card asymmetric:
+24 on the left of the top bar, 16 on its right.
+
+Both are 16 now, so every horizontal inset on the card is the same number, and
+it matches the bar card's `.body`. `.widget.hero .topbar { padding-right: 16px }`
+went with it, since the base rule now says exactly that; its note is kept.
+
+Measured after on all four artwork cards: top bar 16/16, control row 16/16,
+slider 16/16, episode rows 16/16.
+
+Nothing else moved. The play button still centres on the card, 210 against a
+card centre of 210 on both designs and both content types, and it still shrinks
+rather than clipping at narrow widths, checked again at 50, 80, 120, 180, 240
+and 280 with no overflow anywhere in the top bar, the control row or the bottom
+row.

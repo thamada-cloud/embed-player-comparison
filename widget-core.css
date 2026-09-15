@@ -374,8 +374,9 @@ a.thumb-link:hover { opacity: .92; }
    padding, which is the logo's 25 plus 15 of slack, and that is the whole of
    what keeps design A's lines off it. So the top bar takes the same 16px the
    bar card's .body takes, and all three designs truncate at the same point,
-   56px in from the card's right edge. */
-.widget.hero .topbar { padding-right: 16px; }
+   56px in from the card's right edge.
+   The whole bar is 16 now, both sides, so this override says nothing the base
+   rule does not. Kept only as the note above; the declaration is gone. */
 .ihr-link:hover { opacity: .85; }
 .ihr-link:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px; border-radius: 4px; }
 
@@ -418,7 +419,11 @@ a.thumb-link:hover { opacity: .92; }
 /* 80, not the frames' 70. A deliberate step past them on both artwork designs,
    asked for after looking at the two side by side. */
 .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.80); }
-.topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 24px; width: 100%; }
+/* 16 across, not 24. It was the one place on the artwork cards that was not
+   16: the slider, the bottom row and the episode rows were all 16 already, and
+   the top bar's own right side had been brought to 16 for the logo, so the left
+   was the last 24 on the card. */
+.topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 16px; width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
    and let the two lines of text run underneath it. Second time a class name
@@ -475,7 +480,7 @@ a.thumb-link:hover { opacity: .92; }
 .hero-controls {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 0 24px; box-sizing: border-box;
+  width: 100%; padding: 0 16px; box-sizing: border-box;
 }
 /* Design C's centre row is a three column grid rather than a centred flex row,
    so the play button is centred on the CARD rather than on whatever happens to
