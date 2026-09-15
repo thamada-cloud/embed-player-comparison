@@ -763,7 +763,12 @@ a.thumb-link:hover { opacity: .92; }
   background: var(--true-white);
   border-radius: var(--rad-6) var(--rad-6) 0 0;
   transform: translateY(100%);
-  transition: transform .6s ease;
+  /* Entering and leaving are NOT the same curve in production. accomplice runs
+     `slideInBottom 600ms` on the way in, which is the default `ease`, and
+     `slideInBottom 600ms reverse ease-in` on the way out. This had `ease` both
+     ways, so the exit crawled out of the card the way the entry crawls in. The
+     rest state carries the LEAVING curve; the open state overrides it. */
+  transition: transform .6s ease-in;
 }
 /* :not(.info-sheet), because the info drawer also carries the .sheet class and
    was therefore being opened by the episodes flag as well. It sits on a higher
@@ -773,6 +778,7 @@ a.thumb-link:hover { opacity: .92; }
    full height of the card carrying rows of artwork and text. */
 .sheet-panel { will-change: transform; }
 .widget.sheet-open .sheet:not(.info-sheet) .sheet-panel { transform: translateY(0); }
+.widget.sheet-open .sheet-panel, .widget.info-open .sheet-panel { transition: transform .6s ease; }
 @media (prefers-reduced-motion: reduce) {
   .sheet { transition: visibility 0s; }
   .sheet-panel { transition: none; }
@@ -1456,17 +1462,38 @@ a.thumb-link:hover { opacity: .92; }
    has already receded, which is what a drawer is supposed to look like. */
 .share-scrim {
   position: absolute; inset: 0; z-index: 19;
-  background: rgba(0 0 0 / 0.8); backdrop-filter: blur(10px);
-  opacity: 0; visibility: hidden;
-  /* Leading on the way in has to become TRAILING on the way out, or the card
-     brightens back up while the sheet is still sliding down over it. So the
-     closing fade waits 350 and then takes its 250, which lands on the panel's
-     600 exactly. */
-  transition: opacity .25s ease .35s, visibility 0s linear .6s;
+  /* The COLOUR and the BLUR RADIUS animate. Opacity does not, and that is the
+     whole point.
+
+     `overlayFade` in accomplice's drawer.css.ts goes
+       rgba(0 0 0 / 0) -> rgba(0 0 0 / 0.8)
+       blur(0)         -> blur(10px)
+     and never touches opacity. This had a constant 0.8 black and a constant
+     10px blur and faded the element's OPACITY instead. Identical in a still,
+     not the same thing at all to run: a backdrop-filter is computed even at
+     opacity 0, so every frame blurred the whole card at full strength and then
+     composited that through a changing alpha. Two jobs per frame where the
+     component does one, and the expensive one of the two.
+
+     Ramping the radius means there is no blur to compute until the drawer
+     opens. */
+  background-color: rgba(0 0 0 / 0);
+  backdrop-filter: blur(0px);
+  visibility: hidden;
+  /* 600ms, the same as the panel, which is what accomplice does: `overlayFade`
+     and `slideInBottom` both run for `animationDuration`, 600ms.
+
+     This ran at 250 for a while, leading the panel deliberately, on the theory
+     that the card should dim before the sheet crossed it. That was a guess
+     dressed up as a fix. It is back on the component's timing. */
+  transition: background-color .6s ease-in, backdrop-filter .6s ease-in,
+              visibility 0s linear .6s;
 }
 .widget.share-open .share-scrim {
-  opacity: 1; visibility: visible;
-  transition: opacity .25s ease, visibility 0s;
+  background-color: rgba(0 0 0 / .8);
+  backdrop-filter: blur(10px);
+  visibility: visible;
+  transition: background-color .6s ease, backdrop-filter .6s ease, visibility 0s;
 }
 /* inset:0 with the drawer nested inside, rather than the drawer itself
    anchored with bottom:0. The card's own drawers all position this way and all
@@ -1489,7 +1516,12 @@ a.thumb-link:hover { opacity: .92; }
   display: flex; flex-direction: column; justify-content: flex-start;
   overflow: hidden;
   transform: translateY(100%);
-  transition: transform .6s ease;
+  /* Entering and leaving are NOT the same curve in production. accomplice runs
+     `slideInBottom 600ms` on the way in, which is the default `ease`, and
+     `slideInBottom 600ms reverse ease-in` on the way out. This had `ease` both
+     ways, so the exit crawled out of the card the way the entry crawls in. The
+     rest state carries the LEAVING curve; the open state overrides it. */
+  transition: transform .6s ease-in;
   /* Its own compositor layer, for the whole life of the element rather than
      only while it moves.
 
@@ -1507,7 +1539,7 @@ a.thumb-link:hover { opacity: .92; }
      hidden, because a visibility:hidden subtree gets no layer either way. */
   will-change: transform;
 }
-.widget.share-open .share-panel { transform: translateY(0); }
+.widget.share-open .share-panel { transform: translateY(0); transition: transform .6s ease; }
 @media (prefers-reduced-motion: reduce) {
   .share-scrim, .share-sheet, .share-panel { transition: none; }
 }

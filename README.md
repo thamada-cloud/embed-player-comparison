@@ -3204,3 +3204,42 @@ measured, and that slow creep at the end can read as the panel not quite
 landing. `ease-out` would start fast and settle, which is the usual choice for
 something entering. That is a deliberate step past the component rather than a
 fix, so it is not taken here.
+
+## Correcting the drawer smoothness work
+
+I told you animating the blur radius made design B worse, on the strength of a
+single 139ms frame gap. That was a noisy sample, not a finding. Three runs of
+four variants on design B, max frame gap per run:
+
+| | run 1 | run 2 | run 3 |
+| --- | --- | --- | --- |
+| blur radius animates | 18 | 18 | 17 |
+| constant blur, opacity fades | 17 | 18 | 18 |
+| colour only, blur steps in | 18 | 18 | 17 |
+| colour only, no blur | 17 | 18 | 17 |
+
+All the same. The blur costs nothing measurable here, so the faithful port
+stays. The lesson is mine: one sample is not a measurement, and I published it
+as one.
+
+### Where the port now stands against the component
+
+| | accomplice | here |
+| --- | --- | --- |
+| overlay | `overlayFade` 600ms, colour 0 to .8, blur 0 to 10 | same |
+| overlay out | same, `reverse ease-in` | `ease-in` |
+| panel in | `slideInBottom` 600ms, default `ease` | same |
+| panel out | same, `reverse ease-in` | `ease-in` |
+| layer | implicit | `will-change: transform` |
+
+The 250ms overlay lead I invented is gone. It was a guess dressed up as a fix
+and it is not what the component does.
+
+### What is still different, and is not a bug
+
+Production's drawer is `position: fixed` over the viewport with `max-height:
+80vh`. Here it is `height: 100%` of a card that is 234 to 444 tall. Same 600ms
+over a very different distance: iheart.com slides most of a tall window, design
+C slides 234px, which works out at 390px/s and can read as floaty rather than
+rough. That is a duration question, not a rendering one, and it is not something
+the frame timings can answer.
