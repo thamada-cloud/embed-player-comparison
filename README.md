@@ -2990,3 +2990,51 @@ card centre of 210 on both designs and both content types, and it still shrinks
 rather than clipping at narrow widths, checked again at 50, 80, 120, 180, 240
 and 280 with no overflow anywhere in the top bar, the control row or the bottom
 row.
+
+## Design C's chrome rearranged, frame 2613:77793
+
+Three moves, all on design C. Design B is untouched.
+
+| | was | is |
+| --- | --- | --- |
+| share | bottom row, right | **top bar, right** |
+| iHeart mark | top bar, right, the badge | **bottom row, right, as "Listen on" + the logotype** |
+| 1x and list | bottom row, right | **bottom row, left** |
+| the scrubber | below the bottom row | **above it** |
+
+### The lockup, measured off the frame
+
+The copy is 9px of ink over 49px wide, which is 12/16, the card's own caption
+size. The logotype reads 62 by 14, taken from the heart: 16px of ink against its
+28 units of viewBox is a scale of 0.571, so a 107 by 24 box lands at 61 by 13.7.
+14 sits between accomplice's 12 and 16 rungs and is what the frame draws, so it
+is what this uses. 8px between copy and mark, and the lockup ends 16 in from the
+card's right edge. Rendered: text 211 to 264, logo 272 to 334, against the
+frame's 217 to 265 and 272 to 333.
+
+It reuses `assets/ihr-logotype-white.svg`, the `LogotypeSecondary` generated for
+the pause veil, so there is one logotype asset rather than two.
+
+### Share in the top bar is a flex child, not an absolute one
+
+The badge it replaced was absolutely placed at `right: 16`, which worked because
+a badge cannot be pressed past its own box. A button needs the metadata to
+shorten and make room for it rather than run underneath, so it sits at the end
+of the flex row instead. Its tooltip anchors right for the same reason the
+bottom row's do: a bubble centred on a button 16 from the card edge overhangs at
+every width.
+
+### Under 240 the words go and the mark stays
+
+The left group is 68 and the full lockup 123, which with 16 of padding each side
+wants 223 before there is any gap at all. Measured, the two touch at 200 and the
+lockup then runs 11 past the card. So below 240 "Listen on" is dropped and the
+logotype stays, because the mark is the attribution and the words are the
+sentence around it. That fits down to about 170. Checked at 160, 180, 200 and
+230: nothing overflows.
+
+### Live radio followed the same rule rather than getting a new one
+
+There is no live frame for this layout. Live has no speed control and no episode
+list, so its left group is the info button and the lockup is on the right, which
+is the same sentence the podcast card makes. Worth confirming.

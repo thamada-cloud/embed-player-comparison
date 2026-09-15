@@ -151,6 +151,20 @@ const WAVE = {
   hero: { idle: IDLE_HERO, max: 12, floor: 2, gap: 1, barW: () => 4 },
   c:    { idle: IDLE_C,    max: 24, floor: 4, gap: 1, barW: () => 4 }
 };
+/* "Listen on" and the iHeart logotype, frame 2613:77793. Measured off the
+   frame at 350 wide: the copy is 9px of ink over 49px, which is 12/16 and the
+   card's own caption size; the logo reads 62 by 14, taken from the heart, whose
+   16px of ink against its 28 units of viewBox gives a scale of 0.571 and so a
+   107 by 24 box at 61 by 13.7. 14 sits between accomplice's 12 and 16 rungs and
+   is what the frame draws, so it is what this uses. 8px between the two, and
+   the whole lockup ends 16 from the card's right edge. */
+const IHR_LOCKUP =
+  '<a class="ihr-lockup" href="https://www.iheart.com/" target="_blank" rel="noopener"' +
+    ' aria-label="Listen on iHeart">' +
+    '<span>Listen on</span>' +
+    '<img src="assets/ihr-logotype-white.svg" alt="" width="62" height="14">' +
+  '</a>';
+
 const icon = (n, a) => `<img src="assets/${n}.svg" alt="${a || ''}">`;
 /* Every clipping line of text is written as a span inside its box so the span
    can be translated on hover while the box does the clipping. */
@@ -584,8 +598,8 @@ ${rowMarkup(d, r)}`).join('')}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
-               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
+            <button class="h-btn tb-share" data-act="share" aria-label="Share">
+              <img src="assets/h-share.svg" alt=""></button>
           </div>
           <div class="hero-controls">
             <span class="cc-side">
@@ -611,15 +625,15 @@ ${rowMarkup(d, r)}`).join('')}
             </div>` : `
             <div class="hero-bottom">
               <div class="c-rows">
-                <div class="list-row">
-                  ${cActions(true)}
-                </div>
                 <div class="slider">
                   <span class="t el">00:00</span>
                   <div class="track">
                     <div class="elapsed" style="width:0"></div><div class="preview" style="left:0;width:0"></div><div class="thumb" style="left:0"></div>
                   </div>
                   <span class="t dur">--:--</span>
+                </div>
+                <div class="list-row">
+                  ${cActions(true)}
                 </div>
               </div>
               <div class="wave"></div>
@@ -1474,10 +1488,15 @@ ${rowMarkup(d, r)}`).join('')}
      and forward 30 either side of the play button.
      They are not part of the transport, so they do not hide with it: both
      frames show all of them on a card nobody has pressed play on yet. */
+  /* Frame 2613:77793 turns this row around. The controls go LEFT, and the right
+     is the Listen on iHeart lockup, which is where the badge from the top bar
+     ended up. Share left the row entirely and is in the top bar now, in the
+     corner the badge used to hold.
+
+     Live radio has no frame of its own for this, so it follows the same rule
+     rather than inventing a second one: whatever controls the card has sit on
+     the left, the lockup on the right. For live that is the info button. */
   const cActions = (isPodcast) =>
-    /* The left group is empty on both now and still emitted, because
-       space-between with a single child pushes that child to the start. */
-    '<span class="lr-side"></span>' +
     '<span class="lr-side">' +
       (isPodcast ?
         '<button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed">' +
@@ -1486,9 +1505,8 @@ ${rowMarkup(d, r)}`).join('')}
           '<img src="assets/h-list.svg" alt=""></button>' :
         '<button class="h-btn" data-act="info" aria-label="Info">' +
           '<img src="assets/h-info.svg" alt=""></button>') +
-      '<button class="h-btn" data-act="share" aria-label="Share">' +
-        '<img src="assets/h-share.svg" alt=""></button>' +
-    '</span>';
+    '</span>' +
+    '<span class="lr-side">' + IHR_LOCKUP + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself

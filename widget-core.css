@@ -646,6 +646,39 @@ a.thumb-link:hover { opacity: .92; }
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
 .c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+/* The Listen on iHeart lockup, frame 2613:77793. It replaces the badge that
+   used to sit in design C's top right, and the share button took that corner.
+   12/16 copy, an 8px gap, then the logotype at 14 tall with its width following
+   the 107 by 24 box. Measured against the frame: 49 + 8 + 62, ending 16 in from
+   the card's right edge. */
+.ihr-lockup { display: inline-flex; align-items: center; gap: var(--sp-8);
+              text-decoration: none; flex: 0 0 auto; }
+.ihr-lockup span { font-size: var(--fs-12); line-height: var(--lh-16); font-weight: 600;
+                   letter-spacing: var(--ls-4); color: var(--true-white); white-space: nowrap; }
+.ihr-lockup img { display: block; height: 14px; width: auto; }
+.ihr-lockup:hover { opacity: .85; }
+.ihr-lockup:focus-visible { outline: 2px solid var(--true-white); outline-offset: 2px;
+                            border-radius: 4px; }
+/* Under 240 the row cannot hold both. The left group is 68 and the full lockup
+   123, which with 16 of padding each side wants 223 before there is any gap at
+   all; measured, the two touch at 200 and the lockup then runs 11 past the card.
+   The words go and the logotype stays, because the mark is the attribution and
+   "Listen on" is the sentence around it. That fits down to about 170. */
+@container (max-width: 239px) {
+  .ihr-lockup span { display: none; }
+}
+
+/* Design C's share sits in the top bar now, as a real flex child at the end of
+   the row rather than absolutely placed the way the badge was, so the metadata
+   shortens to make room for it instead of running underneath. Its tooltip
+   anchors to the right edge for the same reason the bottom row's does: a bubble
+   centred on a button 16 from the card edge overhangs at every width. */
+.tb-share { flex: 0 0 auto; }
+.topbar .tb-share[aria-label]::after { left: auto; right: 0; transform: translateX(0) translateY(var(--sp-8)); }
+.topbar .tb-share[aria-label]:hover::after,
+.topbar .tb-share[aria-label]:focus-visible::after { transform: translateX(0) translateY(0); }
+.topbar .tb-share[aria-label]::before { left: auto; right: 8px; transform: translateX(0); }
 /* Two groups, one at each end: speed and list to the left, plus, info and
    share to the right, which is what frame 2533:85625 draws. gap 4 within each
    group, 16 in from each edge. space-between rather than flex-end, so the row
