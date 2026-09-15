@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260915192140">
+<link rel="stylesheet" href="widget-core.css?v=20260915192859">
 </head>
 <body>
 
@@ -26,10 +26,17 @@
     <span class="unit">px</span>
     <button type="button" id="widthFill">Fill</button>
   </div>
+  <div class="colctl">
+    <label for="cols1">Columns</label>
+    <span class="seg">
+      <button type="button" id="cols1" data-cols="1" aria-pressed="true">1</button>
+      <button type="button" id="cols2" data-cols="2" aria-pressed="false">2</button>
+    </span>
+  </div>
 </header>
 
-<main>
-  <section>
+<main data-cols="1">
+  <section class="full">
     <div class="h2row"><h2>Widget player</h2></div>
     <div class="embeds">
       <div class="embed">
@@ -46,11 +53,11 @@
     <p class="status" id="s-embeds"></p>
   </section>
 
-  <div class="band band-proto">
+  <div class="band band-proto" data-design="a">
     <h2>Design A</h2>
   </div>
 
-  <section>
+  <section data-design="a" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast"></span></div>
     <div class="search" data-for="podcast">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
@@ -61,7 +68,7 @@
     <div class="colourline" id="c-podcast"></div>
   </section>
 
-  <section>
+  <section data-design="a" data-kind="live">
     <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live"></span></div>
     <div class="search" data-for="live">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
@@ -105,11 +112,11 @@
 
   -->
 
-  <div class="band band-proto">
+  <div class="band band-proto" data-design="c">
     <h2>Design C</h2>
   </div>
 
-  <section>
+  <section data-design="c" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2><span class="gauge" id="g-podcast-c"></span></div>
     <div class="search" data-for="podcast-c">
       <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
@@ -120,7 +127,7 @@
     <div class="colourline" id="c-podcast-c"></div>
   </section>
 
-  <section>
+  <section data-design="c" data-kind="live">
     <div class="h2row"><h2>Live radio</h2><span class="gauge" id="g-live-c"></span></div>
     <div class="search" data-for="live-c">
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
@@ -132,7 +139,26 @@
   </section>
 </main>
 
+<script>
+/* One column or two. The layout is entirely CSS; this only flips the attribute
+   and tells the width control to re-measure, because a card's available width
+   halves when the designs go side by side. */
+(function () {
+  const main = document.querySelector('main');
+  const seg = document.querySelector('.colctl .seg');
+  seg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-cols]'); if (!b) return;
+    [...seg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    main.dataset.cols = b.dataset.cols;
+    /* Defined in widget-core.js, which loads after this, so it is called on the
+       next frame rather than now. */
+    requestAnimationFrame(() => {
+      if (typeof syncWidthControl === 'function') syncWidthControl();
+    });
+  });
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260915192140"></script>
+<script src="widget-core.js?v=20260915192859"></script>
 </body>
 </html>

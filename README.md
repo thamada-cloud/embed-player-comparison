@@ -2777,3 +2777,34 @@ shape. It is a real waveform and the one most listeners have seen, but it needs
 the entire file decoded before it can draw, which an embed cannot do at load,
 and it is a fixed full width silhouette, which is the exact thing that makes the
 current strip read as a summary of the episode.
+
+## One column or two on the prototype page
+
+A toggle in the sticky header. Design A and design C sit side by side in two
+columns, and the shipping embeds stay full width above them.
+
+The rows are placed explicitly rather than left to auto-flow, and that is the
+whole trick. Auto-placement walks a cursor forward and will not go back, so
+design C's band would land under design A's live card instead of beside its own
+band. Pinning the three rows puts the two headers level, podcast beside podcast
+and live beside live, which is the only arrangement that makes a side by side
+worth having. Measured at 1400 wide: both bands at y 631, both podcast sections
+at y 720, both live sections at y 1297, columns at x 60 and x 714.
+
+The two cards in a row are different heights, design A's podcast card being 400
+against design C's 234, so the shorter one leaves space under it. They are
+aligned to the top of the row rather than stretched, because that gap is the
+comparison being honest.
+
+Below 900 the toggle is ignored and the page stays in one column, since two
+columns there would be narrower than the cards are designed for.
+
+### The width control had to learn about columns
+
+`availableWidth()` measured `<main>`. That was the same number as a card's room
+while the designs were stacked one per row, and stopped being the same the
+moment they could sit two across: it would have told the slider it could go
+twice as wide as it can, and reported "fills" while the cards were plainly not
+filling anything. It now measures the shell's own parent, which is the grid
+item, so it is right in both modes. Measured: slider max 1280 in one column and
+626 in two at a 1400 viewport, and Fill lands the shells exactly on the column.

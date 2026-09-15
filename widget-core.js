@@ -1992,10 +1992,20 @@ if (widthRange) {
    to want to see, and an embed slot really can be handed nothing. */
 const MIN_W = 0;
 
+/* The room a CARD has, not the room the page has. Those were the same number
+   while the designs were stacked one per row, and stopped being the same the
+   moment they could sit two across: a shell in a two column grid has roughly
+   half the page to work with, and measuring <main> would have told the slider
+   it could go twice as wide as it can, and called it "fills" while the cards
+   were clearly not filling anything.
+   The shell's own parent is the grid item, so it is the honest thing to ask. */
 function availableWidth() {
-  const main = document.querySelector('main');
-  const cs = getComputedStyle(main);
-  return Math.max(MIN_W, Math.round(main.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
+  const shell = document.querySelector('main .shell');
+  const box = (shell && shell.parentElement) || document.querySelector('main');
+  if (!box) return MIN_W;
+  const cs = getComputedStyle(box);
+  return Math.max(MIN_W, Math.round(
+    box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
 }
 
 function applyWidth(px, atMax) {
