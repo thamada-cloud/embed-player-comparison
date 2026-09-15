@@ -47,6 +47,9 @@
   /* Overlay strength over the artwork colour. Was 70%. */
   --overlay-pct: .60;
   --overlay: rgba(0,0,0,.60);
+  /* The plate the artwork cards lay their picture on, under the scrim. A theme
+     colour, not something read off the artwork. Dark theme flips this. */
+  --stage-plate: var(--true-white);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -334,15 +337,21 @@ a.thumb-link:hover { opacity: .92; }
 .widget.hero .sheet, .widget.hero .slider { cursor: auto; }
 .stage { position: relative; height: 224px; width: 100%; overflow: hidden;
          display: flex; flex-direction: column; justify-content: space-between;
-         padding-top: 16px; background: #fff; }
-/* The frames stack white, then the artwork, then 70% black. That holds for a
-   podcast, whose artwork is an opaque square. A station's artwork is not: the
-   API ships a transparent PNG drawn for a white tile, so the same stack leaves
-   most of the card as white under a scrim, a flat grey the mock never shows
-   because the mock used an opaque tile. The base is the artwork's own mean
-   colour for live radio instead, so the card takes the station's brand colour
-   where the logo does not cover. A deviation, and forced by the asset. */
-.widget.hero.live .stage { background: var(--dominant, #191b28); }
+         padding-top: 16px; background: var(--stage-plate); }
+/* The plate under the artwork is a THEME colour, not something read off the
+   picture. It was the artwork's own mean colour for live radio for a while:
+   a station's logo is a transparent PNG drawn for a white tile, so a white
+   plate shows through wherever the logo does not cover, and that read as a flat
+   grey rather than as the station.
+
+   The frames disagree, and they are unambiguous about it. #333333 is the single
+   most common colour in both live frames, 48,640 of 78,400 pixels on 2512:111965
+   and 59,904 of 92,050 on 2512:111876, and #333333 is exactly what a white plate
+   becomes under 80% black. The logo's own colours composite over it at 20%,
+   which is where 2512:111965's #2f001c comes from: the Z100 pink at a fifth.
+
+   So the plate is white, and every live card reads the same rather than each
+   taking its station's colour. Dark theme swaps --stage-plate and nothing else. */
 /* background and padding are reset explicitly. The other design gives a live
    station's .art a white plate and 4px of padding, which is right for a 64px
    tile and wrong for a full bleed background: the white plate is what made the

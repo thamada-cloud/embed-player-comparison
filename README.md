@@ -2646,3 +2646,37 @@ that option. Verified: `?w=b-live` still loads the hero card.
 
 To bring design B back, uncomment the block in `widget.html` and restore the
 `optgroup` in `host-home.html`.
+
+## The artwork plate is a theme colour, not the artwork's own
+
+The plate under the picture on designs B and C used to be the artwork's own mean
+colour for live radio. The reasoning was that a station's logo is a transparent
+PNG drawn for a white tile, so a white plate shows through wherever the logo
+does not cover, and that read as a flat grey rather than as the station. It was
+written down as "a deviation, and forced by the asset".
+
+The frames disagree, and they are unambiguous about it. `#333333` is the single
+most common colour in both live frames:
+
+| frame | `#333333` | of |
+| --- | --- | --- |
+| 2512:111965, design B live | 48,640 px | 78,400 |
+| 2512:111876, design C live | 59,904 px | 92,050 |
+
+`#333333` is exactly what a white plate becomes under 80% black, since
+255 × 0.2 = 51. The logo's own colours composite over it at a fifth, which is
+where 2512:111965's `#2f001c` comes from: the Z100 pink at 20%. So the frames
+draw a white plate and a scrim, not a coloured plate.
+
+The plate is now `--stage-plate`, white, one token. Every live card reads the
+same rather than each taking its station's colour, and **dark theme flips that
+one token and nothing else**. Measured after: all four artwork cards on a white
+plate, and the rendered live cards now carry `#333333` as their most common
+colour, 50,418px on B and 51,563px on C over the stage area, against the frames'
+48,640 and 59,904 over the whole card.
+
+Two things this does not touch. `--dominant` is still measured, because design
+A's bar card paints it behind its text and because the contrast readout reports
+it. And the readout needed no change: it already judges the artwork cards on
+"80% black guarantees 11.86 to 1 on ANY artwork, since the worst a picture can
+be is pure white", which is exactly the case a white plate creates.
