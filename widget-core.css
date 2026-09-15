@@ -45,6 +45,14 @@
   --elevation1: 0 1px 3px rgba(0, 0, 0, 0.15);
   --radius-widget: 6px; --shadow-01: 0 1px 3px 0 rgba(0,0,0,.12);
   /* Overlay strength over the artwork colour. Was 70%. */
+  /* The drawer curves. `ease` is what accomplice gets by declaring
+     `animation: slideInBottom 600ms` with no timing function, and its tail is
+     gentle but its start is gentle too, so the whole thing drifts rather than
+     travels. This entry curve leaves hard and decelerates the whole way in,
+     which is the soft landing. A deliberate step past the component, asked for
+     after comparing the two side by side. */
+  --drawer-in: cubic-bezier(.32, .72, 0, 1);
+  --drawer-out: cubic-bezier(.4, 0, .6, 1);
   --overlay-pct: .60;
   --overlay: rgba(0,0,0,.60);
   /* The plate the artwork cards lay their picture on, under the scrim. A theme
@@ -768,7 +776,7 @@ a.thumb-link:hover { opacity: .92; }
      `slideInBottom 600ms reverse ease-in` on the way out. This had `ease` both
      ways, so the exit crawled out of the card the way the entry crawls in. The
      rest state carries the LEAVING curve; the open state overrides it. */
-  transition: transform .6s ease-in;
+  transition: transform .6s var(--drawer-out);
 }
 /* :not(.info-sheet), because the info drawer also carries the .sheet class and
    was therefore being opened by the episodes flag as well. It sits on a higher
@@ -778,7 +786,7 @@ a.thumb-link:hover { opacity: .92; }
    full height of the card carrying rows of artwork and text. */
 .sheet-panel { will-change: transform; }
 .widget.sheet-open .sheet:not(.info-sheet) .sheet-panel { transform: translateY(0); }
-.widget.sheet-open .sheet-panel, .widget.info-open .sheet-panel { transition: transform .6s ease; }
+.widget.sheet-open .sheet-panel, .widget.info-open .sheet-panel { transition: transform .6s var(--drawer-in); }
 @media (prefers-reduced-motion: reduce) {
   .sheet { transition: visibility 0s; }
   .sheet-panel { transition: none; }
@@ -1508,6 +1516,21 @@ a.thumb-link:hover { opacity: .92; }
   visibility: hidden; transition: visibility 0s linear .6s;
 }
 .widget.share-open .share-sheet { visibility: visible; transition: visibility 0s; }
+
+/* One frame of being visible and unmoving, before anything slides.
+
+   A panel sits in a visibility:hidden container at rest, so it has no
+   compositor layer and none of it is rasterised. Flipping visibility and
+   starting the transform together makes the browser paint the whole panel on
+   the animation's first frame, which is the jump at the start. This class is
+   added for one frame, the panel paints while still translated out of sight
+   and clipped, and the transform then runs against a layer that exists.
+
+   `transition: none` matters as much as the visibility: the resting rules delay
+   visibility by 600ms so the drawer can animate out, and without turning that
+   off the prep frame does nothing at all. */
+.widget.drawer-prep .share-sheet,
+.widget.drawer-prep .sheet { visibility: visible; transition: none; }
 .share-panel {
   /* Full height, for the reason .sheet-panel is. */
   pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
@@ -1521,7 +1544,7 @@ a.thumb-link:hover { opacity: .92; }
      `slideInBottom 600ms reverse ease-in` on the way out. This had `ease` both
      ways, so the exit crawled out of the card the way the entry crawls in. The
      rest state carries the LEAVING curve; the open state overrides it. */
-  transition: transform .6s ease-in;
+  transition: transform .6s var(--drawer-out);
   /* Its own compositor layer, for the whole life of the element rather than
      only while it moves.
 
@@ -1539,7 +1562,7 @@ a.thumb-link:hover { opacity: .92; }
      hidden, because a visibility:hidden subtree gets no layer either way. */
   will-change: transform;
 }
-.widget.share-open .share-panel { transform: translateY(0); transition: transform .6s ease; }
+.widget.share-open .share-panel { transform: translateY(0); transition: transform .6s var(--drawer-in); }
 @media (prefers-reduced-motion: reduce) {
   .share-scrim, .share-sheet, .share-panel { transition: none; }
 }

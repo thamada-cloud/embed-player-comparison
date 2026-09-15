@@ -3243,3 +3243,49 @@ over a very different distance: iheart.com slides most of a tall window, design
 C slides 234px, which works out at 390px/s and can read as floaty rather than
 rough. That is a duration question, not a rendering one, and it is not something
 the frame timings can answer.
+
+## The jump at the start was paint, and the fix nearly shipped broken
+
+A panel sits in a `visibility: hidden` container at rest, so it has no
+compositor layer and none of it is rasterised: not the artwork, not the text,
+not the input, not the buttons. Flipping visibility and starting the transform
+in the SAME frame makes the browser paint all of that on the animation's first
+frame. That is the jump.
+
+Nothing in the frame timing could have found it. Sampled from the click, the
+transform reads 1.000, 0.985, 0.962, 0.929, exactly on the curve. The main
+thread was always right; the pixels were late.
+
+So the drawer opens in two stages a frame apart. `drawer-prep` goes on for one
+frame, the panel paints while still translated out of sight and clipped, then
+the transform runs against a layer that already exists. Two rAFs, because one
+only guarantees the style is applied, not that anything has been painted.
+
+### The first attempt at this was silently broken
+
+Doing the prep with `sheet.style.visibility = 'visible'` looked obvious and did
+nothing: the resting rule carries `transition: visibility 0s linear .6s`, which
+exists so the drawer can animate OUT, so the inline change was delayed 600ms.
+The prep frame painted nothing and the drawer arrived fully open at the end of
+its own slide, with the card just dimming in the meantime.
+
+It measured as a success, too: motion started at 67ms, the curve was clean,
+every drawer opened and closed. Only a screenshot taken mid-animation showed a
+blurred card with no drawer on it. The prep is a class now, so it turns the
+transition off along with turning visibility on.
+
+Verified after: `visible` on every sampled frame from the click to the end, on
+both designs, and all three drawers still open and close.
+
+### A softer landing, and a step past the component
+
+`ease` is what accomplice gets from `animation: slideInBottom 600ms` with no
+timing function. Its tail is gentle but so is its start, so the whole thing
+drifts rather than travels.
+
+    --drawer-in:  cubic-bezier(.32, .72, 0, 1)
+    --drawer-out: cubic-bezier(.4, 0, .6, 1)
+
+The entry leaves hard and decelerates the whole way: 53% of the distance in the
+first 150ms, 91% by 284ms, then a long settle to 583. That is the soft landing.
+A deliberate difference from the component, asked for after comparing the two.

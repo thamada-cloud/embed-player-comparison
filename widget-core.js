@@ -1066,17 +1066,21 @@ ${rowMarkup(d, r)}`).join('')}
       const card = root.querySelector('.widget'), sheet = root.querySelector('.sheet:not(.info-sheet)');
       if (card && sheet) {
         const opening = !card.classList.contains('sheet-open');
-        card.classList.toggle('sheet-open', opening);
         sheet.setAttribute('aria-hidden', String(!opening));
         const opener = root.querySelector('[data-act="list"].h-btn');
         if (opener) {
           opener.setAttribute('aria-pressed', String(opening));
           opener.setAttribute('aria-label', opening ? 'Hide Episodes' : 'Show Episodes');
         }
-        /* Focus follows the sheet, since it covers the controls underneath and
-           a keyboard would otherwise be tabbing through a hidden player. */
-        const target = opening ? sheet.querySelector('.sheet-close') : opener;
-        if (target) target.focus({ preventScroll: true });
+        const run = () => {
+          card.classList.toggle('sheet-open', opening);
+          /* Focus follows the sheet, since it covers the controls underneath
+             and a keyboard would otherwise be tabbing through a hidden
+             player. */
+          const target = opening ? sheet.querySelector('.sheet-close') : opener;
+          if (target) target.focus({ preventScroll: true });
+        };
+        if (opening) openStaged(run); else run();
       }
     }
     /* Info opens the drawer on designs A and B. Design C has no info frame of
@@ -1107,12 +1111,15 @@ ${rowMarkup(d, r)}`).join('')}
       if (esheet) esheet.setAttribute('aria-hidden', 'true');
     }
     const opening = force === undefined ? !card.classList.contains('info-open') : !!force;
-    card.classList.toggle('info-open', opening);
     sheet.setAttribute('aria-hidden', String(!opening));
     const opener = root.querySelector('[data-act="info"]:not(.sheet-close)');
     if (opener) opener.setAttribute('aria-pressed', String(opening));
-    const target = opening ? sheet.querySelector('.sheet-close') : opener;
-    if (target) target.focus({ preventScroll: true });
+    const run = () => {
+      card.classList.toggle('info-open', opening);
+      const target = opening ? sheet.querySelector('.sheet-close') : opener;
+      if (target) target.focus({ preventScroll: true });
+    };
+    if (opening) openStaged(run); else run();
   }
 
   /* The episode row overflow, frames 2609:36099 and 2609:37074. Two items, and
@@ -1766,18 +1773,55 @@ ${rowMarkup(d, r)}`).join('')}
   }
 
   /* Opening closes the other drawers, which cover the same space. */
+  /* Open in two stages, a frame apart.
+
+     A panel lives in a visibility:hidden container at rest, so it has no
+     compositor layer and none of it is rasterised: not the artwork, not the
+     text, not the input, not the buttons. Flipping visibility and starting the
+     transform in the same frame makes the browser do all that painting on the
+     animation's FIRST frame, and the slide visibly jumps before it settles into
+     the curve.
+
+     The computed style is perfect throughout, which is why none of the frame
+     timing ever showed this: sampled from the click, the transform reads
+     1.000, 0.985, 0.962, 0.929 exactly on the curve. The main thread was always
+     right; the pixels were late.
+
+     So visibility goes first, the panel paints while it is still translated out
+     of sight, and the transform starts on the next frame against a layer that
+     already exists. Two rAFs, because one only guarantees the style is applied,
+     not that anything has been painted with it. */
+  function openStaged(apply) {
+    const card = root.querySelector('.widget');
+    if (!card) { apply(); return; }
+    /* A class, not an inline style. Setting `visibility` inline looked like the
+       obvious way to do this and silently did nothing: the resting rule carries
+       `transition: visibility 0s linear .6s`, so the inline change was DELAYED
+       600ms and the prep frame never painted anything. The drawer then appeared
+       fully open at the end of its own slide. The prep class turns the
+       transition off along with turning visibility on. */
+    card.classList.add('drawer-prep');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.classList.remove('drawer-prep');
+      apply();
+    }));
+  }
+
   function shareDialog(force) {
     const card = root.querySelector('.widget');
     if (!card) return;
     const opening = force === undefined ? !card.classList.contains('share-open') : !!force;
     card.classList.remove('sheet-open');
-    card.classList.toggle('share-open', opening);
     const sheet = root.querySelector('.share-sheet');
     if (sheet) sheet.setAttribute('aria-hidden', String(!opening));
-    if (opening) {
-      const c = root.querySelector('.share-close');
-      if (c) c.focus();
-    }
+    const run = () => {
+      card.classList.toggle('share-open', opening);
+      if (opening) {
+        const c = root.querySelector('.share-close');
+        if (c) c.focus();
+      }
+    };
+    if (opening) openStaged(run); else run();
   }
 
   function drawPreview() {
