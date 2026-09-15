@@ -2808,3 +2808,27 @@ twice as wide as it can, and reported "fills" while the cards were plainly not
 filling anything. It now measures the shell's own parent, which is the grid
 item, so it is right in both modes. Measured: slider max 1280 in one column and
 626 in two at a 1400 viewport, and Fill lands the shells exactly on the column.
+
+## A search applies to every card of that content type
+
+Picking a show or a station in either column now loads it into both designs.
+
+A choice belongs to the CONTENT TYPE, not to the box it was made in. Comparing
+two designs on two different podcasts compares nothing, and with the designs
+side by side that was suddenly easy to do by accident. So the handler loads
+`WIDGETS[kind]` rather than the one widget the box was wired to, each getting
+its own copy of the data for the same reason the initial load does: a widget
+writes its playback state onto the object it is handed.
+
+Every search box of that kind is then set to what was chosen, so it is visible
+that they moved together rather than looking like one box lost its query. The
+shipping embed at the top already followed the last choice of its kind, and
+still does.
+
+Verified in both directions. Choosing a podcast in design A's box put "How
+Boredom Works" in both podcast cards and both podcast boxes and left live radio
+alone. Choosing a station in design C's box put KFI in both live cards, both
+live boxes and the shipping live embed, and left the podcasts alone.
+
+Status messages broadcast the same way, so a failure reports under every card it
+affected rather than only under the box that was typed in.

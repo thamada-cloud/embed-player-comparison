@@ -1865,7 +1865,6 @@ ${rowMarkup(d, r)}`).join('')}
 function wireSearch(box, widget) {
   const input = box.querySelector('input'), list = box.querySelector('.results');
   const isPodcast = box.dataset.for.startsWith('podcast');
-  const statusEl = document.getElementById('s-' + box.dataset.for);
   let timer, seq = 0;
 
   const close = () => { list.hidden = true; list.innerHTML = ''; };
@@ -1893,18 +1892,36 @@ function wireSearch(box, widget) {
         }).join('');
         list.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
           close(); input.blur();
-          const sEl = statusEl;
-          sEl.textContent = 'Loading'; sEl.className = 'status';
+          /* A choice belongs to the CONTENT TYPE, not to the box it was made
+             in. Comparing two designs on two different podcasts compares
+             nothing, so picking a show in either column loads it into every
+             card of that kind, and the boxes are all set to what was chosen so
+             it is obvious that they moved together. */
+          const kind = isPodcast ? 'podcast' : 'live';
+          const peers = (WIDGETS[kind] && WIDGETS[kind].length)
+            ? WIDGETS[kind] : [{ widget, statusId: 's-' + box.dataset.for }];
+          const says = (msg, err) => peers.forEach((t) => {
+            const el = document.getElementById(t.statusId);
+            if (el) { el.textContent = msg; el.className = err ? 'status err' : 'status'; }
+          });
+          says('Loading');
           try {
             const data = isPodcast ? await loadPodcast(b.dataset.id) : await loadStation(b.dataset.id);
             if (!data.audio) throw new Error('no playable stream for this one');
-            widget.load(data);
+            /* A copy each, because a widget writes its own playback state onto
+               the object it is handed. The same reason the initial load does. */
+            peers.forEach((t) => t.widget.load(Object.assign({}, data)));
+            const chosen = data.title || input.value;
+            document.querySelectorAll('.search').forEach((other) => {
+              const sameKind = other.dataset.for.startsWith(isPodcast ? 'podcast' : 'live');
+              if (sameKind) other.querySelector('input').value = chosen;
+            });
             /* The shipping player at the top follows the last thing chosen of
                its kind, so the comparison stays like for like after a search. */
             const frame = document.getElementById(isPodcast ? 'e-podcast' : 'e-live');
             if (frame) frame.src = embedUrl[isPodcast ? 'podcast' : 'live'](data);
           } catch (err) {
-            sEl.textContent = 'Could not load that. ' + err.message; sEl.className = 'status err';
+            says('Could not load that. ' + err.message, true);
           }
         }));
       } catch (e) {
