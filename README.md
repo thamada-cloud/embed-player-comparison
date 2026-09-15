@@ -3097,3 +3097,18 @@ put the Listen on iHeart lockup on the wrong side of the card.
 The info DRAWER stays. It is still how the podcast row overflow's View Episode
 Info works. It is simply unreachable on live now, the same way the auth toast
 became unreachable when the plus buttons went.
+
+## The lockup's gap is a word space now
+
+8px between "Listen on" and the mark read as a separator. The mark is the last
+word of the sentence, so the space before it should be the space between the
+words. "Listen on" at 12px SemiBold Open Sans measures a **3.12px** word space,
+so the flex gap is 3.
+
+Checked in rendered pixels rather than on the metric alone, since a glyph has a
+side bearing and the logotype's heart starts flush against its own box: 4px of
+blank between "Listen" and "on", 5px between "on" and the heart. One pixel
+apart, which is as close as the two can sit without nudging the logo.
+
+The lockup is 118 wide now, down from 123, which does not change the point at
+which the words drop on a narrow card.

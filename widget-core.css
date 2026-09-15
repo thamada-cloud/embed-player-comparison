@@ -660,7 +660,10 @@ a.thumb-link:hover { opacity: .92; }
    12/16 copy, an 8px gap, then the logotype at 14 tall with its width following
    the 107 by 24 box. Measured against the frame: 49 + 8 + 62, ending 16 in from
    the card's right edge. */
-.ihr-lockup { display: inline-flex; align-items: center; gap: var(--sp-8);
+/* 3, not 8. The mark reads as the last word of the sentence, so the space
+   before it is the space between the words: "Listen on" at 12px SemiBold Open
+   Sans measures a 3.12px word space, and 3 is that rounded. */
+.ihr-lockup { display: inline-flex; align-items: center; gap: 3px;
               text-decoration: none; flex: 0 0 auto; }
 .ihr-lockup span { font-size: var(--fs-12); line-height: var(--lh-16); font-weight: 600;
                    letter-spacing: var(--ls-4); color: var(--true-white); white-space: nowrap; }
