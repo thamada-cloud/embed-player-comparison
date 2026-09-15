@@ -2708,3 +2708,45 @@ both content types at 280, 350, 416, 500, 640, 760 and 1160, playing: the
 topbar, the control row and the bottom block all sit inside the stage and clear
 each other at every one. The floor is the end that can clip, which is what the
 234 is there for, and it is untouched.
+
+## waveform.html, options for the strip
+
+A separate page, not wired into the cards. All the options run off one audio
+element and one analyser, so anything you see between them is the treatment and
+never the material. Height toggles 12 / 16 / 24 / 40, the first three being
+design B, A and C. Width slides 240 to 1140.
+
+### The diagnosis
+
+The strip on the cards is a **spectrum analyser**, so its x axis is FREQUENCY,
+40Hz on the left to 11kHz on the right. It reads as a chart because it is one.
+A waveform puts TIME on that axis. Secondarily the bars stand on a baseline,
+which is the bar chart idiom; waveforms are symmetric about a centre line.
+
+### The options
+
+| | x axis | symmetry | at rest |
+| --- | --- | --- | --- |
+| control, what ships today | frequency | none | fixed silhouette |
+| 1, mirrored spectrum | frequency | centre | fixed silhouette |
+| 2, oscilloscope | time, 20ms window | centre | flat line |
+| 3, scrolling bars | time, 6 seconds | centre | empty, fills as it plays |
+| 4, scrolling envelope | time, 6 seconds | centre | flat, fills as it plays |
+| 5, the two crossing strokes | none, it is a drawing | centre | the drawing |
+
+Options 3 and 4 share one sampler and one six second span on purpose, so the
+only difference between them is bars against a filled shape.
+
+Two things needed tuning before they could be judged fairly. The oscilloscope
+gets a gain that follows the recent peak, because a podcast peaks far below full
+scale and the raw trace in a 24px strip is a flat line with a wobble. The
+scrolling options fold ~4 frames into each slot; one frame per slot showed
+barely a second and read as jitter rather than as speech.
+
+### Deliberately not built
+
+The whole episode waveform with a played and unplayed split, the SoundCloud
+shape. It is a real waveform and the one most listeners have seen, but it needs
+the entire file decoded before it can draw, which an embed cannot do at load,
+and it is a fixed full width silhouette, which is the exact thing that makes the
+current strip read as a summary of the episode.

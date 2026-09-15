@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Waveform options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #27292d; --dim: #55565b; --line: #dadfe3;
+  --paper: #f6f8f9; --card: #0d0d10; --red: #cc032e;
+  --wave: #ffffff;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink);
+       font-family: 'Open Sans', system-ui, sans-serif; font-size: 14px; line-height: 20px; }
+
+header { position: sticky; top: 0; z-index: 5; background: #fff;
+         border-bottom: 1px solid var(--line); padding: 12px 20px;
+         display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+header .brand { font-weight: 700; }
+header label { font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+button, .seg button { font: inherit; }
+#play { appearance: none; border: 0; background: var(--red); color: #fff; cursor: pointer;
+        border-radius: 999px; padding: 7px 18px; font-weight: 600; }
+#play[disabled] { background: #b9bec2; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: #fff; }
+.seg button { appearance: none; border: 0; background: transparent; cursor: pointer;
+              padding: 5px 12px; color: var(--dim); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+input[type=range] { width: 200px; accent-color: var(--red); }
+#status { font-size: 12px; color: var(--dim); }
+
+main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 90px; }
+.intro { max-width: 74ch; }
+.intro h1 { font-size: 24px; line-height: 30px; margin: 4px 0 12px; }
+.intro p { margin: 0 0 12px; }
+.intro .key { background: #fff7d6; padding: 12px 14px; border-radius: 8px;
+              border: 1px solid #f0e3a8; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
+       background: #eceff1; padding: 1px 5px; border-radius: 3px; }
+
+.opt { margin: 34px 0 0; }
+.opt h2 { font-size: 16px; line-height: 22px; margin: 0 0 2px; }
+.opt h2 .tag { font-weight: 400; color: var(--dim); font-size: 12px; margin-left: 8px; }
+.opt p.note { margin: 0 0 10px; color: var(--dim); max-width: 78ch; }
+.strip { background: var(--card); border-radius: 8px; padding: 18px 0;
+         width: 100%; max-width: var(--w, 100%); overflow: hidden; }
+.strip canvas { display: block; width: 100%; height: var(--h, 24px); }
+.axis { font-size: 12px; color: var(--dim); margin-top: 6px; display: flex; gap: 18px; flex-wrap: wrap; }
+.axis b { color: var(--ink); font-weight: 600; }
+.control h2 { color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand">Waveform options</span>
+  <button id="play" disabled>Loading audio</button>
+  <label>Height
+    <span class="seg" id="hseg">
+      <button data-h="12">12</button>
+      <button data-h="16">16</button>
+      <button data-h="24" aria-pressed="true">24</button>
+      <button data-h="40">40</button>
+    </span>
+  </label>
+  <label>Width <input id="w" type="range" min="240" max="1140" step="2" value="420"><b id="wv">420</b> px</label>
+  <span id="status"></span>
+</header>
+
+<main>
+  <div class="intro">
+    <h1>Why the current one reads as a chart</h1>
+    <p class="key"><b>It reads as a chart because it is one.</b> The strip on the cards today is a
+      spectrum analyser, so its horizontal axis is <b>frequency</b>, running from 40&nbsp;Hz on the
+      left to 11&nbsp;kHz on the right. Every bar is a different pitch band. An audio waveform puts
+      <b>time</b> on that axis instead. That is the whole difference, and it is why the eye wants to
+      read the current strip as data about the episode rather than as the sound.</p>
+    <p>A second, smaller thing: the bars grow upward from a baseline, which is the bar chart
+      idiom. Waveforms are drawn symmetrically about a centre line.</p>
+    <p>The options below all run off the same audio at the same time, so they can be compared
+      directly. Press play, then judge them at the heights and widths the real cards use:
+      12 is design B, 16 is design A, 24 is design C.</p>
+  </div>
+
+  <section class="opt control">
+    <h2>What we have now<span class="tag">the control</span></h2>
+    <p class="note">70 bars, frequency on the x axis, growing from a baseline. Note what it does at
+      rest, before you press play: it holds a fixed silhouette across the full width, which is the
+      part that most reads as "here is the whole episode".</p>
+    <div class="strip"><canvas data-draw="current"></canvas></div>
+    <div class="axis"><span>x axis <b>frequency</b></span><span>symmetry <b>none</b></span><span>at rest <b>fixed silhouette</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>1. Mirrored spectrum<span class="tag">smallest possible change</span></h2>
+    <p class="note">The same bars and the same data, drawn symmetrically about the centre line
+      instead of standing on a baseline. This fixes the idiom without touching anything else, so
+      it is the cheapest option by a distance. It does not fix the axis: this is still frequency
+      across the width, so it still is not really a waveform.</p>
+    <div class="strip"><canvas data-draw="mirror"></canvas></div>
+    <div class="axis"><span>x axis <b>frequency</b></span><span>symmetry <b>centre</b></span><span>at rest <b>fixed silhouette</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>2. Oscilloscope<span class="tag">the literal waveform</span></h2>
+    <p class="note">A single continuous line tracing the actual pressure wave, about 20&nbsp;ms of
+      it at a time. This is what a waveform literally is, and nobody mistakes it for a chart. It is
+      also the busiest of the options and the least legible at 12px tall, because the detail it
+      draws is real rather than smoothed.</p>
+    <div class="strip"><canvas data-draw="scope"></canvas></div>
+    <div class="axis"><span>x axis <b>time</b>, a 20ms window</span><span>symmetry <b>centre</b></span><span>at rest <b>flat line</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>3. Scrolling bars<span class="tag">the voice memo idiom</span></h2>
+    <p class="note">One bar per moment, newest on the right, the history sliding left as it plays.
+      Time on the x axis and visibly moving, so it reads as sound happening now rather than as a
+      summary of anything. The strongest cure for the chart reading, and the one that most says
+      "this is live".</p>
+    <div class="strip"><canvas data-draw="scroll"></canvas></div>
+    <div class="axis"><span>x axis <b>time</b>, last few seconds</span><span>symmetry <b>centre</b></span><span>at rest <b>empty, fills as it plays</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>4. Scrolling envelope<span class="tag">option 3, softened</span></h2>
+    <p class="note">The same data as option 3 drawn as one smooth filled shape rather than discrete
+      bars. Quieter and more decorative, and it survives small heights better than the bars do
+      because there are no gaps to lose.</p>
+    <div class="strip"><canvas data-draw="env"></canvas></div>
+    <div class="axis"><span>x axis <b>time</b>, last few seconds</span><span>symmetry <b>centre</b></span><span>at rest <b>flat, fills as it plays</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>5. The two crossing strokes<span class="tag">already drawn, frame 2600:136700</span></h2>
+    <p class="note">The wave from the Audio Widgets file, driven by the audio: the lower band moves
+      one curve and everything above 500&nbsp;Hz moves the other, so the two cross differently as
+      the sound changes. Decorative rather than informative, which is the point. It is the only
+      option here that is a drawing first and a reading of the audio second, so it never reads as
+      data, but it also tells you the least.</p>
+    <div class="strip"><canvas data-draw="figma"></canvas></div>
+    <div class="axis"><span>x axis <b>nothing</b>, it is a drawing</span><span>symmetry <b>centre</b></span><span>at rest <b>the drawing, at full amplitude</b></span></div>
+  </section>
+
+  <section class="opt">
+    <h2>Not built, and why</h2>
+    <p class="note">The <b>whole episode waveform with a played and unplayed split</b>, the one
+      SoundCloud draws. It is a genuine waveform and the shape most listeners have seen, but it
+      needs the entire file decoded before it can be drawn, which an embed cannot do at load. It
+      also spans the full width as a fixed silhouette, which is exactly the thing that makes the
+      current strip read as a summary of the episode. Worth doing if you want it, but it fights
+      the brief rather than answering it.</p>
+  </section>
+</main>
+
+<script src="widget-core.js"></script>
+<script>
+/* ---------------------------------------------------------------------------
+   One audio element, one analyser, every option drawing off the same frame.
+   That is the whole point of the page: differences you see are the treatment
+   and never the material.
+   --------------------------------------------------------------------------- */
+const statusEl = document.getElementById('play').parentElement.querySelector('#status')
+  || document.getElementById('status');
+const playBtn = document.getElementById('play');
+
+let audio, ctx, analyser, freq, time, raf = null, playing = false;
+let started = false;
+
+/* Rolling history for the two scrolling options, one entry per frame. Sized
+   generously and sampled down to whatever the canvas can show, so a width
+   change never has to throw the history away. */
+const HISTORY = 900;
+const hist = new Float32Array(HISTORY);
+let histAt = 0;
+/* Both scrolling options show the SAME span of time, six seconds, so the only
+   thing that differs between them is how it is drawn. At 60fps that is 360
+   frames, folded down to however many slots the width gives. One frame per slot
+   showed barely a second and read as jitter rather than as speech. */
+const SPAN = 360;
+function slots(n) {
+  const per = Math.max(1, SPAN / n);
+  const out = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const age = n - 1 - i;                        /* 0 is the newest slot */
+    let peak = 0;
+    for (let f = 0; f < per; f++) {
+      const idx = histAt - 1 - Math.round(age * per + f);
+      if (idx < 0) continue;
+      const v = hist[((idx % HISTORY) + HISTORY) % HISTORY];
+      if (v > peak) peak = v;
+    }
+    out[i] = peak;
+  }
+  return out;
+}
+
+const canvases = [...document.querySelectorAll('canvas')];
+function sizeCanvases() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvases.forEach((c) => {
+    const r = c.getBoundingClientRect();
+    c.width = Math.max(1, Math.round(r.width * dpr));
+    c.height = Math.max(1, Math.round(r.height * dpr));
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  });
+}
+
+/* ---- the current card's idle silhouette and band mapping, so the control is
+   honestly the control and not an approximation of it ---- */
+const IDLE_SHAPE = (typeof IDLE !== 'undefined') ? IDLE : [3,5,8,11,13,16,13,11,8,5,3];
+const F_MIN = 40, F_MAX = 11000;
+let bandCache = null, bandCacheN = 0;
+function bands(n) {
+  if (bandCache && bandCacheN === n) return bandCache;
+  const bins = freq.length;
+  const binHz = (ctx.sampleRate / 2) / bins;
+  const top = Math.min(F_MAX, (ctx.sampleRate / 2) * 0.95);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const f0 = F_MIN * Math.pow(top / F_MIN, i / n);
+    const f1 = F_MIN * Math.pow(top / F_MIN, (i + 1) / n);
+    const lo = Math.min(bins - 1, Math.floor(f0 / binHz));
+    const hi = Math.max(lo + 1, Math.min(bins, Math.ceil(f1 / binHz)));
+    out.push([lo, hi, 0.62 + 1.05 * Math.pow(i / (n - 1), 0.85)]);
+  }
+  bandCache = out; bandCacheN = n;
+  return out;
+}
+const smooth = {};
+function spectrum(n, key) {
+  const s = smooth[key] && smooth[key].length === n ? smooth[key] : (smooth[key] = new Float32Array(n));
+  if (!analyser) {
+    for (let i = 0; i < n; i++) {
+      const idle = IDLE_SHAPE[Math.min(IDLE_SHAPE.length - 1, Math.floor(i * IDLE_SHAPE.length / n))];
+      s[i] = idle / 16;
+    }
+    return s;
+  }
+  const bs = bands(n);
+  for (let i = 0; i < n; i++) {
+    const b = bs[i];
+    let peak = 0;
+    for (let k = b[0]; k < b[1]; k++) if (freq[k] > peak) peak = freq[k];
+    s[i] = s[i] * 0.55 + (peak / 255) * b[2] * 0.45;
+  }
+  return s;
+}
+
+const BAR_W = 3, BAR_GAP = 2;
+const paint = (c) => { const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); return g; };
+const dims = (c) => {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  return { w: c.width / dpr, h: c.height / dpr };
+};
+
+const DRAW = {
+  /* --- the control: bars on a baseline, frequency across the width --- */
+  current(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const n = Math.max(8, Math.floor(w / (BAR_W + BAR_GAP)));
+    const v = spectrum(n, 'current');
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < n; i++) {
+      const bh = Math.max(2, Math.min(h, 2 + v[i] * (h - 2) * 0.8));
+      g.beginPath();
+      g.roundRect(i * (BAR_W + BAR_GAP), h - bh, BAR_W, bh, [1.5, 1.5, 0, 0]);
+      g.fill();
+    }
+  },
+
+  /* --- 1: the same data, mirrored about the centre --- */
+  mirror(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const n = Math.max(8, Math.floor(w / (BAR_W + BAR_GAP)));
+    const v = spectrum(n, 'mirror');
+    const mid = h / 2;
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < n; i++) {
+      const half = Math.max(1, Math.min(mid, 1 + v[i] * (mid - 1) * 0.9));
+      g.beginPath();
+      g.roundRect(i * (BAR_W + BAR_GAP), mid - half, BAR_W, half * 2, BAR_W / 2);
+      g.fill();
+    }
+  },
+
+  /* --- 2: the pressure wave itself, about 20ms of it --- */
+  scope(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const mid = h / 2;
+    g.strokeStyle = 'rgba(255,255,255,.9)';
+    g.lineWidth = 1.5; g.lineJoin = 'round'; g.lineCap = 'round';
+    g.beginPath();
+    if (!analyser) { g.moveTo(0, mid); g.lineTo(w, mid); g.stroke(); return; }
+    analyser.getByteTimeDomainData(time);
+    const span = Math.min(time.length, Math.round(ctx.sampleRate * 0.02));
+    const step = span / w;
+    /* Gain, and it is not cheating. A podcast peaks far below full scale, so the
+       raw trace in a 24px strip is a line with a wobble in it. The gain follows
+       the recent peak rather than being fixed, so quiet passages still show and
+       loud ones do not clip into a solid block. */
+    let peak = 0;
+    for (let i = 0; i < span; i++) { const d = Math.abs(time[i] - 128) / 128; if (d > peak) peak = d; }
+    scopeGain = scopeGain * 0.9 + Math.min(6, 0.85 / Math.max(0.03, peak)) * 0.1;
+    for (let x = 0; x < w; x++) {
+      const i = Math.floor(x * step);
+      const d = ((time[i] - 128) / 128) * scopeGain;
+      const y = mid + Math.max(-1, Math.min(1, d)) * (mid - 1);
+      x ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  },
+
+  /* --- 3: loudness over time, newest on the right --- */
+  scroll(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const mid = h / 2;
+    const n = Math.max(8, Math.floor(w / (BAR_W + BAR_GAP)));
+    const v6 = slots(n);
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < n; i++) {
+      const v = v6[i];
+      const half = Math.max(0.75, Math.min(mid, 0.75 + v * (mid - 0.75)));
+      g.beginPath();
+      g.roundRect(i * (BAR_W + BAR_GAP), mid - half, BAR_W, half * 2, BAR_W / 2);
+      g.fill();
+    }
+  },
+
+  /* --- 4: the same history as one smooth filled shape --- */
+  env(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const mid = h / 2;
+    const n = Math.max(8, Math.floor(w / 3));
+    const v6 = slots(n);
+    const pts = [];
+    for (let i = 0; i < n; i++) pts.push([i * (w / (n - 1)), Math.max(0.6, v6[i] * (mid - 0.6))]);
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    g.beginPath();
+    g.moveTo(pts[0][0], mid - pts[0][1]);
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+      g.quadraticCurveTo(x0, mid - y0, (x0 + x1) / 2, mid - (y0 + y1) / 2);
+    }
+    for (let i = pts.length - 1; i > 0; i--) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i - 1];
+      g.quadraticCurveTo(x0, mid + y0, (x0 + x1) / 2, mid + (y0 + y1) / 2);
+    }
+    g.closePath(); g.fill();
+  },
+
+  /* --- 5: the drawn wave from the Figma file, amplitude driven --- */
+  figma(c) {
+    const g = paint(c), { w, h } = dims(c);
+    const mid = h / 2;
+    g.strokeStyle = 'rgba(255,255,255,.9)';
+    g.lineWidth = 1.5; g.lineJoin = 'round'; g.lineCap = 'round';
+    /* Two shallow traces of different period, so they cross. Amplitude on each
+       comes from a different half of the spectrum. */
+    const amps = figmaAmps();
+    const PH = figmaPhase;
+    [[1.9, 1.0, amps[0]], [2.7, 0.62, amps[1]]].forEach(([cycles, scale, amp], k) => {
+      g.beginPath();
+      for (let x = 0; x <= w; x += 2) {
+        const t = x / w;
+        const y = mid + Math.sin(t * Math.PI * 2 * cycles + PH + k * 1.9)
+                       * Math.sin(t * Math.PI * 1.15 + 0.4)
+                       * (mid - 1) * scale * amp;
+        x ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.stroke();
+    });
+  }
+};
+
+let scopeGain = 1;
+let figmaPhase = 0;
+const fa = [1, 1];
+function figmaAmps() {
+  if (!analyser) return [1, 1];
+  const bins = freq.length;
+  const binHz = (ctx.sampleRate / 2) / bins;
+  const at = (hz) => Math.max(1, Math.min(bins, Math.round(hz / binHz)));
+  const e = [at(40), at(500), at(Math.min(11000, ctx.sampleRate / 2 * 0.95))];
+  const mean = (lo, hi) => { let s = 0; for (let k = lo; k < hi; k++) s += freq[k]; return s / Math.max(1, (hi - lo) * 255); };
+  const win = [[0.35, 0.85], [0.02, 0.60]];
+  [mean(e[0], e[1]), mean(e[1], e[2])].forEach((v, i) => {
+    const norm = Math.max(0, Math.min(1, (v - win[i][0]) / (win[i][1] - win[i][0])));
+    fa[i] = fa[i] * 0.78 + (0.55 + norm * 0.45) * 0.22;
+  });
+  return fa;
+}
+
+function frame() {
+  raf = requestAnimationFrame(frame);
+  if (analyser) {
+    analyser.getByteFrequencyData(freq);
+    analyser.getByteTimeDomainData(time);
+    /* one loudness sample per frame, for the two scrolling options */
+    let sum = 0;
+    for (let i = 0; i < time.length; i++) { const d = (time[i] - 128) / 128; sum += d * d; }
+    const rms = Math.sqrt(sum / time.length);
+    hist[histAt % HISTORY] = Math.min(1, rms * 2.6);
+    histAt++;
+    if (playing) figmaPhase += 0.012;
+  }
+  canvases.forEach((c) => DRAW[c.dataset.draw](c));
+}
+
+/* ---- audio ---- */
+async function boot() {
+  try {
+    const d = await loadPodcast(31090140);        /* Las Culturistas, the same show the cards load */
+    audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.preload = 'metadata';
+    audio.src = d.audio;
+    playBtn.disabled = false;
+    playBtn.textContent = 'Play';
+    statusEl.textContent = d.title;
+  } catch (e) {
+    statusEl.textContent = 'Could not load the episode. ' + e.message;
+  }
+}
+
+playBtn.addEventListener('click', async () => {
+  if (!audio) return;
+  if (playing) { audio.pause(); playing = false; playBtn.textContent = 'Play'; return; }
+  if (!analyser) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audio);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.6;
+    freq = new Uint8Array(analyser.frequencyBinCount);
+    time = new Uint8Array(analyser.fftSize);
+    src.connect(analyser); analyser.connect(ctx.destination);
+  }
+  if (ctx.state === 'suspended') await ctx.resume();
+  /* a minute in, past the intro, so there is real material to look at */
+  if (!started) { try { audio.currentTime = 60; } catch (e) {} started = true; }
+  try { await audio.play(); playing = true; playBtn.textContent = 'Pause'; }
+  catch (e) { statusEl.textContent = 'Playback blocked. ' + e.message; }
+});
+
+/* ---- controls ---- */
+const strips = [...document.querySelectorAll('.strip')];
+document.getElementById('hseg').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-h]'); if (!b) return;
+  [...e.currentTarget.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  strips.forEach((s) => s.style.setProperty('--h', b.dataset.h + 'px'));
+  requestAnimationFrame(sizeCanvases);
+});
+const wIn = document.getElementById('w'), wOut = document.getElementById('wv');
+function applyW() {
+  wOut.textContent = wIn.value;
+  strips.forEach((s) => s.style.setProperty('--w', wIn.value + 'px'));
+  requestAnimationFrame(sizeCanvases);
+}
+wIn.addEventListener('input', applyW);
+
+window.addEventListener('resize', sizeCanvases);
+applyW();
+sizeCanvases();
+frame();
+boot();
+</script>
+</body>
+</html>
