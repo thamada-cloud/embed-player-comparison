@@ -440,6 +440,44 @@ function makeWidget(rootId, statusId, colourId, variant) {
     w.bufTimer = setTimeout(() => { w.bufTimer = null; if (stuck()) setBuffering(true); }, BUFFER_DELAY);
   }
 
+  /* One row, used by design A's inline list and by design C's drawer. It was
+     written out twice and the two copies had already drifted apart once, which
+     is exactly the kind of thing that bit the design B and C control rows.
+
+     The overflow button sits OUTSIDE the row rather than inside it. The row is
+     a div carrying role="button", and a real button nested inside an element
+     with that role is interactive content inside a control, which no screen
+     reader exposes reliably. A wrapper costs one element and keeps both as
+     siblings, each reachable on its own.
+
+     Frame 2609:36099: the button is 32 square, vertically centred in the 72px
+     row, its right edge 12 in from the row's, which is where the explicit
+     badge used to sit. */
+  function rowMarkup(d, r) {
+    return `
+              <div class="row-wrap">
+                <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
+                     data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
+                     aria-label="Play ${esc(r.title)}">
+                  <span class="row-art">
+                    <img class="tile" src="${esc(r.art || d.art)}" alt="">
+                    <span class="row-scrim"></span>
+                    <span class="row-play">
+                      <img class="pi-play" src="assets/play.svg" alt="">
+                      <img class="pi-pause" src="assets/pause.svg" alt="">
+                    </span>
+                  </span>
+                  <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
+                  ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
+                </div>
+                <button class="row-more" type="button" data-act="more" data-ep="${esc(r.id)}"
+                        aria-haspopup="menu" aria-expanded="false"
+                        aria-label="More options for ${esc(r.title)}">
+                  <img src="assets/overflow.svg" alt="">
+                </button>
+              </div>`;
+  }
+
   /* The episode list is the same component in both designs, 220 tall with the
      rows clipped at the frame bound, so it is written once. */
   function listMarkup(d) {
@@ -448,20 +486,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <h3>${esc(d.listTitle)}</h3>
           <div class="rows">
             ${d.rows.map((r) => `
-              <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
-                   data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
-                   aria-label="Play ${esc(r.title)}">
-                <span class="row-art">
-                  <img class="tile" src="${esc(r.art || d.art)}" alt="">
-                  <span class="row-scrim"></span>
-                  <span class="row-play">
-                    <img class="pi-play" src="assets/play.svg" alt="">
-                    <img class="pi-pause" src="assets/pause.svg" alt="">
-                  </span>
-                </span>
-                <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
-                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
-              </div>`).join('')}
+${rowMarkup(d, r)}`).join('')}
           </div>
         </div>`;
   }
@@ -498,8 +523,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
               <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
               <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
             ` : `
-              <button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save"><img src="assets/h-plus.svg" alt=""></button>
-              <button class="h-btn" data-act="speed" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
+              <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
               <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
             `}
             <button class="hero-play" data-act="play" aria-label="Play">
@@ -508,7 +532,8 @@ function makeWidget(rootId, statusId, colourId, variant) {
             </button>
             ${isLive ? '' : `
               <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>`}
-            <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>
+            ${isLive ? `
+              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>` : ''}
             <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
           </div>
           <div class="hero-bottom">
@@ -643,20 +668,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
         <div class="sheet-body">
           <div class="rows">
             ${d.rows.map((r) => `
-              <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
-                   data-act="row" data-ep="${esc(r.id)}" role="button" tabindex="0"
-                   aria-label="Play ${esc(r.title)}">
-                <span class="row-art">
-                  <img class="tile" src="${esc(r.art || d.art)}" alt="">
-                  <span class="row-scrim"></span>
-                  <span class="row-play">
-                    <img class="pi-play" src="assets/play.svg" alt="">
-                    <img class="pi-pause" src="assets/pause.svg" alt="">
-                  </span>
-                </span>
-                <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
-                ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
-              </div>`).join('')}
+${rowMarkup(d, r)}`).join('')}
           </div>
         </div>
        </div>
@@ -702,13 +714,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <div class="btn-row">
                   ${isLive ? '' : `
                   <div class="btn-group">
-                    <button class="icon-btn speed-btn" data-act="speed" aria-label="Change Playback Speed"><span>1x</span></button>
+                    <button class="icon-btn speed-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span>1x</span></button>
                     <button class="icon-btn" data-act="back" aria-label="Back 15 Seconds">${icon('back15')}</button>
                     <button class="icon-btn" data-act="fwd" aria-label="Forward 30 Seconds">${icon('fwd30')}</button>
                   </div>`}
                   <div class="btn-group">
+                    ${isLive ? `
                     <button class="icon-btn" data-act="save" aria-pressed="false" aria-label="Save">${icon('plus')}</button>
-                    <button class="icon-btn" data-act="info" aria-label="Info">${icon('info')}</button>
+                    <button class="icon-btn" data-act="info" aria-label="Info">${icon('info')}</button>` : ''}
                     <button class="icon-btn" data-act="share" aria-label="Share">${icon('share')}</button>
                   </div>
                 </div>
@@ -1045,26 +1058,59 @@ function makeWidget(rootId, statusId, colourId, variant) {
     /* Info opens the drawer on designs A and B. Design C has no info frame of
        its own and already uses a drawer for its episodes, so it keeps the
        status line rather than stacking one drawer on another. */
-    if (kind === 'info') {
-      const card = root.querySelector('.widget'), sheet = root.querySelector('.info-sheet');
-      if (card && sheet) {
-        if (card.classList.contains('sheet-open')) {
-          card.classList.remove('sheet-open');
-          const esheet = root.querySelector('.sheet:not(.info-sheet)');
-          if (esheet) esheet.setAttribute('aria-hidden', 'true');
-        }
-        const opening = !card.classList.contains('info-open');
-        card.classList.toggle('info-open', opening);
-        sheet.setAttribute('aria-hidden', String(!opening));
-        const opener = root.querySelector('[data-act="info"]:not(.sheet-close)');
-        if (opener) opener.setAttribute('aria-pressed', String(opening));
-        const target = opening ? sheet.querySelector('.sheet-close') : opener;
-        if (target) target.focus({ preventScroll: true });
-      } else {
-        status(w.data.subtitle);
-      }
-    }
+    if (kind === 'info') toggleInfo();
+    if (kind === 'more') rowMenu(btn);
     if (kind === 'share') shareDialog();
+  }
+
+  /* The info drawer, opened either from the live card's own info button or,
+     on podcast, from an episode row's overflow. `force` is what the row menu
+     needs: a row asking for episode info means show it, not toggle it. */
+  function toggleInfo(force) {
+    const card = root.querySelector('.widget'), sheet = root.querySelector('.info-sheet');
+    if (!card || !sheet) { if (w.data) status(w.data.subtitle); return; }
+    if (card.classList.contains('sheet-open')) {
+      card.classList.remove('sheet-open');
+      const esheet = root.querySelector('.sheet:not(.info-sheet)');
+      if (esheet) esheet.setAttribute('aria-hidden', 'true');
+    }
+    const opening = force === undefined ? !card.classList.contains('info-open') : !!force;
+    card.classList.toggle('info-open', opening);
+    sheet.setAttribute('aria-hidden', String(!opening));
+    const opener = root.querySelector('[data-act="info"]:not(.sheet-close)');
+    if (opener) opener.setAttribute('aria-pressed', String(opening));
+    const target = opening ? sheet.querySelector('.sheet-close') : opener;
+    if (target) target.focus({ preventScroll: true });
+  }
+
+  /* The episode row overflow, frames 2609:36099 and 2609:37074. Two items, and
+     they are where the player's plus and info went rather than new behaviour:
+     Follow Podcast raises the same auth CTA the plus button did, and View
+     Episode Info opens the same drawer the info button did. The difference is
+     that the drawer now describes the row you asked from, not whatever is
+     loaded, which is the whole reason the action reads better here. */
+  function rowMenu(btn) {
+    const d = w.data;
+    const r = d && (d.rows || []).find((x) => String(x.id) === String(btn.dataset.ep));
+    openMenu(btn, {
+      label: 'Episode options',
+      className: 'row-menu',
+      alignRight: true,
+      items: [
+        { value: 'follow', label: 'Follow Podcast' },
+        { value: 'epinfo', label: 'View Episode Info' }
+      ],
+      onPick: (value) => {
+        if (value === 'follow') { authToast(); return; }
+        const sheet = root.querySelector('.info-sheet');
+        if (sheet && r) {
+          const h = sheet.querySelector('h3'), body = sheet.querySelector('.info-body');
+          if (h) h.textContent = r.title || d.infoTitle || d.subtitle || '';
+          if (body) body.textContent = r.info || 'No description available.';
+        }
+        toggleInfo(true);
+      }
+    });
   }
 
   /* Choosing an episode from the list.
@@ -1348,10 +1394,14 @@ function makeWidget(rootId, statusId, colourId, variant) {
   /* Design C keeps its actions in the bottom right row rather than beside the
      play button, which is what frames 2533:85717 and 2512:111876 draw. The
      Frame 2533:85625 splits that row: speed and the list button to the LEFT,
-     plus, info and share to the RIGHT. Two groups either end of a space-between
-     row. Live radio has neither a speed control nor an episode list, so its
-     left group is empty; it is still emitted, because space-between with a
-     single child would push that child to the start instead of the end.
+     the actions to the RIGHT. Two groups either end of a space-between row.
+     Live radio has neither a speed control nor an episode list, so its left
+     group is empty; it is still emitted, because space-between with a single
+     child would push that child to the start instead of the end.
+     What sits in the right group now depends on the content. Frame 2600:96063
+     leaves podcast with share alone: plus and info moved into the episode row
+     overflow, where they read as Follow Podcast and View Episode Info. Live
+     radio has no episode list to move them into, so it keeps all three.
      Moving speed out of the transport also leaves that row symmetrical, back 15
      and forward 30 either side of the play button.
      They are not part of the transport, so they do not hide with it: both
@@ -1359,16 +1409,17 @@ function makeWidget(rootId, statusId, colourId, variant) {
   const cActions = (isPodcast) =>
     '<span class="lr-side">' +
       (isPodcast ?
-        '<button class="h-btn" data-act="speed" aria-label="Change Playback Speed">' +
+        '<button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed">' +
           '<span class="h-speed">1x</span></button>' +
         '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
           '<img src="assets/h-list.svg" alt=""></button>' : '') +
     '</span>' +
     '<span class="lr-side">' +
-      '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
-        '<img src="assets/h-plus.svg" alt=""></button>' +
-      '<button class="h-btn" data-act="info" aria-label="Info">' +
-        '<img src="assets/h-info.svg" alt=""></button>' +
+      (isPodcast ? '' :
+        '<button class="h-btn" data-act="save" aria-pressed="false" aria-label="Save">' +
+          '<img src="assets/h-plus.svg" alt=""></button>' +
+        '<button class="h-btn" data-act="info" aria-label="Info">' +
+          '<img src="assets/h-info.svg" alt=""></button>') +
       '<button class="h-btn" data-act="share" aria-label="Share">' +
         '<img src="assets/h-share.svg" alt=""></button>' +
     '</span>';
@@ -1411,19 +1462,27 @@ function makeWidget(rootId, statusId, colourId, variant) {
      than the 0.75 this prototype cycled through: the enum has no 0.75. */
   const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
-  function closeSpeedMenu() {
-    const open = root.querySelector('.speed-menu');
+  /* One opener for both menus, the playback speed list and the episode row
+     overflow. Placement, dismissal and focus are the same problem in both
+     cases and the speed menu had already solved it; two copies of that would
+     be the row markup mistake again. */
+  function closeMenu() {
+    const open = root.querySelector('.ihr-menu');
     if (open) open.remove();
-    document.removeEventListener('keydown', onSpeedKey, true);
-    document.removeEventListener('pointerdown', onSpeedAway, true);
+    root.querySelectorAll('[aria-haspopup="menu"]').forEach(
+      (b) => b.setAttribute('aria-expanded', 'false'));
+    w.menuBtn = null;
+    document.removeEventListener('keydown', onMenuKey, true);
+    document.removeEventListener('pointerdown', onMenuAway, true);
   }
-  function onSpeedKey(e) { if (e.key === 'Escape') { e.stopPropagation(); closeSpeedMenu(); } }
-  function onSpeedAway(e) {
-    const m = root.querySelector('.speed-menu');
-    if (m && !m.contains(e.target) && !e.target.closest('[data-act="speed"]')) closeSpeedMenu();
+  function onMenuKey(e) { if (e.key === 'Escape') { e.stopPropagation(); closeMenu(); } }
+  function onMenuAway(e) {
+    const m = root.querySelector('.ihr-menu');
+    if (m && !m.contains(e.target) &&
+        !e.target.closest('[data-act="speed"], [data-act="more"]')) closeMenu();
   }
 
-  function speedMenu(btn) {
+  function openMenu(btn, opts) {
     /* The WIDGET, not the visible card. On designs A and B the card is only the
        player: the episode list sits under it, inside the same widget, and the
        menu was being confined to the card and made to scroll while 246 and 316
@@ -1432,29 +1491,30 @@ function makeWidget(rootId, statusId, colourId, variant) {
        has nowhere else to go and still trims. */
     const card = root.querySelector('.widget') || overlayHost();
     if (!card) return;
-    /* Pressing the button again closes it, the way a menu trigger behaves. */
-    if (root.querySelector('.speed-menu')) { closeSpeedMenu(); return; }
+    /* Pressing the same trigger again closes it, the way a menu behaves.
+       Pressing a different one moves the menu there rather than stacking. */
+    const reopening = w.menuBtn === btn && root.querySelector('.ihr-menu');
+    closeMenu();
+    if (reopening) return;
 
     const menu = document.createElement('div');
-    menu.className = 'speed-menu';
+    menu.className = 'ihr-menu' + (opts.className ? ' ' + opts.className : '');
     menu.setAttribute('role', 'menu');
-    menu.setAttribute('aria-label', 'Playback speed');
-    menu.innerHTML = SPEEDS.map((v) =>
-      '<button type="button" role="menuitemradio" data-speed="' + v + '"' +
-      ' aria-checked="' + (v === w.speed ? 'true' : 'false') + '">' + v + 'x</button>'
+    menu.setAttribute('aria-label', opts.label);
+    menu.innerHTML = opts.items.map((it) =>
+      '<button type="button" role="' + (it.checked === undefined ? 'menuitem' : 'menuitemradio') + '"' +
+      ' data-value="' + esc(String(it.value)) + '"' +
+      (it.checked === undefined ? '' : ' aria-checked="' + (it.checked ? 'true' : 'false') + '"') +
+      '>' + esc(it.label) + '</button>'
     ).join('');
 
     menu.addEventListener('click', (e) => {
-      const item = e.target.closest('button[data-speed]');
+      const item = e.target.closest('button[data-value]');
       if (!item) return;
-      w.speed = Number(item.dataset.speed);
-      if (w.audio) w.audio.playbackRate = w.speed;
-      /* The label lives in the button on every design that has one. */
-      const lbl = btn.querySelector('span');
-      if (lbl) lbl.textContent = w.speed + 'x';
-      else status('Playback speed ' + w.speed + 'x');
-      closeSpeedMenu();
-      btn.focus();
+      const value = item.dataset.value;
+      closeMenu();
+      if (btn.isConnected) btn.focus();
+      opts.onPick(value);
     });
     /* The artwork cards play on any click, so the menu keeps its own. */
     menu.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -1473,7 +1533,12 @@ function makeWidget(rootId, statusId, colourId, variant) {
     const mb = menu.getBoundingClientRect();
     const GAP = 4, EDGE = 8;
 
-    let left = bb.left - cb.left;
+    /* Row overflows sit hard against the right edge, so the menu is hung from
+       the button's right rather than its left; anything else would immediately
+       clamp and look detached from what opened it. */
+    let left = opts.alignRight
+      ? (bb.right - cb.left) - mb.width
+      : bb.left - cb.left;
     left = Math.max(EDGE, Math.min(left, cb.width - mb.width - EDGE));
 
     const above = (bb.top - cb.top) - GAP - EDGE;        /* room over the button */
@@ -1493,10 +1558,28 @@ function makeWidget(rootId, statusId, colourId, variant) {
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
 
-    document.addEventListener('keydown', onSpeedKey, true);
-    document.addEventListener('pointerdown', onSpeedAway, true);
+    w.menuBtn = btn;
+    btn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', onMenuKey, true);
+    document.addEventListener('pointerdown', onMenuAway, true);
     const checked = menu.querySelector('[aria-checked="true"]') || menu.firstElementChild;
     if (checked) checked.focus();
+  }
+
+  function speedMenu(btn) {
+    openMenu(btn, {
+      label: 'Playback speed',
+      className: 'speed-menu',
+      items: SPEEDS.map((v) => ({ value: v, label: v + 'x', checked: v === w.speed })),
+      onPick: (value) => {
+        w.speed = Number(value);
+        if (w.audio) w.audio.playbackRate = w.speed;
+        /* The label lives in the button on every design that has one. */
+        const lbl = btn.querySelector('span');
+        if (lbl) lbl.textContent = w.speed + 'x';
+        else status('Playback speed ' + w.speed + 'x');
+      }
+    });
   }
 
   /* The share sheet is part of the rendered card, like the episodes and info

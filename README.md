@@ -2425,3 +2425,79 @@ they Tab, because the existing trap pulls focus in on the first Tab while a
 modal is up, and the veil is first in that chain since it sits above the other
 three. Escape closes it. Verified: Tab enters, Tab wraps, Enter on the close
 button closes.
+
+## Plus and info left the podcast player for the episode rows
+
+Frames 2600:92769, 2600:94391 and 2600:96063 for the players, 2609:36099 and
+2609:37074 for the overflow. Live radio is untouched on all three designs.
+
+### What each podcast player carries now
+
+| design | before | after |
+| --- | --- | --- |
+| A, bar | speed, back, fwd, plus, info, share | speed, back, fwd, **share** |
+| B, hero | plus, speed, back, play, fwd, info, share | speed, back, play, fwd, **share** |
+| C | speed, list, plus, info, share | speed, list, **share** |
+
+Live radio keeps plus, info and share on all three, which is what "keep the
+live radio version the same" means here and what the frames leave alone.
+
+### The two actions did not disappear, they moved
+
+The row overflow opens a Menu with **Follow Podcast** and **View Episode Info**,
+which are the plus and the info button under new names. Follow Podcast raises
+the same auth CTA the plus did. View Episode Info opens the same drawer the
+info button did, except it now describes **the row you asked from** rather than
+whatever is loaded, which is the thing that makes the action worth moving.
+Verified: asking from row 2 and from row 4 gives two different headings and
+bodies, and the body is the episode's own description, 1335 characters on row 2.
+
+Live radio has no episode list to move them into, so it cannot make this trade
+and keeps all three buttons.
+
+### The overflow is a sibling of the row, not a child
+
+The row is a div carrying `role="button"`. A real button nested inside an
+element with that role is interactive content inside a control, which no screen
+reader exposes reliably. A wrapper costs one element and keeps the two as
+siblings, each reachable on its own. Measured tab order on design A: artwork,
+title, subtitle, iHeart, play, speed, back, forward, share, then row, overflow,
+row, overflow down the list.
+
+The row markup was written out twice, once for design A's inline list and once
+for design C's drawer, and the two copies had already drifted. They are one
+function now. That duplication is what swapped design B and C's control rows
+earlier in this project.
+
+### Geometry
+
+Button 32 square, vertically centred in the 72px row, right edge 12 in from the
+row's, which is where the explicit badge sits in the frame. The menu is 206 by
+84, measured identical on all three designs.
+
+### Three things the frames and I disagree about
+
+**The explicit badge.** All six frames hide the row's `Badge` layer, and the
+overflow sits where it was. I kept the badge and gave the overflow its own room
+instead, because the frame's badge layer is one of nine optional layers in that
+row template that are almost all hidden, its position in the file is stale
+(x=349 in a 318 wide row), and an explicit-content marker is not something to
+drop as a side effect of a layout change. Say so and it goes.
+
+**The menu's own spec.** The Figma Menu component and `menu.css.ts` do not
+agree, so the two menus in a card are not identical:
+
+| | Figma Menu | menu.css.ts |
+| --- | --- | --- |
+| radius | 6px | `radius[2]`, 2.5px |
+| item padding | 8 across, 12 down | `space[8]`, 8 all round |
+
+The row overflow follows the frame, since the frame is what this was asked
+against. The speed list keeps the code's values, since that is what it was
+built and signed off against. They should probably match; tell me which side
+wins and it is a one line change.
+
+**The design B overflow link.** Node 2609:36720 is a second copy of the design A
+bar card, 350 by 400 with the same inline list, not the 350 by 444 hero card.
+The menu and its contents are identical to 2609:36099, so nothing was lost, but
+if there was meant to be a hero specific overflow frame it is not at that node.

@@ -1051,6 +1051,24 @@ a.thumb-link:hover { opacity: .92; }
            font-size: var(--fs-14); line-height: var(--lh-18);
            letter-spacing: var(--ls-0); font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+/* The overflow button is a sibling of the row, not a child of it, because the
+   row carries role="button" and a control nested inside one is not reliably
+   reachable. The wrapper is what lets them sit on top of each other. */
+.row-wrap { position: relative; flex: 0 0 auto; }
+/* Frame 2609:36099: 32 square, centred in the 72px row, right edge 12 in. */
+.row-more {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  width: 32px; height: 32px; padding: 4px; border-radius: var(--rad-999);
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color .2s ease;
+}
+.row-more img { display: block; width: 24px; height: 24px; }
+.row-more:hover, .row-more:active { background-color: rgba(0, 0, 0, .08); }
+.row-more:active { transform: translateY(-50%) scale(.95); }
+.row-more:focus-visible { outline: 2px solid var(--ihr-red-550); outline-offset: -2px; }
+/* Room for it, so a long title ellipsises before it runs underneath. */
+.row-wrap .row { padding-right: 52px; }
 .row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
        border-radius: var(--radius-widget); cursor: pointer; }
 .row:hover { background: rgba(0,0,0,.05); }
@@ -1394,29 +1412,44 @@ a.thumb-link:hover { opacity: .92; }
    sitting on top of the card rather than part of it, and iheart.com opens the
    light one. The menu opens UPWARD: this button sits low in every design, and
    the card clips its own overflow, so downward would open into nothing. */
-.speed-menu {
+/* The shell both menus share. Only the things that are the same in the code and
+   in the Figma component live here; what the two sources disagree about is set
+   per menu below. */
+.ihr-menu {
   position: absolute; z-index: 12;
-  min-width: 156px; max-width: 100%; max-height: 50vh; overflow: hidden auto;
+  max-width: 100%; max-height: 50vh; overflow: hidden auto;
   background-color: var(--true-white); color: var(--ihr-grey-450);
   scrollbar-color: initial var(--ihr-grey-200);
-  border-radius: var(--rad-2); box-shadow: 0 3px 5px rgba(0, 0, 0, .15);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, .15);
   outline: none; padding: 0;
-  animation: speed-menu-in 400ms ease;
+  animation: ihr-menu-in 400ms ease;
 }
-@keyframes speed-menu-in { from { opacity: 0; transform: translateY(1rem); } }
-@media (prefers-reduced-motion: reduce) { .speed-menu { animation: none; } }
-.speed-menu button {
+@keyframes ihr-menu-in { from { opacity: 0; transform: translateY(1rem); } }
+@media (prefers-reduced-motion: reduce) { .ihr-menu { animation: none; } }
+.ihr-menu button {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   display: flex; flex-direction: row; align-items: center; width: 100%;
-  max-width: 100%; max-height: 4rem; gap: var(--sp-8); padding: var(--sp-8);
+  max-width: 100%; max-height: 4rem; gap: var(--sp-4);
   color: var(--ihr-grey-600); font-family: inherit; font-weight: 400;
   font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-1);
   text-align: left; user-select: none; overflow: hidden;
 }
-.speed-menu button:hover, .speed-menu button:focus-visible,
-.speed-menu button[aria-checked="true"] { background-color: var(--ihr-grey-250); }
-.speed-menu button:active { background-color: var(--ihr-grey-200); }
-.speed-menu button:focus-visible { outline: none; }
+.ihr-menu button:hover, .ihr-menu button:focus-visible,
+.ihr-menu button[aria-checked="true"] { background-color: var(--ihr-grey-250); }
+.ihr-menu button:active { background-color: var(--ihr-grey-200); }
+.ihr-menu button:focus-visible { outline: none; }
+
+/* The speed list, from menu.css.ts: radius[2] and space[8] padding. */
+.speed-menu { min-width: 156px; border-radius: var(--rad-2); }
+.speed-menu button { gap: var(--sp-8); padding: var(--sp-8); }
+
+/* The episode row overflow, from the Menu instance in frames 2609:36099 and
+   2609:37074: 206 wide, 6px radius, rows at 8 across and 12 down, which is why
+   its two rows measure 84 tall. Those last two differ from what menu.css.ts
+   says, and the frame is what this was asked against, so the frame wins here
+   and the speed list above keeps the code's values. */
+.row-menu { min-width: 206px; border-radius: var(--rad-6); }
+.row-menu button { padding: 12px var(--sp-8); border-radius: var(--rad-2); }
 
 /* ---------------------------------------------------------------------------
    Pause veil, frame 2581:363615.
