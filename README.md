@@ -3038,3 +3038,22 @@ sentence around it. That fits down to about 170. Checked at 160, 180, 200 and
 There is no live frame for this layout. Live has no speed control and no episode
 list, so its left group is the info button and the lockup is on the right, which
 is the same sentence the podcast card makes. Worth confirming.
+
+## Waveform off by default, and the contrast readouts are gone
+
+`data-wave="off"` on `<main>` and the toggle starts on Off. The switch still
+works both ways; it just opens on the quieter state.
+
+The `.colourline` under each card is out of `widget.html`, all six including the
+two inside the commented-out design A block.
+
+The MEASUREMENT stays. `--dominant` is what design A's bar card paints behind
+its text, so the artwork colour is still read on every card and only the
+reporting is skipped. `makeWidget` now takes a missing colour element as "do not
+report" rather than assuming one is there, which is what `embed.html` had been
+working around by hiding it with CSS.
+
+Verified: waveform hidden on all four cards on load, toggling back to On shows
+them again, zero `.colourline` elements in the page, and `--dominant` still set
+on all four, `#554646` for the podcast artwork and `#ed4979` for Z100. The
+standalone embeds are unaffected and still play.

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260915211604">
+<link rel="stylesheet" href="widget-core.css?v=20260915211809">
 </head>
 <body>
 
@@ -29,8 +29,8 @@
   <div class="colctl">
     <label for="wavetog">Waveform</label>
     <span class="seg">
-      <button type="button" id="wavetog" data-wave="on" aria-pressed="true">On</button>
-      <button type="button" data-wave="off" aria-pressed="false">Off</button>
+      <button type="button" id="wavetog" data-wave="on" aria-pressed="false">On</button>
+      <button type="button" data-wave="off" aria-pressed="true">Off</button>
     </span>
   </div>
   <div class="colctl">
@@ -42,7 +42,7 @@
   </div>
 </header>
 
-<main data-cols="1" data-wave="on">
+<main data-cols="1" data-wave="off">
   <section class="full">
     <div class="h2row"><h2>Widget player</h2></div>
     <div class="embeds">
@@ -78,7 +78,6 @@
     </div>
     <div class="shell"><div id="w-podcast"></div></div>
     <p class="status" id="s-podcast"></p>
-    <div class="colourline" id="c-podcast"></div>
   </section>
 
   <section data-design="a" data-kind="live">
@@ -89,7 +88,6 @@
     </div>
     <div class="shell"><div id="w-live"></div></div>
     <p class="status" id="s-live"></p>
-    <div class="colourline" id="c-live"></div>
   </section>
 
   -->
@@ -106,7 +104,6 @@
     </div>
     <div class="shell" data-nobreak><div id="w-podcast-hero"></div></div>
     <p class="status" id="s-podcast-hero"></p>
-    <div class="colourline" id="c-podcast-hero"></div>
   </section>
 
   <section data-design="b" data-kind="live">
@@ -117,7 +114,6 @@
     </div>
     <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
     <p class="status" id="s-live-hero"></p>
-    <div class="colourline" id="c-live-hero"></div>
   </section>
 
   <div class="band band-proto" data-design="c">
@@ -132,7 +128,6 @@
     </div>
     <div class="shell" data-nobreak><div id="w-podcast-c"></div></div>
     <p class="status" id="s-podcast-c"></p>
-    <div class="colourline" id="c-podcast-c"></div>
   </section>
 
   <section data-design="c" data-kind="live">
@@ -143,7 +138,6 @@
     </div>
     <div class="shell" data-nobreak><div id="w-live-c"></div></div>
     <p class="status" id="s-live-c"></p>
-    <div class="colourline" id="c-live-c"></div>
   </section>
 </main>
 
@@ -179,6 +173,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260915211604"></script>
+<script src="widget-core.js?v=20260915211809"></script>
 </body>
 </html>

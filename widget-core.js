@@ -766,13 +766,19 @@ ${rowMarkup(d, r)}`).join('')}
     w.ro.observe(root);
 
     const art = q('.art');
+    /* The contrast readout is optional and the prototype page no longer carries
+       it. The MEASUREMENT is not optional: --dominant is what design A's bar
+       card paints behind its text, so the colour is still read and only the
+       reporting is skipped. */
+    const say = (html) => { if (colourEl) colourEl.innerHTML = html; };
     const paint = () => {
       /* The hero reads the whole picture, since the whole picture is the
          backdrop. The bar widget reads a dominant swatch, since that swatch is
          what it paints behind the text. */
       const rgb = variant !== 'bar' ? meanColour(art) : dominantColour(art);
-      if (!rgb) { colourEl.innerHTML = '<span>artwork colour could not be read</span>'; return; }
+      if (!rgb) { say('<span>artwork colour could not be read</span>'); return; }
       root.style.setProperty('--dominant', hex(rgb));
+      if (!colourEl) return;
       const pct = variant !== 'bar' ? SCRIM[variant] : OVERLAY;
       const bg = variant !== 'bar'
         ? rgb.map((v) => Math.round(v * (1 - pct)))
@@ -785,21 +791,21 @@ ${rowMarkup(d, r)}`).join('')}
         const r = contrast(bg, TEXT_RGB);
         const aa = r >= 4.5, aaa = r >= 7;
         const need = overlayNeededFor(rgb, 4.5);
-        colourEl.innerHTML =
+        say(
           `<span class="chip" style="background:${hex(rgb)}"></span>` +
           `<span class="chip" style="background:${hex(bg)}"></span>` +
           `<span>${hex(rgb)} with ${Math.round(pct * 100)}% black → ${hex(bg)}</span>` +
           `<span class="ratio">${r.toFixed(2)} to 1</span>` +
           `<span class="wcag ${aa ? 'pass' : 'fail'}">AA ${aa ? 'pass' : 'fail'}</span>` +
           `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
-          (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : '');
+          (need ? `<span class="meta-note">AA floor for this artwork is ${need}% overlay</span>` : ''));
         return;
       }
       const floor = scrimFloor(pct);
       const m = worstBehindText(pct);
       const judged = m ? m.worst : floor;
       const aa = judged >= 4.5, aaa = judged >= 7;
-      colourEl.innerHTML =
+      say(
         `<span class="chip" style="background:${hex(bg)}"></span>` +
         (m
           ? `<span>worst pixel behind the text</span><span class="ratio">${m.worst.toFixed(2)} to 1</span>`
@@ -808,9 +814,9 @@ ${rowMarkup(d, r)}`).join('')}
         `<span class="wcag ${aaa ? 'pass' : 'warn'}">AAA ${aaa ? 'pass' : 'no'}</span>` +
         `<span class="meta-note">${Math.round(pct * 100)}% black guarantees ${floor.toFixed(2)} to 1 on ANY artwork, ` +
         `since the worst a picture can be is pure white` +
-        (m && m.belowAA ? `. ${(m.belowAA * 100).toFixed(1)}% of this one is below AA` : '') + `</span>`;
+        (m && m.belowAA ? `. ${(m.belowAA * 100).toFixed(1)}% of this one is below AA` : '') + `</span>`);
     };
-    if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => colourEl.textContent = ''; }
+    if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => say(''); }
 
     root.onclick = (e) => {
       const b = e.target.closest('[data-act]'); if (!b) return;
