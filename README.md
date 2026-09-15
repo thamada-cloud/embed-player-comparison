@@ -2020,7 +2020,13 @@ Surface from `components/menu/menu.css.ts`, item set from
 | motion | 400ms ease, sliding in from 1rem |
 | items | **0.5x, 1x, 1.25x, 1.5x, 2x** |
 
-These cards are dark surfaces, so each pair takes its dark half.
+Each pair takes its **light** half, so the menu is white with grey600 items, grey250 on
+hover and on the current rate, grey200 pressed. This first went in on the dark half,
+reasoning from the card being a dark surface. That was the wrong unit: the menu is a
+surface of its own sitting on top of the card, not a part of it, and iheart.com opens the
+light one. Measured after the change on all three podcast cards: `#FFFFFF` ground,
+`#27292D` items, `#DADFE3` on the checked rate, `elevation4`, 156px min width, 14 / 18 /
+400. Live radio has no speed control on any design, so there is no menu to theme there.
 
 **The rates changed.** Production's `Speed` enum runs 0.5, 1, 1.25, 1.5, 2. This prototype
 cycled through 0.75, which is not one of them, so the slow step is now 0.5.
