@@ -2582,3 +2582,26 @@ change was to keep live radio the same and this frame was sent about the layout.
 It is a one line change if the intent is that live drops info too. Worth
 settling either way, since live and podcast now disagree about what sits in that
 row.
+
+## Design B's play button drifted 4px on play
+
+The red button sat dead centre before play and 4px right of centre the moment
+the control row appeared. Live radio only; podcast never moved.
+
+The cause is the spacer. Design B's live row is spacer, plus, PLAY, info, share,
+and the spacer is there because live has no speed control and without something
+standing in its place the button either side would not balance. It holds the
+same 32px `.h-speed` box the real speed button holds, but the rule that strips
+the padding was keyed on `[data-act="speed"]` and the spacer carries no
+`data-act`, so it kept `.h-btn`'s 4px and came out **40 wide against the real
+button's 32**. Eight more on the left than on the right, half of it either side
+of centre, so 4px.
+
+The spacer joins that rule. Measured before and after play on designs B and C,
+both content types, at 300, 350, 420, 560 and 760: every one holds its centre
+exactly, with zero drift and zero offset from the card's middle. Before the fix
+design B live went 210 to 214 at 420 wide.
+
+This is the same shape of bug as design C's off-centre play button earlier in
+the project: a row that balances only as long as every item in it is the width
+you think it is.

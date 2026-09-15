@@ -458,7 +458,15 @@ a.thumb-link:hover { opacity: .92; }
    whose 4px of padding makes the button 40 overall, wider than its neighbours.
    Here the padding is dropped instead and the 32px box IS the button, so it
    matches the icon buttons beside it exactly and the row stays even. */
-.h-btn[data-act="speed"], .icon-btn[data-act="speed"] { aspect-ratio: auto; padding: 0; }
+/* The spacer belongs in here too, and leaving it out moved the play button.
+   It stands in for the speed button on live radio, and it holds the same 32px
+   .h-speed box, but with no data-act it kept .h-btn's 4px padding and came out
+   40 wide against the real button's 32. That is 8 more on the left of the play
+   button than on the right, which is why the red button sat 4px right of centre
+   the moment the row appeared. Measured: design B live drifted 210 to 214 on
+   play, podcast drifted 0. */
+.h-btn[data-act="speed"], .icon-btn[data-act="speed"],
+.h-btn.spacer { aspect-ratio: auto; padding: 0; }
 .h-speed { display: block; width: 32px; height: 32px; line-height: 32px;
            text-align: center; white-space: nowrap;
            font-size: var(--fs-12); font-weight: 600;
