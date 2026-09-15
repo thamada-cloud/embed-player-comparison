@@ -1437,15 +1437,33 @@ a.thumb-link:hover { opacity: .92; }
    because an inset:0 overlay resolves against a box that is not the one you
    see, and the sheet escaped the card entirely. 80% rather than 80vh, since
    the card is what it must fit, not the viewport. */
+/* The scrim LEADS the panel: 250ms against the panel's 600.
+
+   accomplice fades its overlay over the same 600ms the drawer slides in, and
+   that is right where the overlay stays visible AROUND the panel. Here the
+   panel covers the whole card, so the overlay's only job is the moment before
+   it lands, and matching the durations meant the card was still at half
+   brightness when the sheet was already halfway up it. Measured on design B:
+   the panel was at 211 of 444 while the scrim was at 0.52.
+
+   Design B is where that read as wrong, because its card is 444 tall against
+   design C's 234, so the sheet spends the first half of its journey crossing
+   the episode list. Same 600ms, same curve, no dropped frames on either, just
+   nearly twice the distance. Dimming first puts the sheet over a backdrop that
+   has already receded, which is what a drawer is supposed to look like. */
 .share-scrim {
   position: absolute; inset: 0; z-index: 19;
   background: rgba(0 0 0 / 0.8); backdrop-filter: blur(10px);
   opacity: 0; visibility: hidden;
-  transition: opacity .6s ease, visibility 0s linear .6s;
+  /* Leading on the way in has to become TRAILING on the way out, or the card
+     brightens back up while the sheet is still sliding down over it. So the
+     closing fade waits 350 and then takes its 250, which lands on the panel's
+     600 exactly. */
+  transition: opacity .25s ease .35s, visibility 0s linear .6s;
 }
 .widget.share-open .share-scrim {
   opacity: 1; visibility: visible;
-  transition: opacity .6s ease, visibility 0s;
+  transition: opacity .25s ease, visibility 0s;
 }
 /* inset:0 with the drawer nested inside, rather than the drawer itself
    anchored with bottom:0. The card's own drawers all position this way and all

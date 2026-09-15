@@ -3131,3 +3131,44 @@ Verified at 280, 350, 420 and 560: the bubble fully inside the card every time.
 The other tooltips are untouched and still open upward, with 64 to 142 of
 clearance above them, which is what makes upward the right default everywhere
 else.
+
+## The share drawer on design B, and what was actually wrong
+
+Nothing mechanical. Measured first, because "animates oddly" could have been a
+dozen things:
+
+- 43 frames in 700ms on both designs, mean 16.7ms, nothing over 17ms. No
+  dropped frames anywhere.
+- 600ms, which is `animationDuration` in accomplice's own `drawer.css.ts`.
+- The info drawer on the same card settles at 610ms against share's 593ms, so
+  the share drawer is not behaving differently from its neighbours either.
+
+What IS different is the distance. Design B's widget is 444 tall, the stage plus
+the episode list, against design C's 234. Same duration over nearly twice the
+travel, so the sheet crosses at 740px/s instead of 390, and the first half of
+its journey is spent climbing over the episode list.
+
+### The scrim now leads the panel
+
+It used to fade over the same 600ms the panel slides. accomplice does that, and
+it is right where the overlay stays visible AROUND the panel. Here the panel
+covers the whole card, so the overlay's only job is the moment before it lands,
+and matching the durations meant the card was still at half brightness while the
+sheet was already halfway up it: measured, the panel at 211 of 444 with the
+scrim at 0.52.
+
+The scrim takes 250ms now. The card dims and blurs first and the sheet rises
+over a backdrop that has already receded, which is what a drawer is meant to
+look like, and it is design B's long travel that made the old order obvious.
+
+Leading on the way in has to become TRAILING on the way out, or the card
+brightens back up while the sheet is still sliding down over it. So the closing
+fade waits 350 and then takes its 250, landing on the panel's 600 exactly.
+Measured closing: scrim still at 1 when the panel has travelled 343 of 444, then
+down to 0 at 600.
+
+### Still open
+
+The info and episode drawers have no scrim at all, so they still rise over an
+undimmed card. Only the share drawer was reported, so only it was changed, but
+the three are now inconsistent in a way they were not before.
