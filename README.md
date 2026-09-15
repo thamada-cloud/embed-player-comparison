@@ -2711,10 +2711,16 @@ each other at every one. The floor is the end that can clip, which is what the
 
 ## waveform.html, options for the strip
 
-A separate page, not wired into the cards. All the options run off one audio
-element and one analyser, so anything you see between them is the treatment and
-never the material. Height toggles 12 / 16 / 24 / 40, the first three being
-design B, A and C. Width slides 240 to 1140.
+A separate page. It carries the real design A and design C podcast cards, built
+by widget-core.js from its own roster, with nothing changed but the waveform, so
+each option can be judged in the card rather than as a strip on a white page.
+Underneath, the same six treatments run as strips off whichever card is playing,
+so they can be compared on the same audio at the same instant.
+
+The page owns no audio of its own. The cards each have their own element and
+their own analyser, and they stop each other the way two cards on a page always
+have, so you play one, look, then play the other. The strip height control
+applies to the strips only; the cards keep their real 16 and 24.
 
 ### The diagnosis
 
@@ -2736,6 +2742,27 @@ which is the bar chart idiom; waveforms are symmetric about a centre line.
 
 Options 3 and 4 share one sampler and one six second span on purpose, so the
 only difference between them is bars against a filled shape.
+
+### Three of the five are blank at rest, and that is the finding
+
+Options 2, 3 and 4 draw nothing until audio is flowing, and it is not a bug: an
+oscilloscope with no signal IS a flat line, and a scrolling history with nothing
+in it yet IS empty. Measured before and after play, as a percentage of the strip
+carrying ink:
+
+| | at rest | playing |
+| --- | --- | --- |
+| control | 29.0 | 32.2 |
+| 1 mirrored | 32.3 | 35.5 |
+| 2 oscilloscope | 8.3, a flat line | 10.9 |
+| 3 scrolling bars | 5.0, empty | 15.8 |
+| 4 scrolling envelope | 8.3, flat | 21.4 |
+| 5 two strokes | 17.1 | 16.4 |
+
+That is the price of putting time on the axis, and on an embed that people see
+long before they press anything it may be the deciding factor. It is also why
+the cards matter more than the strips: with one card playing and the other not,
+the two resting states sit side by side.
 
 Two things needed tuning before they could be judged fairly. The oscilloscope
 gets a gain that follows the recent peak, because a podcast peaks far below full

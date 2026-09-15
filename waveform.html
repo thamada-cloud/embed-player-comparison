@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widget-core.css">
 <style>
 :root {
   --ink: #27292d; --dim: #55565b; --line: #dadfe3;
@@ -45,7 +46,12 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
        background: #eceff1; padding: 1px 5px; border-radius: 3px; }
 
 .opt { margin: 34px 0 0; }
-.opt h2 { font-size: 16px; line-height: 22px; margin: 0 0 2px; }
+/* widget-core.css is loaded for the cards, and it styles `section > h2` for the
+   prototype page. These headings are not those, so they say so explicitly. */
+.opt h2 { font-size: 16px; line-height: 22px; margin: 0 0 2px;
+          text-transform: none; letter-spacing: 0; font-weight: 700; color: var(--ink); }
+.opt .tag { font-size: 12px; font-weight: 400; letter-spacing: 0;
+            text-transform: none; color: var(--dim); }
 .opt h2 .tag { font-weight: 400; color: var(--dim); font-size: 12px; margin-left: 8px; }
 .opt p.note { margin: 0 0 10px; color: var(--dim); max-width: 78ch; }
 .strip { background: var(--card); border-radius: 8px; padding: 18px 0;
@@ -54,14 +60,25 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
 .axis { font-size: 12px; color: var(--dim); margin-top: 6px; display: flex; gap: 18px; flex-wrap: wrap; }
 .axis b { color: var(--ink); font-weight: 600; }
 .control h2 { color: var(--red); }
+
+/* the real cards */
+.cards { display: flex; flex-wrap: wrap; gap: 26px; margin: 18px 0 8px; }
+.cardcol { flex: 1 1 380px; min-width: 300px; max-width: 620px; }
+.cardcol h3 { font-size: 13px; margin: 0 0 8px; color: var(--dim); font-weight: 600; }
+.cardcol .status, .cardcol .colourline { display: none; }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.picker button { appearance: none; cursor: pointer; font: inherit; background: #fff;
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--dim); }
+.picker button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.restnote { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--red);
+  border-radius: 6px; padding: 12px 14px; margin: 16px 0 0; max-width: 78ch; }
 </style>
 </head>
 <body>
 
 <header>
   <span class="brand">Waveform options</span>
-  <button id="play" disabled>Loading audio</button>
-  <label>Height
+  <label title="Applies to the comparison strips only. The cards keep their own real heights, 16 and 24.">Strip height
     <span class="seg" id="hseg">
       <button data-h="12">12</button>
       <button data-h="16">16</button>
@@ -83,10 +100,42 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
       read the current strip as data about the episode rather than as the sound.</p>
     <p>A second, smaller thing: the bars grow upward from a baseline, which is the bar chart
       idiom. Waveforms are drawn symmetrically about a centre line.</p>
-    <p>The options below all run off the same audio at the same time, so they can be compared
-      directly. Press play, then judge them at the heights and widths the real cards use:
-      12 is design B, 16 is design A, 24 is design C.</p>
+    <p>Everything below the cards runs off whichever card is playing, so the six treatments can be
+      compared on the same audio at the same instant. The height control applies to those strips
+      only: the cards above keep their own real heights, 16 on design A and 24 on design C.</p>
   </div>
+
+  <section class="opt">
+    <h2>In the real cards</h2>
+    <p class="note">Design A and design C, podcast, both the shipping card with only the waveform
+      swapped. Press play on either. They stop each other, the way two cards on one page always
+      have, so play one, look, then play the other.</p>
+    <div class="picker" id="pick">
+      <button data-draw="current" aria-pressed="true">What we have now</button>
+      <button data-draw="mirror">1. Mirrored</button>
+      <button data-draw="scope">2. Oscilloscope</button>
+      <button data-draw="scroll">3. Scrolling bars</button>
+      <button data-draw="env">4. Scrolling envelope</button>
+      <button data-draw="figma">5. Two strokes</button>
+    </div>
+    <div class="cards">
+      <div class="cardcol">
+        <h3>Design A, podcast</h3>
+        <div class="shell" id="shell-a"><div id="w-podcast"></div></div>
+        <p class="status" id="s-podcast"></p><div class="colourline" id="c-podcast"></div>
+      </div>
+      <div class="cardcol">
+        <h3>Design C, podcast</h3>
+        <div class="shell" id="shell-c"><div id="w-podcast-c"></div></div>
+        <p class="status" id="s-podcast-c"></p><div class="colourline" id="c-podcast-c"></div>
+      </div>
+    </div>
+    <div class="restnote"><b>Look at them before you press play as well as after.</b> Options 2, 3
+      and 4 have no resting state by nature: an oscilloscope with no signal is a flat line, and a
+      scrolling history with nothing in it yet is empty. That is not a bug, it is the cost of
+      putting time on the axis, and on an embed that people see long before they press anything it
+      may be the deciding factor.</div>
+  </section>
 
   <section class="opt control">
     <h2>What we have now<span class="tag">the control</span></h2>
@@ -161,22 +210,40 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
 <script src="widget-core.js"></script>
 <script>
 /* ---------------------------------------------------------------------------
-   One audio element, one analyser, every option drawing off the same frame.
-   That is the whole point of the page: differences you see are the treatment
-   and never the material.
+   One analyser at a time, every option drawing off the same frame. That is the
+   whole point of the page: differences you see are the treatment and never the
+   material.
    --------------------------------------------------------------------------- */
-const statusEl = document.getElementById('play').parentElement.querySelector('#status')
-  || document.getElementById('status');
-const playBtn = document.getElementById('play');
+const statusEl = document.getElementById('status');
 
-let audio, ctx, analyser, freq, time, raf = null, playing = false;
-let started = false;
+/* The cards own the audio. widget-core.js builds w-podcast and w-podcast-c from
+   its own roster the moment this page loads, fetches Las Culturistas into both,
+   and gives each its own <audio> and its own AnalyserNode on first play. So
+   there is no second audio element here and nothing to keep in sync: the page
+   reads whichever card is currently playing.
 
-/* Rolling history for the two scrolling options, one entry per frame. Sized
-   generously and sampled down to whatever the canvas can show, so a width
-   change never has to throw the history away. */
+   The cards stop each other, which is widget-core enforcing one at a time
+   across every instance on a page. That is real behaviour rather than a limit
+   of this page, so it is left alone. */
+let analyser = null, ctx = null, freq = null, time = null, raf = null;
+
+/* Rolling loudness history, one entry per frame, kept per card. */
 const HISTORY = 900;
-const hist = new Float32Array(HISTORY);
+const CARDS = [
+  { key: 'podcast',   hist: new Float32Array(HISTORY), at: 0 },
+  { key: 'podcast-c', hist: new Float32Array(HISTORY), at: 0 }
+];
+const widgetFor = (c) => (typeof BY_SEARCH !== 'undefined') ? BY_SEARCH[c.key] : null;
+/* Whichever card is playing owns the analyser this frame. When none is, every
+   option falls back to its resting state, which is the thing worth looking at. */
+function activeCard() {
+  for (const c of CARDS) { const w = widgetFor(c); if (w && w.playing && w.analyser) return c; }
+  return null;
+}
+
+/* A card that is not playing draws its own empty history rather than the other
+   one's, which is what makes the two resting states honest side by side. */
+let hist = new Float32Array(HISTORY);   /* points at whichever card is drawing */
 let histAt = 0;
 /* Both scrolling options show the SAME span of time, six seconds, so the only
    thing that differs between them is how it is drawn. At 60fps that is 360
@@ -200,7 +267,9 @@ function slots(n) {
   return out;
 }
 
-const canvases = [...document.querySelectorAll('canvas')];
+/* The six comparison strips. The two canvases inside the cards are found and
+   sized per frame instead, because the cards rebuild their own .wave. */
+const canvases = [...document.querySelectorAll('.strip canvas')];
 function sizeCanvases() {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   canvases.forEach((c) => {
@@ -396,56 +465,82 @@ function figmaAmps() {
   return fa;
 }
 
+/* Every frame: point the shared globals at whatever is playing, take one
+   loudness sample into that card's own history, then draw every canvas on the
+   page, the two inside the cards and the six comparison strips. */
+let selected = 'current';
+
+function ensureCardCanvas(c) {
+  const root = document.getElementById(c.key === 'podcast' ? 'w-podcast' : 'w-podcast-c');
+  if (!root) return null;
+  const wave = root.querySelector('.wave');
+  if (!wave) return null;
+  /* buildWave() rebuilds its bars whenever the card re-renders or the width
+     changes, so the canvas is put back rather than installed once. */
+  let cv = wave.querySelector('canvas');
+  if (!cv) {
+    wave.innerHTML = '';
+    cv = document.createElement('canvas');
+    cv.style.display = 'block';
+    cv.style.width = '100%';
+    cv.style.height = '100%';
+    wave.appendChild(cv);
+  }
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const r = wave.getBoundingClientRect();
+  const wpx = Math.max(1, Math.round(r.width * dpr)), hpx = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== wpx || cv.height !== hpx) {
+    cv.width = wpx; cv.height = hpx;
+    cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  return cv;
+}
+
 function frame() {
   raf = requestAnimationFrame(frame);
-  if (analyser) {
+
+  const live = activeCard();
+  if (live) {
+    const w = widgetFor(live);
+    analyser = w.analyser; ctx = w.ctx;
+    if (!freq || freq.length !== analyser.frequencyBinCount) {
+      freq = new Uint8Array(analyser.frequencyBinCount);
+      time = new Uint8Array(analyser.fftSize);
+      bandCache = null;
+    }
     analyser.getByteFrequencyData(freq);
     analyser.getByteTimeDomainData(time);
-    /* one loudness sample per frame, for the two scrolling options */
     let sum = 0;
     for (let i = 0; i < time.length; i++) { const d = (time[i] - 128) / 128; sum += d * d; }
-    const rms = Math.sqrt(sum / time.length);
-    hist[histAt % HISTORY] = Math.min(1, rms * 2.6);
-    histAt++;
-    if (playing) figmaPhase += 0.012;
+    live.hist[live.at % HISTORY] = Math.min(1, Math.sqrt(sum / time.length) * 2.6);
+    live.at++;
+    hist = live.hist; histAt = live.at;
+    figmaPhase += 0.012;
+  } else {
+    analyser = null;
   }
+
+  /* the waveform inside each card, in the option being tried */
+  CARDS.forEach((c) => {
+    const cv = ensureCardCanvas(c);
+    if (!cv) return;
+    /* A card that is not playing draws its own empty history, not the other
+       card's, which is what makes the resting states honest side by side. */
+    const savedH = hist, savedAt = histAt;
+    hist = c.hist; histAt = c.at;
+    DRAW[selected](cv);
+    hist = savedH; histAt = savedAt;
+  });
+
+  /* the comparison strips */
   canvases.forEach((c) => DRAW[c.dataset.draw](c));
 }
 
-/* ---- audio ---- */
-async function boot() {
-  try {
-    const d = await loadPodcast(31090140);        /* Las Culturistas, the same show the cards load */
-    audio = new Audio();
-    audio.crossOrigin = 'anonymous';
-    audio.preload = 'metadata';
-    audio.src = d.audio;
-    playBtn.disabled = false;
-    playBtn.textContent = 'Play';
-    statusEl.textContent = d.title;
-  } catch (e) {
-    statusEl.textContent = 'Could not load the episode. ' + e.message;
-  }
-}
-
-playBtn.addEventListener('click', async () => {
-  if (!audio) return;
-  if (playing) { audio.pause(); playing = false; playBtn.textContent = 'Play'; return; }
-  if (!analyser) {
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = ctx.createMediaElementSource(audio);
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.6;
-    freq = new Uint8Array(analyser.frequencyBinCount);
-    time = new Uint8Array(analyser.fftSize);
-    src.connect(analyser); analyser.connect(ctx.destination);
-  }
-  if (ctx.state === 'suspended') await ctx.resume();
-  /* a minute in, past the intro, so there is real material to look at */
-  if (!started) { try { audio.currentTime = 60; } catch (e) {} started = true; }
-  try { await audio.play(); playing = true; playBtn.textContent = 'Pause'; }
-  catch (e) { statusEl.textContent = 'Playback blocked. ' + e.message; }
+const picker = document.getElementById('pick');
+picker.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-draw]'); if (!b) return;
+  [...picker.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  selected = b.dataset.draw;
 });
 
 /* ---- controls ---- */
@@ -460,6 +555,12 @@ const wIn = document.getElementById('w'), wOut = document.getElementById('wv');
 function applyW() {
   wOut.textContent = wIn.value;
   strips.forEach((s) => s.style.setProperty('--w', wIn.value + 'px'));
+  /* .shell reads --player-w, the same hook the prototype page's width control
+     uses, so the cards resize exactly as they do there. */
+  ['shell-a', 'shell-c'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.setProperty('--player-w', wIn.value + 'px');
+  });
   requestAnimationFrame(sizeCanvases);
 }
 wIn.addEventListener('input', applyW);
@@ -468,7 +569,6 @@ window.addEventListener('resize', sizeCanvases);
 applyW();
 sizeCanvases();
 frame();
-boot();
 </script>
 </body>
 </html>
