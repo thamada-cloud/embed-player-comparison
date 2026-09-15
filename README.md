@@ -3078,3 +3078,22 @@ both designs, design C's `.list-row` and design B's `.slider`. With it on,
 One thing that is correct rather than broken: design B at rest with the waveform
 off has an empty bottom block, because its slider only appears once playback
 starts and the waveform was the only other thing in there.
+
+## The info button is out of live radio on both artwork designs
+
+Live now carries play and share and nothing else on designs B and C.
+
+Design B needed the spacers recounted. Its control row centres the play button
+by matching the total width either side, and the spacer exists to stand in for
+controls live does not have. It was two spacers against info and share; with
+info gone it is one spacer against share. Measured at 300, 350, 420 and 560 on
+both designs and both content types: the play button dead on the card's centre
+every time, zero drift.
+
+Design C's left group is now emitted empty. It still has to be emitted, because
+`space-between` with a single child pushes that child to the START, which would
+put the Listen on iHeart lockup on the wrong side of the card.
+
+The info DRAWER stays. It is still how the podcast row overflow's View Episode
+Info works. It is simply unreachable on live now, the same way the auth toast
+became unreachable when the plus buttons went.

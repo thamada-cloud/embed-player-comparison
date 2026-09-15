@@ -537,7 +537,6 @@ ${rowMarkup(d, r)}`).join('')}
           <div class="hero-controls">
             ${isLive ? `
               <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
-              <span class="h-btn spacer" aria-hidden="true"><span class="h-speed">1x</span></span>
             ` : `
               <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
               <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
@@ -548,8 +547,6 @@ ${rowMarkup(d, r)}`).join('')}
             </button>
             ${isLive ? '' : `
               <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>`}
-            ${isLive ? `
-              <button class="h-btn" data-act="info" aria-label="Info"><img src="assets/h-info.svg" alt=""></button>` : ''}
             <button class="h-btn" data-act="share" aria-label="Share"><img src="assets/h-share.svg" alt=""></button>
           </div>
           <div class="hero-bottom">
@@ -1501,16 +1498,18 @@ ${rowMarkup(d, r)}`).join('')}
 
      Live radio has no frame of its own for this, so it follows the same rule
      rather than inventing a second one: whatever controls the card has sit on
-     the left, the lockup on the right. For live that is the info button. */
+     the left, the lockup on the right. Live has none left. Speed and the
+     episode list never applied to it, and the info button has now gone too, so
+     its left group is emitted empty. It still has to be emitted: space-between
+     with a single child pushes that child to the START, which would put the
+     lockup on the wrong side of the card. */
   const cActions = (isPodcast) =>
     '<span class="lr-side">' +
       (isPodcast ?
         '<button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed">' +
           '<span class="h-speed">1x</span></button>' +
         '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
-          '<img src="assets/h-list.svg" alt=""></button>' :
-        '<button class="h-btn" data-act="info" aria-label="Info">' +
-          '<img src="assets/h-info.svg" alt=""></button>') +
+          '<img src="assets/h-list.svg" alt=""></button>' : '') +
     '</span>' +
     '<span class="lr-side">' + IHR_LOCKUP + '</span>';
 
