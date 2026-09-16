@@ -3549,3 +3549,19 @@ polls both artwork cards read station, `Track 3` at weight 600, `Artist 3` at
 400, with `/artist/artist-3-456/songs/track-3-123/` on the track line and
 `/artist/artist-3-456/` on the artist line. The song URL is built from the
 artist URL, so both starting `/artist/` is correct and not a second bug.
+
+## Three columns on load
+
+`<main data-cols="3">` and the toggle starts on 3.
+
+The width control initialises correctly from it, which was the thing to check:
+`availableWidth()` measures the shell's grid item, and the attribute is in the
+markup so the grid is applied before any script runs. Measured on load at 1440:
+columns at x 80, 515 and 949, slider max 411, and every shell and both iframes
+at 411.
+
+The narrow fallbacks behave the same on load as they do on a click. At 1100 the
+page shows two columns and the slider reads 516; at 800 one column and 760. The
+toggle keeps showing 3 in both cases, which is the existing behaviour rather
+than anything new: it records what was asked for, and the layout gives what the
+width allows.
