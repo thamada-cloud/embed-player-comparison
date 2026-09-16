@@ -744,7 +744,19 @@ a.thumb-link:hover { opacity: .92; }
    group, 16 in from each edge. space-between rather than flex-end, so the row
    needs both spans present even when the left one is empty, which is the live
    radio case. */
-.list-row { display: flex; justify-content: space-between; gap: var(--sp-4);
+/* 32 tall whatever is in it.
+
+   The row is sized by its tallest child, and its children differ by content
+   type: podcast puts 32px buttons in it, 1x and the list, while live has none
+   of those and only the 16 tall lockup. So the row collapsed to 16 on live and
+   the "Listen on iHeart" lockup sat 16 above the card's bottom edge against
+   podcast's 24. The row's own box was 16 from the edge on both; it was the row's
+   HEIGHT that differed, which is the harder version of the bug to see.
+
+   A floor of 32, the height of the buttons that set it on podcast, centres the
+   lockup in the same box on both. */
+.list-row { display: flex; justify-content: space-between; align-items: center;
+            gap: var(--sp-4); min-height: 32px;
             padding: 0 16px; box-sizing: border-box; }
 .lr-side { display: flex; align-items: center; gap: var(--sp-4); }
 /* The drawer, frame 2533:85717. It slides up over the player inside the card

@@ -3362,3 +3362,25 @@ width; design A and design B are untouched and still clear their badge.
 
 Measured after, both content types: the text box ends 56 from the card's right
 edge, 8 from the button's box, 12 from the icon inside it.
+
+## Design C's bottom bar sat 8px lower on live than on podcast
+
+The gap you could measure was the same on both: the `.list-row` box ends 16
+above the card's edge with the waveform off, 28 with it on. What differed was
+the row's own HEIGHT, which is the harder version to spot.
+
+The row is sized by its tallest child, and its children differ by content type.
+Podcast puts two 32px buttons in it, 1x and the list. Live has neither, so the
+only thing left was the 16 tall lockup and the row collapsed to 16. The lockup
+is centred in the row either way, so:
+
+| | row height | lockup above the card's edge |
+| --- | --- | --- |
+| podcast | 32 | 24 |
+| live | 16 | **16** |
+
+`min-height: 32px` on `.list-row`, 32 being the height of the buttons that set
+it on podcast, plus `align-items: center` so the floor centres rather than
+stretches. Measured after at 280, 350, 420, 640 and 900, both content types and
+both waveform states: the lockup sits 24 above the edge with the waveform off
+and 36 with it on, identical on podcast and live, and nothing overflows the row.
