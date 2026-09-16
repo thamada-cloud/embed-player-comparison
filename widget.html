@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260916194614">
+<link rel="stylesheet" href="widget-core.css?v=20260916195416">
 </head>
 <body>
 
@@ -44,6 +44,19 @@
 </header>
 
 <main data-cols="1" data-wave="off">
+  <!-- One search per content type, for the whole page. Choosing a show or a
+       station already loads it into every card of that kind, so a box per
+       section was four controls doing one job. -->
+  <div class="searchrow">
+    <div class="search" data-for="podcast">
+      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="live">
+      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
+      <div class="results" hidden></div>
+    </div>
+  </div>
   <!-- The shipping player is split into a band and two sections, one per content
        type, so it has the same shape as a design block and can take a column of
        its own beside them. -->
@@ -82,20 +95,12 @@
 
   <section data-design="a" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
-    <div class="search" data-for="podcast">
-      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell"><div id="w-podcast"></div></div>
     <p class="status" id="s-podcast"></p>
   </section>
 
   <section data-design="a" data-kind="live">
     <div class="h2row"><h2>Live radio</h2></div>
-    <div class="search" data-for="live">
-      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell"><div id="w-live"></div></div>
     <p class="status" id="s-live"></p>
   </section>
@@ -108,20 +113,12 @@
 
   <section data-design="b" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
-    <div class="search" data-for="podcast-hero">
-      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell" data-nobreak><div id="w-podcast-hero"></div></div>
     <p class="status" id="s-podcast-hero"></p>
   </section>
 
   <section data-design="b" data-kind="live">
     <div class="h2row"><h2>Live radio</h2></div>
-    <div class="search" data-for="live-hero">
-      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
     <p class="status" id="s-live-hero"></p>
   </section>
@@ -132,20 +129,12 @@
 
   <section data-design="c" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
-    <div class="search" data-for="podcast-c">
-      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell" data-nobreak><div id="w-podcast-c"></div></div>
     <p class="status" id="s-podcast-c"></p>
   </section>
 
   <section data-design="c" data-kind="live">
     <div class="h2row"><h2>Live radio</h2></div>
-    <div class="search" data-for="live-c">
-      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
-      <div class="results" hidden></div>
-    </div>
     <div class="shell" data-nobreak><div id="w-live-c"></div></div>
     <p class="status" id="s-live-c"></p>
   </section>
@@ -183,6 +172,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260916194614"></script>
+<script src="widget-core.js?v=20260916195416"></script>
 </body>
 </html>

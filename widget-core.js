@@ -2022,8 +2022,12 @@ function wireSearch(box, widget) {
              card of that kind, and the boxes are all set to what was chosen so
              it is obvious that they moved together. */
           const kind = isPodcast ? 'podcast' : 'live';
-          const peers = (WIDGETS[kind] && WIDGETS[kind].length)
-            ? WIDGETS[kind] : [{ widget, statusId: 's-' + box.dataset.for }];
+          /* The boxes are page level now and not tied to one card, so the
+             widget passed in can be undefined; the peers list is what actually
+             gets loaded and the fallback only matters if the page has no cards
+             of this kind at all. */
+          const peers = (WIDGETS[kind] && WIDGETS[kind].length) ? WIDGETS[kind]
+            : (widget ? [{ widget, statusId: 's-' + box.dataset.for }] : []);
           const says = (msg, err) => peers.forEach((t) => {
             const el = document.getElementById(t.statusId);
             if (el) { el.textContent = msg; el.className = err ? 'status err' : 'status'; }

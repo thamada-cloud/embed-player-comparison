@@ -3435,3 +3435,27 @@ all three live sections at y 754, columns at x 80, 515 and 949, each 411 wide.
 The width control follows on its own, since `availableWidth()` measures the
 shell's grid item rather than the page: slider max reads 1280, 626 and 411 in
 the three modes, and Fill lands every shell and both iframes on 411.
+
+## One search per content type, for the whole page
+
+The four per-section boxes are gone, replaced by two at the top of `main`: one
+for podcasts, one for stations.
+
+They were already redundant. Choosing a show or a station loads it into every
+card of that kind, so four boxes were four controls doing one job, and with the
+designs side by side it was easy to type into the wrong one and wonder why the
+other column had not moved.
+
+The row spans every column in all three layouts and sits above the bands, so it
+reads as belonging to the page rather than to a card. Below 720 the two boxes
+stack.
+
+`wireSearch` needed one guard. It was wired as
+`wireSearch(box, BY_SEARCH[box.dataset.for])`, and `BY_SEARCH` is keyed by root
+id, so a page level box named `podcast` now resolves to nothing. The peers list
+is what actually gets loaded and the single widget was only ever the fallback,
+so the fallback just has to tolerate `undefined` rather than assume a card.
+
+Verified at 1440 in all three column modes and at 700: one podcast search moved
+design B, design C and the shipping embed and left live radio alone; one live
+search did the reverse.
