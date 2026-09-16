@@ -30,6 +30,7 @@ for f in index.html gallery.html analysis.html widget.html embed.html host-home.
     -e "s|(src=\"measurements\.js)(\?v=[0-9]+)?\"|\1?v=$V\"|g" \
     -e "s|(href=\"widget-core\.css)(\?v=[0-9]+)?\"|\1?v=$V\"|g" \
     -e "s|(src=\"widget-core\.js)(\?v=[0-9]+)?\"|\1?v=$V\"|g" \
+    -e "s|(const EMBED_V = ')[0-9]*(')|\1$V\2|g" \
     "$f"
   echo "  stamped $f"
 done

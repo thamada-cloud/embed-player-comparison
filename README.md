@@ -3598,3 +3598,24 @@ Verified: `embed.html?design=c&mode=podcast` renders `display: none` with the
 through the host page's iframe at `host-home.html?w=c-podcast` finds the
 waveform hidden. The prototype page's toggle still moves both ways, which was
 the thing the widened selector could have broken.
+
+## The host page could serve a stale embed forever
+
+Reported as the waveform still showing at `host-home.html?w=c-podcast` after it
+had been turned off. The deployed files were correct and a fresh browser context
+rendered it hidden, so this was cache, and the cause is a gap in `deploy.sh`.
+
+`deploy.sh` rewrites a version onto every local stylesheet and script, which is
+why `widget-core.css` and `widget-core.js` are always current. The slot's iframe
+URL is built in JS inside `host-home.html`:
+
+    src: `embed.html?design=${d}&mode=podcast`
+
+and was never in that list. So a browser could serve a cached `embed.html`
+indefinitely while cheerfully fetching the newest CSS and JS for it. The card
+came back with old markup and none of the new behaviour, on a page that looked
+otherwise current. Every deploy printed `host-home.html  0 versioned refs`,
+which was the tell and went unread for a long time.
+
+`EMBED_V` is now stamped alongside everything else and appended to the URL, so
+the frame changes address whenever anything ships.
