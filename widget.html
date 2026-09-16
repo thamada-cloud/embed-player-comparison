@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260916191952">
+<link rel="stylesheet" href="widget-core.css?v=20260916194614">
 </head>
 <body>
 
@@ -38,26 +38,36 @@
     <span class="seg">
       <button type="button" id="cols1" data-cols="1" aria-pressed="true">1</button>
       <button type="button" id="cols2" data-cols="2" aria-pressed="false">2</button>
+      <button type="button" data-cols="3" aria-pressed="false">3</button>
     </span>
   </div>
 </header>
 
 <main data-cols="1" data-wave="off">
-  <section class="full">
-    <div class="h2row"><h2>Widget player</h2></div>
-    <div class="embeds">
-      <div class="embed">
-        <span class="embed-label">Podcast <b class="embed-now" id="n-podcast"></b></span>
-        <iframe id="e-podcast" title="iHeart podcast embed, current production player"
-                allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-      <div class="embed">
-        <span class="embed-label">Live radio <b class="embed-now" id="n-live"></b></span>
-        <iframe id="e-live" title="iHeart live radio embed, current production player"
-                allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
+  <!-- The shipping player is split into a band and two sections, one per content
+       type, so it has the same shape as a design block and can take a column of
+       its own beside them. -->
+  <div class="band band-ship" data-design="ship">
+    <h2>What ships today</h2>
+  </div>
+
+  <section data-design="ship" data-kind="podcast">
+    <div class="h2row"><h2>Podcast</h2></div>
+    <div class="embed">
+      <span class="embed-label">iHeart embed <b class="embed-now" id="n-podcast"></b></span>
+      <iframe id="e-podcast" title="iHeart podcast embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
     <p class="status" id="s-embeds"></p>
+  </section>
+
+  <section data-design="ship" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="embed">
+      <span class="embed-label">iHeart embed <b class="embed-now" id="n-live"></b></span>
+      <iframe id="e-live" title="iHeart live radio embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
   </section>
 
   <!-- Design A is hidden for now. Commented out rather than deleted, for the
@@ -173,6 +183,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260916191952"></script>
+<script src="widget-core.js?v=20260916194614"></script>
 </body>
 </html>

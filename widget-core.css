@@ -127,16 +127,55 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
 @media (min-width: 900px) {
   main[data-cols="2"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
                         column-gap: 28px; align-items: start; }
-  main[data-cols="2"] > section.full { grid-column: 1 / -1; }
+  /* The shipping block keeps its band across the full width and puts its two
+     embeds side by side, which is how it read before it was split up. */
+  main[data-cols="2"] > .band[data-design="ship"] { grid-column: 1 / -1; grid-row: 1; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="podcast"] { grid-column: 1; grid-row: 2; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="live"] { grid-column: 2; grid-row: 2; }
   /* A and B are alternatives and only ever one of them is in the page, so they
      share the left column and design C keeps the right. Swapping which of the
      two is commented out therefore needs no CSS change. */
   main[data-cols="2"] > [data-design="a"],
   main[data-cols="2"] > [data-design="b"] { grid-column: 1; }
   main[data-cols="2"] > [data-design="c"] { grid-column: 2; }
-  main[data-cols="2"] > .band[data-design] { grid-row: 2; }
-  main[data-cols="2"] > [data-design][data-kind="podcast"] { grid-row: 3; }
-  main[data-cols="2"] > [data-design][data-kind="live"] { grid-row: 4; }
+  main[data-cols="2"] > .band[data-design]:not([data-design="ship"]) { grid-row: 3; }
+  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 4; }
+  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 5; }
+}
+
+/* Three across: what ships, then the two designs, with podcast beside podcast
+   and live beside live. The same explicit row placement as the two column
+   layout and for the same reason, that auto-flow will not go back for a column
+   it has already passed.
+
+   1200, not 900. Three columns of a 1320 page is about 420 each after the
+   gaps, which is a real embed width; at 900 it would be 280 and the cards
+   would be answering a question nobody asked. Below it the toggle falls back to
+   the two column rules, and below 900 to one. */
+@media (min-width: 1200px) {
+  main[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr));
+                        column-gap: 24px; align-items: start; }
+  main[data-cols="3"] > [data-design="ship"] { grid-column: 1; }
+  main[data-cols="3"] > [data-design="a"],
+  main[data-cols="3"] > [data-design="b"] { grid-column: 2; }
+  main[data-cols="3"] > [data-design="c"] { grid-column: 3; }
+  main[data-cols="3"] > .band[data-design] { grid-row: 1; }
+  main[data-cols="3"] > [data-design][data-kind="podcast"] { grid-row: 2; }
+  main[data-cols="3"] > [data-design][data-kind="live"] { grid-row: 3; }
+}
+/* Between 900 and 1200 a page asking for three columns gets two. */
+@media (min-width: 900px) and (max-width: 1199px) {
+  main[data-cols="3"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                        column-gap: 28px; align-items: start; }
+  main[data-cols="3"] > .band[data-design="ship"] { grid-column: 1 / -1; grid-row: 1; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="podcast"] { grid-column: 1; grid-row: 2; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="live"] { grid-column: 2; grid-row: 2; }
+  main[data-cols="3"] > [data-design="a"],
+  main[data-cols="3"] > [data-design="b"] { grid-column: 1; }
+  main[data-cols="3"] > [data-design="c"] { grid-column: 2; }
+  main[data-cols="3"] > .band[data-design]:not([data-design="ship"]) { grid-row: 3; }
+  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 4; }
+  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 5; }
 }
 /* Below 900 the two columns would be narrower than the cards are designed for,
    so the toggle is simply ignored rather than disabled: the page falls back to
@@ -188,6 +227,8 @@ section > p.sub { margin: 0 0 12px; font-size: 12.5px; color: var(--ihr-grey-450
 .band p { margin: 0; font-size: 13px; max-width: 90ch; }
 .band-live { background: #e7f4ec; border: 1px solid #bcdfc9; color: #14532d; }
 .band-proto { background: #fff4e2; border: 1px solid #f0d5a8; color: #6b4708; }
+/* What ships today reads as a control rather than a prototype. */
+.band-ship { background: #e9eef2; border: 1px solid #ccd6de; color: #2c3e4c; }
 .band h2 { font-size: 15px; margin: 0; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
        padding: 3px 8px; border-radius: 999px; white-space: nowrap; }

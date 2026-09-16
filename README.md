@@ -3405,3 +3405,33 @@ at 16, at the cost of the lockup's text sitting below the buttons' centres.
 
 Identical on podcast and live. With the waveform on the same relationship holds
 one waveform higher, 36 and 28.
+
+## Three across: what ships, design B, design C
+
+A third option on the Columns toggle. Podcast sits beside podcast and live
+beside live, so the shipping embed can be read against both prototypes at once.
+
+The shipping block had to change shape for this. It was one full width section
+holding both iframes side by side; it is now a band and two sections, one per
+content type, exactly like a design block. That is what lets it take a column.
+
+| | 1 | 2 | 3 |
+| --- | --- | --- | --- |
+| ship | stacked | band full width, its two embeds side by side | column 1 |
+| design B | stacked | column 1 | column 2 |
+| design C | stacked | column 2 | column 3 |
+
+Rows are placed explicitly again, for the reason they were in the two column
+layout: auto-flow walks a cursor forward and will not go back for a column it
+has already passed.
+
+**1200, not 900.** Three columns of a 1320 page is about 411 each after the
+gaps, which is a real embed width. At 900 it would be 280 and the cards would be
+answering a question nobody asked, so between 900 and 1200 a page set to three
+gets two, and below 900 it gets one.
+
+Measured at 1440: all three bands at y 78, all three podcast sections at y 167,
+all three live sections at y 754, columns at x 80, 515 and 949, each 411 wide.
+The width control follows on its own, since `availableWidth()` measures the
+shell's grid item rather than the page: slider max reads 1280, 626 and 411 in
+the three modes, and Fill lands every shell and both iframes on 411.
