@@ -3474,3 +3474,28 @@ The name itself stays, because it is the only way to tell that the embed
 followed a search. Verified after: the labels read the show and episode, and
 Z100, and a live search changes the second to "KFI AM 640" while leaving the
 first alone.
+
+## What ships today now embeds the SHOW, not the episode
+
+Both are valid embeds and they render differently. The episode URL is a player
+and nothing else; the show URL is a player with the episode list underneath it,
+which is what the prototypes have and therefore the thing worth comparing them
+against. Checked by loading both directly: the show embed draws the transport,
+then "The Show Must Go OFF", "Yumming My Yuck", "Class FTM License" and on down.
+
+```
+podcast: /podcast/{slug}-{showId}/?embed=true            // was
+         /podcast/{slug}-{showId}/episode/episode-{id}/   // ...this
+```
+
+The frame needed the room for it: 440 for the podcast embed against live's 200.
+440 is design B's card height rounded down by 4, so in a column the two sit at
+the same height and the comparison is not a comparison of frame sizes.
+
+It still follows a search. Choosing Stuff You Should Know moves the embed to
+`/podcast/1119-stuff-you-should-know-26940277/?embed=true`, which resolves 200.
+
+The label line under the Podcast and Live radio headings is gone with it. The
+`n-podcast` and `n-live` elements went too, so `showEmbed()` now only sets the
+frame; `setIfPresent` already tolerated the name being absent, which is why
+nothing needed changing in the JS.

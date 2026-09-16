@@ -2257,9 +2257,14 @@ const lineLink = (href, text, aria) =>
   `<a class="line-link" href="${esc(href)}" target="_blank" rel="noopener"` +
   (aria ? ` aria-label="${esc(aria)}"` : '') + `>${mqs(text)}</a>`;
 
+/* The SHOW, not the episode. Both are valid embeds and they render differently:
+   the episode URL is a player and nothing else, while the show URL is a player
+   with the episode list underneath it, which is the thing the prototypes have
+   and the thing worth comparing them against. Checked by loading both directly:
+   the show embed draws the transport, then "The Show Must Go OFF", "Yumming My
+   Yuck", "Class FTM License" and on down. */
 const embedUrl = {
-  podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}` +
-                  `/episode/episode-${d.episodeId}/?embed=true`,
+  podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/?embed=true`,
   live: (d) => `https://www.iheart.com/live/station-${d.stationId}/?embed=true`
 };
 
