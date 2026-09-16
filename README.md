@@ -3384,3 +3384,24 @@ it on podcast, plus `align-items: center` so the floor centres rather than
 stretches. Measured after at 280, 350, 420, 640 and 900, both content types and
 both waveform states: the lockup sits 24 above the edge with the waveform off
 and 36 with it on, identical on podcast and live, and nothing overflows the row.
+
+## 16 below the lockup with the waveform off
+
+The bottom padding goes 16 to 8. The row is held at 32 and the lockup is 16, so
+it centres with 8 of row underneath it; 8 of padding plus that 8 is the 16 that
+was asked for.
+
+There are two numbers here and only one of them can be 16, which is worth
+stating plainly:
+
+| with the waveform off | before | now |
+| --- | --- | --- |
+| the lockup to the card's edge | 24 | **16** |
+| the row's box, and the buttons that fill it | 16 | **8** |
+
+The buttons cannot also be 16 while the lockup is, because the lockup is half
+their height and centred in the same row. Bottom aligning the row would put both
+at 16, at the cost of the lockup's text sitting below the buttons' centres.
+
+Identical on podcast and live. With the waveform on the same relationship holds
+one waveform higher, 36 and 28.

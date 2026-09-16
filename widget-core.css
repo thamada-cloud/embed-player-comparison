@@ -90,7 +90,12 @@ header {
    design C without a waveform and leaves 17 under the row, and 16 is what the
    rest of the card is inset by, so the two agree. */
 main[data-wave="off"] .widget.hero .wave { display: none; }
-main[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: 16px; }
+/* 8, so the LOCKUP lands 16 above the card's edge rather than the row's box
+   doing so. The row is held at 32 and the lockup is 16, so it centres with 8 of
+   row underneath it; 8 of padding plus that 8 is the 16 that was asked for.
+   The consequence is that the buttons, which fill the 32, now sit 8 from the
+   edge rather than 16. */
+main[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: 8px; }
 
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
