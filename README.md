@@ -3580,3 +3580,21 @@ input cannot be dragged below its `min`, and the number field can be typed into,
 which is what `MIN_W` guards. Verified: the slider clamps 30 and 0 to 50, typing
 40 or 10 into the field is rejected and leaves the last good value, and 120
 still works normally.
+
+## The single card page hides the waveform too
+
+The prototype page has opened without the waveform for a while, but
+`embed.html` did not, so anything embedding it, including the host page slot,
+still drew one. They now agree: **off by default**, with `?wave=on` to bring it
+back.
+
+The rule had to widen by one selector to make that possible. It was keyed on
+`main[data-wave="off"]`, and `embed.html` has no `<main>`; it is now keyed on
+any ancestor carrying the attribute, so the prototype page can set it on
+`<main>` and the single card page on `<body>`.
+
+Verified: `embed.html?design=c&mode=podcast` renders `display: none` with the
+8px of padding standing in for the strip, `&wave=on` renders it, and reaching
+through the host page's iframe at `host-home.html?w=c-podcast` finds the
+waveform hidden. The prototype page's toggle still moves both ways, which was
+the thing the widened selector could have broken.
