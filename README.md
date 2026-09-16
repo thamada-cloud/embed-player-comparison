@@ -3289,3 +3289,41 @@ drifts rather than travels.
 The entry leaves hard and decelerates the whole way: 53% of the distance in the
 first 150ms, 91% by 284ms, then a long settle to 583. That is the soft landing.
 A deliberate difference from the component, asked for after comparing the two.
+
+## The share drawer now matches the episode drawer
+
+The panels were never the difference. Measured side by side on design C: same
+600ms, same `cubic-bezier(.32,.72,0,1)`, same `will-change`, same starting
+transform, all three staged the same way. The share drawer was the only one of
+the three with an OVERLAY, and that was the whole of it.
+
+`overlayFade` in accomplice ramps `blur(0)` to `blur(10px)`, and a blur radius
+that changes every frame is the one thing a compositor cannot cache. Here that
+cost bought nothing: the panel is `height: 100%` of a container at `inset: 0`,
+so once it lands it covers the card completely. Hit tested the four corners and
+the centre with the drawer open and the panel is topmost at every one. The
+overlay is therefore only ever seen DURING the slide, which is exactly when the
+blur was making the slide worse.
+
+The blur is gone. The colour dim stays, since that part is close to free and it
+is what makes the card recede while the sheet crosses it.
+
+Measured after, each relative to its own start:
+
+| | 25% | 50% | 75% | 95% | done |
+| --- | --- | --- | --- | --- | --- |
+| episodes | +50 | +83 | +133 | +283 | +517 |
+| share | +51 | +84 | +134 | +283 | +516 |
+
+### A regression this nearly shipped with
+
+The edit that removed the blur was written as a slice from `.share-scrim` to
+`.share-panel`, and the `.share-sheet` rules live between those two. They went
+with it, so the sheet lost `position: absolute` and became a flow child: design
+C's card went from 234 tall to 560, with a 326px white slab under the player.
+
+It was caught by a probe that printed the widget height alongside the transform,
+for an unrelated reason. Nothing in the animation measurements would have shown
+it, and neither would a screenshot of the card at rest, since the drawer was
+still invisible. Confirmed after restoring: 444, 224, 234, 234 on the four
+artwork cards and every overlay `position: absolute`.

@@ -1470,45 +1470,39 @@ a.thumb-link:hover { opacity: .92; }
    has already receded, which is what a drawer is supposed to look like. */
 .share-scrim {
   position: absolute; inset: 0; z-index: 19;
-  /* The COLOUR and the BLUR RADIUS animate. Opacity does not, and that is the
-     whole point.
+  /* No blur, and the reason is that it was never visible.
 
-     `overlayFade` in accomplice's drawer.css.ts goes
-       rgba(0 0 0 / 0) -> rgba(0 0 0 / 0.8)
-       blur(0)         -> blur(10px)
-     and never touches opacity. This had a constant 0.8 black and a constant
-     10px blur and faded the element's OPACITY instead. Identical in a still,
-     not the same thing at all to run: a backdrop-filter is computed even at
-     opacity 0, so every frame blurred the whole card at full strength and then
-     composited that through a changing alpha. Two jobs per frame where the
-     component does one, and the expensive one of the two.
+     The share drawer is the only one of the three with an overlay, and the
+     episode drawer beside it is the one whose motion reads right. The panels
+     themselves are byte for byte identical: same 600ms, same curve, same
+     `will-change`, same starting transform, all three staged the same way. The
+     overlay was the whole difference.
 
-     Ramping the radius means there is no blur to compute until the drawer
-     opens. */
+     accomplice's `overlayFade` ramps `blur(0)` to `blur(10px)`, and a blur
+     radius that changes every frame is the one thing a compositor cannot cache.
+     That cost bought nothing here: this panel is `height: 100%` of a container
+     at `inset: 0`, so once it lands it covers the card completely. Checked by
+     hit testing the four corners and the centre with the drawer open, and the
+     topmost element is the panel at every one of them. The overlay is therefore
+     only ever seen DURING the slide, which is exactly when the blur was making
+     the slide worse.
+
+     The colour dim stays, because that part is close to free and it is what
+     makes the card recede while the sheet crosses it. */
   background-color: rgba(0 0 0 / 0);
-  backdrop-filter: blur(0px);
   visibility: hidden;
-  /* 600ms, the same as the panel, which is what accomplice does: `overlayFade`
-     and `slideInBottom` both run for `animationDuration`, 600ms.
-
-     This ran at 250 for a while, leading the panel deliberately, on the theory
-     that the card should dim before the sheet crossed it. That was a guess
-     dressed up as a fix. It is back on the component's timing. */
-  transition: background-color .6s ease-in, backdrop-filter .6s ease-in,
-              visibility 0s linear .6s;
+  transition: background-color .6s var(--drawer-out), visibility 0s linear .6s;
 }
 .widget.share-open .share-scrim {
   background-color: rgba(0 0 0 / .8);
-  backdrop-filter: blur(10px);
   visibility: visible;
-  transition: background-color .6s ease, backdrop-filter .6s ease, visibility 0s;
+  transition: background-color .6s var(--drawer-in), visibility 0s;
 }
-/* inset:0 with the drawer nested inside, rather than the drawer itself
-   anchored with bottom:0. The card's own drawers all position this way and all
-   work; bottom:0 does not, because on the bar card .widget wraps the player AND
-   the episode list, so the bottom of it is below the list rather than the
-   bottom of the card you can see. Filling the card and pushing the panel to the
-   end of a flex column lands it in the right place on every design. */
+
+/* inset:0 with the drawer nested inside, rather than the drawer itself anchored
+   with bottom:0. The card's own drawers all position this way and all work;
+   bottom:0 does not, because on the bar card .widget wraps the player AND the
+   episode list, so a sheet anchored to its bottom lands under the list. */
 .share-sheet {
   position: absolute; inset: 0; z-index: 20;
   display: flex; flex-direction: column; justify-content: flex-end;
@@ -1516,21 +1510,6 @@ a.thumb-link:hover { opacity: .92; }
   visibility: hidden; transition: visibility 0s linear .6s;
 }
 .widget.share-open .share-sheet { visibility: visible; transition: visibility 0s; }
-
-/* One frame of being visible and unmoving, before anything slides.
-
-   A panel sits in a visibility:hidden container at rest, so it has no
-   compositor layer and none of it is rasterised. Flipping visibility and
-   starting the transform together makes the browser paint the whole panel on
-   the animation's first frame, which is the jump at the start. This class is
-   added for one frame, the panel paints while still translated out of sight
-   and clipped, and the transform then runs against a layer that exists.
-
-   `transition: none` matters as much as the visibility: the resting rules delay
-   visibility by 600ms so the drawer can animate out, and without turning that
-   off the prep frame does nothing at all. */
-.widget.drawer-prep .share-sheet,
-.widget.drawer-prep .sheet { visibility: visible; transition: none; }
 .share-panel {
   /* Full height, for the reason .sheet-panel is. */
   pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
