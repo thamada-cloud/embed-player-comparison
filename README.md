@@ -3459,3 +3459,18 @@ so the fallback just has to tolerate `undefined` rather than assume a card.
 Verified at 1440 in all three column modes and at 700: one podcast search moved
 design B, design C and the shipping embed and left live radio alone; one live
 search did the reverse.
+
+## "iHeart embed" is out of the label
+
+The line under each shipping heading now carries only what the frame is
+currently showing. The words were redundant three times over: the band says
+"What ships today", the heading says Podcast or Live radio, and the embed draws
+its own iHeart mark.
+
+The bullet went with them. It separated the words from the name, and with
+nothing in front of it, it was a dot hanging off the left edge.
+
+The name itself stays, because it is the only way to tell that the embed
+followed a search. Verified after: the labels read the show and episode, and
+Z100, and a live search changes the second to "KFI AM 640" while leaving the
+first alone.

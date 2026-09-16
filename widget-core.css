@@ -255,8 +255,8 @@ section.is-live > .band-note { color: #14532d; }
    this is how you can tell, since the frame itself redraws to a player that
    looks much the same whatever is in it. */
 .embed-now { color: var(--ihr-grey-600); font-weight: 600; }
-.embed-now:not(:empty)::before { content: '\2022'; margin: 0 6px; color: var(--ihr-grey-300);
-                                 font-weight: 400; }
+/* The bullet went with the words. It separated "iHeart embed" from the name,
+   and with nothing before it, it was just a dot hanging off the left. */
 .embed iframe { width: 100%; height: 200px; border: 0; display: block;
                 border-radius: var(--radius-widget); background: var(--ihr-grey-150); }
 
