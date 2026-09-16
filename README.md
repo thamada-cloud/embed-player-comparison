@@ -3520,3 +3520,32 @@ columns 420 correctly clamps to the 411 the column allows.
 Worth noting what did NOT catch this. The width control has been measured
 several times since the split, but always by reading `main .shell`, which is
 the prototypes. The shipping frames are not shells and were never in the probe.
+
+## Live radio: track on the bold line, artist under it
+
+Frame 2613:76846 draws the station line, then **Track Title** in SemiBold, then
+Artist Name. The artwork cards had the pair the other way round.
+
+That was not a slip. Design A's own live frame, 2600:92866, puts the ARTIST on
+the bold line and the track below it, and the bar card was built from that. The
+two designs genuinely disagree, so each follows its own frame and the bar card
+is untouched. Worth reconciling at some point, since the same station on two
+cards side by side now reads in two different orders.
+
+### Two writers, and only one of them was changed
+
+These lines are built twice: `liveMeta()` renders them, and the now-playing
+poller patches them in place every five seconds when the station changes song.
+Swapping the order in the renderer alone is invisible on first paint and wrong
+from the first poll onward, which is exactly what happened. The render was
+right; five seconds later the poller put the artist back on the bold line and
+left the other line untouched, because it was still looking for `.h-track`,
+which the rename had turned into `.h-under`.
+
+Caught by measuring after a poll rather than on load. On load it looked correct.
+
+Verified with a stub that returns a different track on every poll: after three
+polls both artwork cards read station, `Track 3` at weight 600, `Artist 3` at
+400, with `/artist/artist-3-456/songs/track-3-123/` on the track line and
+`/artist/artist-3-456/` on the artist line. The song URL is built from the
+artist URL, so both starting `/artist/` is correct and not a second bug.

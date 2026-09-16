@@ -197,10 +197,15 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
 function liveMeta(d) {
   const L = heroLines(d);
   const link = (t) => lineLink(stationUrl(d), t);
+  /* Track on the SemiBold line, artist under it, which is what frame 2613:76846
+     draws. It was the other way round, and that was not a slip: design A's own
+     live frame, 2600:92866, puts the ARTIST on the bold line and the track
+     below. The two designs genuinely disagree and each follows its own frame,
+     so the bar card is untouched. */
   return L.station
     ? `<p class="h-station mq">${link(L.station)}</p>
-       <p class="h-name mq">${maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart')}</p>
-       <p class="h-track mq">${maybeLink(trackUrl(d), L.name, 'Open this song on iHeart')}</p>`
+       <p class="h-name mq">${maybeLink(trackUrl(d), L.name, 'Open this song on iHeart')}</p>
+       <p class="h-under mq">${maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart')}</p>`
     : `<p class="h-name mq">${link(L.name)}</p>
        <p class="h-sub mq">${link(L.sub)}</p>`;
 }
@@ -1457,15 +1462,22 @@ ${rowMarkup(d, r)}`).join('')}
       retarget('.np-artist', artistUrl(w.data));
       retarget('.np-track', trackUrl(w.data));
     } else {
-      /* With a track the three lines are track, artist, station; the classes
-         carry the weights, so the writer only has to keep the order. */
+      /* The station line, then the TRACK on the bold line, then the artist
+         under it, matching liveMeta() exactly.
+
+         These lines have two writers: liveMeta() builds them on render and this
+         patches them in place when the station changes song. Swapping the order
+         in one and not the other is invisible on first paint and wrong from the
+         first poll onward, which is what happened: the render was right, then
+         five seconds later this put the artist back on the bold line and left
+         the track line untouched, because it was still looking for .h-track. */
       const L = heroLines(w.data);
-      const st = q('.h-station .mqi'), n = q('.h-name .mqi'), tr = q('.h-track .mqi');
+      const st = q('.h-station .mqi'), n = q('.h-name .mqi'), un = q('.h-under .mqi');
       if (st) st.textContent = L.station;
-      if (n) n.textContent = L.sub;
-      if (tr) tr.textContent = L.name;
-      retarget('.h-name', artistUrl(w.data));
-      retarget('.h-track', trackUrl(w.data));
+      if (n) n.textContent = L.name;
+      if (un) un.textContent = L.sub;
+      retarget('.h-name', trackUrl(w.data));
+      retarget('.h-under', artistUrl(w.data));
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */

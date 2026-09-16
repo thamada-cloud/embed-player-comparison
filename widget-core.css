@@ -549,7 +549,7 @@ a.thumb-link:hover { opacity: .92; }
 .h-name { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
           letter-spacing: var(--ls-0); font-weight: 600;
           color: var(--ihr-grey-100); }
-.h-track { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
+.h-under { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
            letter-spacing: var(--ls-0); font-weight: 400;
            color: var(--ihr-grey-100); }
 /* The podcast pair, off 2548:250303 (design B) and 2548:250299 (design C),
