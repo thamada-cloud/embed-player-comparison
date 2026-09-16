@@ -2104,6 +2104,10 @@ function gauge(shell, out) {
     (wide ? 'wide' : 'compact') + '</span> &middot; ' +
     (wide ? 'compact below ' : 'wide at ') + WIDE_AT;
 }
+/* The prototype page no longer carries a .gauge, so this wires nothing and
+   observes nothing: the guard below exits before the ResizeObserver is made.
+   Left in place rather than deleted, the same as authToast(), so putting the
+   readout back is a markup change and nothing else. */
 document.querySelectorAll('section').forEach((sec) => {
   const shell = sec.querySelector('.shell'), out = sec.querySelector('.gauge');
   if (!shell || !out) return;

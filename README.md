@@ -3327,3 +3327,18 @@ for an unrelated reason. Nothing in the animation measurements would have shown
 it, and neither would a screenshot of the card at rest, since the drawer was
 still invisible. Confirmed after restoring: 444, 224, 234, 234 on the four
 artwork cards and every overlay `position: absolute`.
+
+## The width readouts are gone
+
+The `.gauge` beside each heading, "widget 350 px one layout at every width" and
+its compact/wide sibling, is out of `widget.html`. All six, including the two
+inside the commented-out design A block.
+
+`gauge()` and its wiring stay in `widget-core.js`. The loop already exited
+before building a ResizeObserver when there was nothing to write to, so with the
+spans gone it observes nothing and costs nothing, and putting the readout back
+is a markup change. Same treatment as `authToast()`.
+
+The width control itself is untouched, which was the thing to check: the slider
+and Fill are separate machinery from the readout. Set to 420 with the gauges
+gone, all four shells measure 420.
