@@ -3565,3 +3565,18 @@ page shows two columns and the slider reads 516; at 800 one column and 760. The
 toggle keeps showing 3 in both cases, which is the existing behaviour rather
 than anything new: it records what was asked for, and the layout gives what the
 width allows.
+
+## The width slider floors at 50
+
+`min="50"` on both inputs and `MIN_W = 50` in the script.
+
+Below about 50 there is no player left to look at. The play button is already
+shrinking by then, down to 30 on the bar card and 42 on the artwork ones, and
+everything else on every design is running past the edges, so the slider was
+offering a range where the answer to every question is "it breaks".
+
+The floor is enforced in two places because there are two ways in. The range
+input cannot be dragged below its `min`, and the number field can be typed into,
+which is what `MIN_W` guards. Verified: the slider clamps 30 and 0 to 50, typing
+40 or 10 into the field is rejected and leaves the last good value, and 120
+still works normally.

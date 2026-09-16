@@ -2150,7 +2150,12 @@ const widthFill = document.getElementById('widthFill');
 if (widthRange) {
 /* 0, not a comfortable minimum. Watching a card collapse is a legitimate thing
    to want to see, and an embed slot really can be handed nothing. */
-const MIN_W = 0;
+/* 50, not 0. Below about 50 there is no player left to look at: the bar card's
+   play button is down to 30 and everything else on every design is running past
+   the edges, so the slider was offering a range where the answer to every
+   question is "it breaks". The floor is enforced here as well as on the inputs,
+   because the number field can be typed into. */
+const MIN_W = 50;
 
 /* The room a CARD has, not the room the page has. Those were the same number
    while the designs were stacked one per row, and stopped being the same the
