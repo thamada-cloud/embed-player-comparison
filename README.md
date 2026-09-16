@@ -3499,3 +3499,24 @@ The label line under the Podcast and Live radio headings is gone with it. The
 `n-podcast` and `n-live` elements went too, so `showEmbed()` now only sets the
 frame; `setIfPresent` already tolerated the name being absent, which is why
 nothing needed changing in the JS.
+
+## The shipping widgets stopped answering the width slider
+
+A regression from splitting that block up, and a quiet one: the prototypes kept
+resizing so the control looked like it was working.
+
+The width control caps every player through one custom property, `--player-w`,
+and two rules read it: `.shell` for the prototypes and `.embeds` for the
+shipping frames. `.embeds` was the wrapper that held the podcast and live
+iframes side by side. Turning that block into a band and one section per content
+type deleted the wrapper, so the rule matched nothing and the only thing keeping
+the shipping frames in step with everything else was gone.
+
+It is on `.embed` now, the per-frame element that survived. Measured in all
+three column modes: Fill gives 1280, 626 and 411 and both the shells and the
+iframes take it; setting 420 and 320 moves all six together, and in three
+columns 420 correctly clamps to the 411 the column allows.
+
+Worth noting what did NOT catch this. The width control has been measured
+several times since the split, but always by reading `main .shell`, which is
+the prototypes. The shipping frames are not shells and were never in the probe.

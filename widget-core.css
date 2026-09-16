@@ -300,7 +300,13 @@ section.is-live > .band-note { color: #14532d; }
    once: the four prototypes and the shipping embeds above them. Unset means no
    cap, which is the page filling the window as it did before. */
 .shell { container-type: inline-size; width: 100%; max-width: var(--player-w, none); }
-.embeds { max-width: var(--player-w, none); }
+/* On .embed, not .embeds. The width control caps every player through this one
+   custom property, and the shipping frames used to inherit it from the wrapper
+   that held both of them side by side. Splitting that block into one section
+   per content type deleted the wrapper, so the rule stopped matching anything
+   and the shipping widgets quietly stopped answering the slider while the
+   prototypes kept doing so. */
+.embed { max-width: var(--player-w, none); }
 .widget { position: relative;
   border-radius: var(--radius-widget); overflow: hidden; width: 100%;
   position: relative;                      /* the info drawer covers the card */
