@@ -3342,3 +3342,23 @@ is a markup change. Same treatment as `authToast()`.
 The width control itself is untouched, which was the thing to check: the slider
 and Fill are separate machinery from the readout. Set to 420 with the gauges
 gone, all four shells measure 420.
+
+## The extra padding to the right of design C's text
+
+`.meta` carries `padding-right: 33px`, and the comment above it says why: the
+iHeart badge is 25 wide and sits 16 in from the card's edge, so 33 of text
+padding leaves 8 of clearance from it. Nothing else holds the lines off that
+badge, so the number is load bearing on design A and design B, which both still
+have it sitting absolutely in the corner with nothing reserving its space.
+
+Design C does not have a badge any anymore. Frame 2613:77793 replaced it with the
+share BUTTON, which is a real flex child that reserves its own 32 and is
+separated by the row's own gap. The 33 was still being applied on top of all
+that, so the text was truncating **89px from the card's right edge when the
+button only needs 56**.
+
+`.widget.c .topbar .meta { padding-right: 0 }`. Design C's lines gain 33px of
+width; design A and design B are untouched and still clear their badge.
+
+Measured after, both content types: the text box ends 56 from the card's right
+edge, 8 from the button's box, 12 from the icon inside it.

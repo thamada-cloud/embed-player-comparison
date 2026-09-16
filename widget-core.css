@@ -451,6 +451,19 @@ a.thumb-link:hover { opacity: .92; }
    other widget, and the live frame shows the thumb on white. */
 .widget.hero.live .topbar .h-thumb { object-fit: contain; padding: 3px; }
 .topbar .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 0; }
+/* Design C's top bar reserves no room for a logo any more, so the 33px that
+   held the lines off one is dead weight here.
+
+   `.meta` carries `padding-right: 33px` because the iHeart badge is 25 wide and
+   sits 16 in from the card's edge, so 33 of text padding leaves 8 of clearance
+   from it. That is still true for design A and design B, which both still have
+   the badge sitting absolutely in that corner with nothing reserving its space.
+
+   Design C replaced the badge with a real share BUTTON, a flex child that
+   reserves its own 32 and is separated by the row's own gap. The 33 was still
+   being applied on top of all that, so the text truncated 89px from the card's
+   right edge when the button only needs 56. */
+.widget.c .topbar .meta { padding-right: 0; }
 /* The live block runs flush, no gap between its three lines. The frames carry
    2px there, this is a deliberate step past them, and it applies to the two
    artwork cards only: design A's live block and both podcast pairs keep the 2. */
