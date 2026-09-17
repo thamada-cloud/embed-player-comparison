@@ -289,6 +289,28 @@ const PLAYERS = [
     facts: { 'Content': 'Unrelated video',
              'Watch out': 'The player returns 200 for private and deleted videos. Confirm a video is really playable with the key-free vimeo.com/api/oembed.json?url= endpoint, which 404s when it is not.',
              'Use': 'Form comparison only' } },
+  /* Live video, which is the surface live radio would actually extend onto.
+     Both were loaded in a real cross-origin iframe and PAINT: Twitch drew its
+     player around a "Monstercat is offline" card and Kick drew its own around
+     "Trainwreckstv is offline", which is the player working rather than
+     failing. Neither logged a frame refusal. */
+  { id: 'twitch', name: 'Twitch', status: 'caveat', group: 'other',
+    allow: 'autoplay; fullscreen', allowfullscreen: true,
+    modes: { live: { src: 'https://player.twitch.tv/?channel=monstercat&parent=thamada-cloud.github.io&muted=true',
+      aspect: true,
+      caveat: 'Unrelated channel, and it shows an offline card whenever that channel is not streaming.' } },
+    facts: { 'Content': 'Unrelated live channel',
+             'Watch out': 'The only player here whose embed is tied to the HOST. `parent=` must name the exact domain doing the embedding, so this card works on thamada-cloud.github.io and nowhere else, local files included. It cannot be verified before deploy.',
+             'Offline': 'A channel that is not live renders an offline card rather than a blank frame, so the card is honest either way.',
+             'Use': 'Form comparison only' } },
+  { id: 'kick', name: 'Kick', status: 'caveat', group: 'other',
+    allow: 'autoplay; fullscreen', allowfullscreen: true,
+    modes: { live: { src: 'https://player.kick.com/trainwreckstv', aspect: true,
+      caveat: 'Unrelated channel, and it shows an offline card whenever that channel is not streaming.' } },
+    facts: { 'Content': 'Unrelated live channel',
+             'Host': 'No parent parameter, unlike Twitch, so it embeds anywhere.',
+             'Offline': 'Renders an offline card rather than a blank frame.',
+             'Use': 'Form comparison only' } },
   { id: 'tiktok', name: 'TikTok', status: 'ok', group: 'other',
     allow: 'fullscreen', allowfullscreen: true,
     modes: { podcast: { src: 'https://www.tiktok.com/embed/v2/6718335390845095173', h: 740,

@@ -3619,3 +3619,41 @@ which was the tell and went unread for a long time.
 
 `EMBED_V` is now stamped alongside everything else and appended to the URL, so
 the frame changes address whenever anything ships.
+
+## More video players: what was probed and what was added
+
+Probed by loading each in a real cross-origin iframe and looking, because a
+blocked frame renders blank with no console error and a 200 proves nothing. HEAD
+requests were useless: most of these set frame headers only on a real GET, so
+every candidate came back "frameable" whether it was or not.
+
+| candidate | result |
+| --- | --- |
+| **Twitch** | painted, player around an offline card. **Added** |
+| **Kick** | painted, player around an offline card. **Added** |
+| Internet Archive | painted a real film once given a valid item id |
+| PeerTube (framatube) | painted a real player |
+| Odysee | framed, player chrome drew "No Content Found" on a bad id |
+| Dailymotion | painted, and see below |
+| Rumble, BitChute, Loom, Facebook video | blank, unresolved |
+
+Twitch and Kick went in because live video is the surface live radio would
+actually extend onto. Both are `caveat`: they carry an unrelated channel and
+draw an offline card whenever it is not streaming, which is the player working
+rather than failing.
+
+**Twitch is the only player here whose embed is tied to the host.** `parent=`
+must name the exact domain doing the embedding, so it works on
+thamada-cloud.github.io and nowhere else, local files included. It cannot be
+verified before deploy, and locally it renders a broken frame icon.
+
+### Dailymotion was not re-added
+
+It painted, and it would have gone straight in. It is already recorded as
+removed for cause: it autoplays WITH SOUND and cannot be stopped, with
+`autoplay=0` and `autoplay=false` both ignored. The note survives only inside
+TikTok's own facts, which is where I found it.
+
+The others are frameable and deliberately left out: Internet Archive, PeerTube
+and Odysee are not surfaces iHeart content would ever be distributed on, and a
+gallery is more useful short than complete. Happy to add any of them.
