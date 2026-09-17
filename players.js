@@ -290,26 +290,30 @@ const PLAYERS = [
              'Watch out': 'The player returns 200 for private and deleted videos. Confirm a video is really playable with the key-free vimeo.com/api/oembed.json?url= endpoint, which 404s when it is not.',
              'Use': 'Form comparison only' } },
   /* Live video, which is the surface live radio would actually extend onto.
-     Both were loaded in a real cross-origin iframe and PAINT: Twitch drew its
-     player around a "Monstercat is offline" card and Kick drew its own around
-     "Trainwreckstv is offline", which is the player working rather than
-     failing. Neither logged a frame refusal. */
+
+     THE CHANNEL IS THE HARD PART, not the embed. Both players work; a card
+     showing "X is offline" is the player succeeding at describing a channel
+     that is not streaming. Measured across five channels each: on Twitch,
+     lofigirl was live and playing while monstercat, twitch and chess were
+     offline; on Kick, xqc and roshtein were live while trainwreckstv, westcol
+     and adinross were offline. The first pass picked offline channels for both
+     and read as broken. */
   { id: 'twitch', name: 'Twitch', status: 'caveat', group: 'other',
     allow: 'autoplay; fullscreen', allowfullscreen: true,
-    modes: { live: { src: 'https://player.twitch.tv/?channel=monstercat&parent=thamada-cloud.github.io&muted=true',
+    modes: { live: { src: 'https://player.twitch.tv/?channel=lofigirl&parent=thamada-cloud.github.io&muted=true',
       aspect: true,
-      caveat: 'Unrelated channel, and it shows an offline card whenever that channel is not streaming.' } },
+      caveat: 'Unrelated channel. Lofi Girl runs a perpetual stream, so this card is almost always playing rather than showing an offline state.' } },
     facts: { 'Content': 'Unrelated live channel',
-             'Watch out': 'The only player here whose embed is tied to the HOST. `parent=` must name the exact domain doing the embedding, so this card works on thamada-cloud.github.io and nowhere else, local files included. It cannot be verified before deploy.',
-             'Offline': 'A channel that is not live renders an offline card rather than a blank frame, so the card is honest either way.',
+             'Channel': 'lofigirl, chosen because it is a 24/7 rebroadcast rather than a person who goes to bed. Any normal channel leaves this card dark for most of the day.',
+             'Watch out': 'The only player here whose embed is tied to the HOST. `parent=` must name the exact domain doing the embedding, so this card works on thamada-cloud.github.io and nowhere else, local files included. It renders a broken frame icon locally and cannot be verified before deploy.',
              'Use': 'Form comparison only' } },
   { id: 'kick', name: 'Kick', status: 'caveat', group: 'other',
     allow: 'autoplay; fullscreen', allowfullscreen: true,
-    modes: { live: { src: 'https://player.kick.com/trainwreckstv', aspect: true,
-      caveat: 'Unrelated channel, and it shows an offline card whenever that channel is not streaming.' } },
+    modes: { live: { src: 'https://player.kick.com/xqc', aspect: true,
+      caveat: 'Unrelated channel, and Kick has no 24/7 equivalent, so this card WILL show an offline state some of the time.' } },
     facts: { 'Content': 'Unrelated live channel',
-             'Host': 'No parent parameter, unlike Twitch, so it embeds anywhere.',
-             'Offline': 'Renders an offline card rather than a blank frame.',
+             'Channel': 'xqc, one of the most consistently live channels on the platform. Kick has no perpetual stream to point at the way Twitch does, so expect an offline card at quiet hours.',
+             'Host': 'No parent parameter, unlike Twitch, so it embeds anywhere including locally.',
              'Use': 'Form comparison only' } },
   { id: 'tiktok', name: 'TikTok', status: 'ok', group: 'other',
     allow: 'fullscreen', allowfullscreen: true,
