@@ -3638,9 +3638,21 @@ every candidate came back "frameable" whether it was or not.
 | Rumble, BitChute, Loom, Facebook video | blank, unresolved |
 
 Twitch and Kick went in because live video is the surface live radio would
-actually extend onto. Both are `caveat`: they carry an unrelated channel and
-draw an offline card whenever it is not streaming, which is the player working
-rather than failing.
+actually extend onto.
+
+**The channel is the hard part, not the embed.** The first pass pointed both at
+channels that happened to be offline, and the cards read as broken when they
+were working perfectly: an offline card is the player correctly describing a
+channel that is not streaming. Measured across five channels each before
+choosing: on Twitch, `lofigirl` was live and playing while `monstercat`,
+`twitch` and `chess` were offline; on Kick, `xqc` and `roshtein` were live while
+`trainwreckstv`, `westcol` and `adinross` were offline.
+
+Twitch now points at `lofigirl`, a 24/7 rebroadcast rather than a person who
+goes to bed, so that card is almost always playing. Kick has no perpetual stream
+to point at, so it uses `xqc` and its caveat says plainly that the card will be
+dark at quiet hours. That is a property of live streaming, not something the
+gallery can fix.
 
 **Twitch is the only player here whose embed is tied to the host.** `parent=`
 must name the exact domain doing the embedding, so it works on
