@@ -53,6 +53,132 @@ async function loadPodcast(id) {
   };
 }
 
+/* ---------------------------------------------------------------------------
+   The three content types added after podcast and live radio, from the Design D
+   frames: Podcast Episode 2669:136836, Artist Radio 2669:137076 and Playlist
+   2669:136837.
+
+   Artist radio and playlist do NOT play here, and that is a decision rather
+   than a gap. Their audio comes from POST /api/v2/playback/streams, which needs
+   an x-ihr-profile-id and x-ihr-session-id; iheart.com's own embed gets those by
+   calling /api/v1/account/loginOrCreateOauthUser, which MINTS AN ANONYMOUS
+   ACCOUNT ON PRODUCTION on every visit. That is the designed route and it works
+   from this origin, CORS included, but this page is public, so every visitor
+   would create one. The transport here is simulated instead and every other
+   thing on these cards is real data pulled from public endpoints.
+
+   Everything below is unauthenticated and was confirmed by request:
+     /v3/catalog/tracks/{ids}                      title, artist, art, duration
+     /v3/catalog/artists/{ids}                     artist name and image
+     /v3/catalog/artist/{id}/albums                albums with nested track ids
+     /v3/collection/user/{owner}/collection/{id}   playlist name, author, tracks
+   --------------------------------------------------------------------------*/
+
+/* The image host 403s a direct fetch and answers 200 through the proxy, which
+   also sets access-control-allow-origin. The stage image is crossorigin because
+   its colour is read off a canvas, so the proxy is required, not cosmetic. */
+const catalogArt = (u) => (u ? imageProxy(u) : null);
+
+async function tracksByIds(ids) {
+  if (!ids.length) return [];
+  const d = await jget(`${API}/v3/catalog/tracks/${ids.slice(0, 24).join(',')}`);
+  return (d.tracks || []).map((t) => ({
+    id: t.id, title: t.title, artist: t.artistName, artistId: t.artistId,
+    art: catalogArt(t.imageUrl), duration: Number(t.duration) || 0
+  }));
+}
+
+/* "Featured artists" is not invented. It is the distinct artists across the
+   tracks the station or playlist actually holds, in first appearance order,
+   which is what the phrase means on a playlist. The real artist radio seed list
+   comes from the authenticated station call and is not reachable from here, so
+   this is the honest public equivalent rather than a stand in. */
+function featuredFrom(tracks) {
+  const seen = new Map();
+  tracks.forEach((t) => {
+    if (t.artist && !seen.has(t.artist)) seen.set(t.artist, { name: t.artist, id: t.artistId, art: t.art });
+  });
+  return [...seen.values()].slice(0, 8);
+}
+
+/* A single episode, from the same fetch the show card makes. The frames draw no
+   episode list on this one and put an info button where the list button sits,
+   so the rows are dropped rather than hidden. */
+async function loadEpisode(showId) {
+  const d = await loadPodcast(showId);
+  return Object.assign({}, d, { kind: 'episode', rows: [], listTitle: null });
+}
+
+async function loadArtist(id) {
+  const [artist, albums] = await Promise.all([
+    jget(`${API}/v3/catalog/artists/${id}`).then((d) => (d.artists || [])[0]),
+    /* This one answers {meta, data, links} while the sibling catalog endpoints
+       answer {artists} and {tracks}. Reading d.albums here returned undefined
+       and the artist card loaded with an empty track list and no featured
+       artists, silently. */
+    jget(`${API}/v3/catalog/artist/${id}/albums?limit=25`).then((d) => d.data || [])
+  ]);
+  if (!artist) throw new Error('no artist');
+  /* One track per album, not the first 24 ids flattened. Flattening took almost
+     everything from the first album, and an album is frequently one song in five
+     remixes, so the station played "I Knew It, I Knew You" five times and the
+     featured artists read Taylor Swift, Taylor Swift & Chris Lake, Taylor Swift
+     & Skream. Spreading across albums is what makes it read as a station. */
+  const ids = albums.map((a) => ((a.tracks || [])[0] || {}).id).filter(Boolean);
+  /* De-duplicated by TITLE, not by id. The albums endpoint returns singles
+     newest first, and one song ships as several of them: eight albums for this
+     artist were two "I Knew It, I Knew You" and four "Opalite", so skip next
+     changed the artwork and left the title alone. Distinct ids, same song. */
+  const seenTitle = new Set();
+  const tracks = (await tracksByIds(ids)).filter((t) => {
+    const k = (t.title || '').toLowerCase();
+    if (!k || seenTitle.has(k)) return false;
+    seenTitle.add(k); return true;
+  });
+  const name = artist.artistName;
+  return {
+    kind: 'artist', artistOnlyId: id,
+    /* The frame's one idle line is "<artist> Radio", and the station is named
+       for the artist rather than being a separate thing with its own name. */
+    title: name + ' Radio', subtitle: name,
+    infoTitle: name + ' Radio', infoBody: stripHtml(artist.bio || ''),
+    slug: artist.slug || ('artist-' + id),
+    art: catalogArt(artist.image),
+    tracks, trackIndex: 0,
+    listTitle: 'Featured Artists',
+    /* The featured artists ARE the list, so they are shaped as rows and
+       listMarkup is reused rather than a second list component written. They
+       are inert: no episode to select and no overflow menu in the frames. */
+    rowsInert: true,
+    rows: featuredFrom(tracks).map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    audio: null, hls: false
+  };
+}
+
+async function loadPlaylist(owner, id) {
+  const pl = await jget(`${API}/v3/collection/user/${owner}/collection/${id}`);
+  const tracks = await tracksByIds((pl.tracks || []).map((t) => t.trackId));
+  return {
+    kind: 'playlist', playlistOwner: owner, playlistId: id,
+    /* Two idle lines on this one where artist radio has one, the playlist's
+       name and its description. */
+    title: pl.name, subtitle: pl.description || pl.author || '',
+    infoTitle: pl.name, infoBody: pl.description || '',
+    slug: pl.slug || 'playlist',
+    /* A collection carries no artwork of its own, so the card wears its first
+       track's, which is also what the backdrop paints. */
+    art: (tracks[0] && tracks[0].art) || null,
+    tracks, trackIndex: 0,
+    listTitle: 'Featured Artists',
+    /* The featured artists ARE the list, so they are shaped as rows and
+       listMarkup is reused rather than a second list component written. They
+       are inert: no episode to select and no overflow menu in the frames. */
+    rowsInert: true,
+    rows: featuredFrom(tracks).map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    audio: null, hls: false
+  };
+}
+
 /* What is playing on a station right now.
    This is `currentTrackMeta`, the endpoint iheart.com itself polls. See
    packages/playback/src/player/subscription/jw-player.ts in iheartradio/web,
@@ -224,6 +350,54 @@ function liveMeta(d) {
        <p class="h-under mq">${maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart')}</p>`
     : `<p class="h-name mq">${link(L.name)}</p>
        <p class="h-sub mq">${link(L.sub)}</p>`;
+}
+
+/* ---------------------------------------------------------------------------
+   What each content type's card carries, from the Design D frames.
+
+   This replaces an isLive boolean that was branched on at a dozen points inside
+   one template. Five kinds cannot be expressed as one flag, and adding a second
+   flag per kind is how a template starts disagreeing with itself.
+
+   Read off the frames rather than assumed:
+     podcast  1x back15 fwd30, a scrubber, an Episodes list, list button
+     episode  the same transport, NO list, an info button where the list was
+     live     play alone, no scrubber
+     artist   stop and skip next, NO scrubber, a Featured Artists list
+     playlist the same as artist, with two idle lines instead of one
+   --------------------------------------------------------------------------*/
+const CAPS = {
+  podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  bottomLeft: 'list', rowsLive: true },
+  episode:  { seek: true,  speed: true,  scrub: true,  list: false, bottomLeft: 'info' },
+  live:     { seek: false, speed: false, scrub: false, list: false, bottomLeft: null },
+  artist:   { seek: false, speed: false, scrub: false, list: true,  bottomLeft: null, stopNext: true, roundThumb: true },
+  playlist: { seek: false, speed: false, scrub: false, list: true,  bottomLeft: null, stopNext: true }
+};
+const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
+
+/* The current track of a simulated station. Artist radio and playlist hold a
+   real track list and step through it; nothing is heard. */
+const curTrack = (d) => (d.tracks || [])[d.trackIndex || 0] || null;
+
+/* Artist radio and playlist share live radio's three line block, context line,
+   then the TRACK on the bold line, then the artist under it, so they share its
+   classes too and the now playing writer can patch all three the same way.
+   Idle they collapse: artist radio to its one line, playlist to its name and
+   description, which is exactly what the frames draw. */
+function streamMeta(d) {
+  const t = curTrack(d);
+  const ctx = d.title;
+  if (d.playingSim && t) {
+    return `<p class="h-station mq">${esc(ctx)}</p>
+            <p class="h-name mq">${esc(t.title)}</p>
+            <p class="h-under mq">${esc(t.artist || '')}</p>`;
+  }
+  /* Artist radio's idle frame is ONE line, "<artist> Radio", and playlist's is
+     two, its name and its description. The artist name is carried on the data
+     for links and labels but is deliberately not a second line here: repeating
+     "Taylor Swift" under "Taylor Swift Radio" says nothing. */
+  return `<p class="h-name mq">${esc(ctx)}</p>` +
+         (d.kind === 'playlist' && d.subtitle ? `<p class="h-sub mq">${esc(d.subtitle)}</p>` : '');
 }
 
 function heroLines(d) {
@@ -490,7 +664,19 @@ function makeWidget(rootId, statusId, colourId, variant) {
      Frame 2609:36099: the button is 32 square, vertically centred in the 72px
      row, its right edge 12 in from the row's, which is where the explicit
      badge used to sit. */
+  /* An inert row is not a button. Featured artists have nothing to select and
+     no overflow menu in the frames, and leaving role="button" on something that
+     does nothing is worse than leaving it plain. */
   function rowMarkup(d, r) {
+    if (d.rowsInert) {
+      return `
+      <div class="row-wrap">
+        <div class="row inert">
+          <img class="row-art" src="${esc(r.art || '')}" alt="">
+          <div class="row-text"><p class="row-title">${esc(r.title)}</p></div>
+        </div>
+      </div>`;
+    }
     return `
               <div class="row-wrap">
                 <div class="row${isCurrentRow(d, r) ? ' on' : ''}"
@@ -613,22 +799,28 @@ ${rowMarkup(d, r)}`).join('')}
   function stageArt(d) {
     if (!d) return '';
     if (d.kind === 'live') return d.trackArt || d.art || '';
+    /* Artist radio and playlist paint the track they are on, the same rule live
+       radio follows, falling back to the artist image or the playlist's first
+       track before anything is playing. */
+    if (caps(d).stopNext) { const t = curTrack(d); return (t && t.art) || d.art || ''; }
     const row = (d.rows || []).find((r) => String(r.id) === String(d.currentEpisodeId));
     return (row && row.art) || d.art || '';
   }
 
   function cMarkup(d, isLive) {
+    const c = caps(d);
+    const stream = c.stopNext;                    /* artist radio and playlist */
     return `
-      <div class="widget hero c${isLive ? ' live' : ''}">
+      <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}">
         <div class="stage">
           <img class="art" src="${esc(stageArt(d))}" alt="" crossorigin="anonymous">
           <div class="scrim"></div>
           <div class="topbar">
             <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
-               aria-label="Open ${esc(d.subtitle)} on iHeart"><img class="h-thumb" src="${esc(d.art)}" alt=""></a>
+               aria-label="Open ${esc(d.subtitle || d.title)} on iHeart"><img class="h-thumb${c.roundThumb ? ' round' : ''}" src="${esc(d.art)}" alt=""></a>
             <div class="meta">
-              ${isLive
-                ? liveMeta(d)
+              ${isLive ? liveMeta(d)
+                : stream ? streamMeta(d)
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
@@ -637,28 +829,25 @@ ${rowMarkup(d, r)}`).join('')}
           </div>
           <div class="hero-controls">
             <span class="cc-side">
-              ${isLive ? '' : `
-                <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
-                <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
-              `}
+              ${c.speed ? `
+                <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>` : ''}
+              ${c.seek ? `
+                <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>` : ''}
             </span>
             <button class="hero-play" data-act="play" aria-label="Play">
               <img class="pi" src="${GLYPH.play}" alt="">
               <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
             </button>
             <span class="cc-side">
-              ${isLive ? '' : `
-                <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>`}
+              ${c.seek ? `
+                <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>` : ''}
+              ${c.stopNext ? `
+                <button class="h-btn skip" data-act="next" aria-label="Next Track">
+                  <img src="assets/h-next.svg" alt=""><span class="skips">${SKIP_LIMIT}</span></button>` : ''}
             </span>
           </div>
-          ${isLive ? `
-            <div class="hero-bottom">
-              <div class="list-row">
-                ${cActions(false)}
-              </div>
-              <div class="wave"></div>
-            </div>` : `
-            <div class="hero-bottom">
+          <div class="hero-bottom">
+            ${c.scrub ? `
               <div class="c-rows">
                 <div class="slider">
                   <span class="t el">00:00</span>
@@ -667,13 +856,12 @@ ${rowMarkup(d, r)}`).join('')}
                   </div>
                   <span class="t dur">--:--</span>
                 </div>
-                <div class="list-row">
-                  ${cActions(true)}
-                </div>
-              </div>
-              <div class="wave"></div>
-            </div>`}
-          ${isLive ? '' : sheetMarkup(d)}
+                <div class="list-row">${cActions(c)}</div>
+              </div>` : `
+              <div class="list-row">${cActions(c)}</div>`}
+            <div class="wave"></div>
+          </div>
+          ${c.list && c.rowsLive ? sheetMarkup(d) : ''}
         </div>
         <!-- Design C carries BOTH list forms and CSS shows one. A JS switch
              would mean re-rendering the card while the height changes, and
@@ -683,10 +871,12 @@ ${rowMarkup(d, r)}`).join('')}
              which is safe because render() writes both together and the current
              row highlight is applied with querySelectorAll over every
              .row[data-ep], so the two cannot drift.
-             Note the placement. sheetMarkup sits INSIDE .stage because the
-             drawer overlays the artwork; this sits after it, a sibling of the
-             stage, which is exactly where heroMarkup puts the same call. -->
-        ${isLive ? '' : listMarkup(d)}
+             Only the podcast show gets the drawer half. Artist radio and
+             playlist have no list button anywhere in their frames, so their
+             Featured Artists list is inline ONLY and appears with height, which
+             is also why it carries no dismiss X: the height rule owns whether
+             it is showing, and an X would fight it. -->
+        ${c.list ? listMarkup(d) : ''}
         ${infoMarkup(d)}
         ${shareMarkup(d)}
         ${veilMarkup()}
@@ -1134,6 +1324,10 @@ ${rowMarkup(d, r)}`).join('')}
        control. The action and authToast() below are left wired rather than
        deleted, so putting either button back is a markup change and nothing
        else. */
+    /* Skip next, artist radio and playlist. Real product rule, simulated here:
+       the card steps to the next track in a list it genuinely holds, and the
+       badge counts down the free user skip allowance the frames draw. */
+    if (kind === 'next') return skipTrack();
     if (kind === 'save') authToast();
     if (kind === 'veil') dismissVeil();
     if (kind === 'row') {
@@ -1419,6 +1613,11 @@ ${rowMarkup(d, r)}`).join('')}
      into it. Asking a second time after someone has already said no is the
      same nagging the five second delay exists to avoid.
      --------------------------------------------------------------------- */
+  /* The badge on skip next. The frames draw a 6 there and the RFD has a
+     "Free User - Skip Limit" section, so it is a real product rule rather than
+     decoration. Nothing enforces it here; the card is not signed in. */
+  const SKIP_LIMIT = 6;
+
   const VEIL_DELAY = variant === 'c' ? 0 : 5000;
 
   function clearVeil() { clearTimeout(w.veilTimer); w.veilTimer = null; }
@@ -1451,7 +1650,85 @@ ${rowMarkup(d, r)}`).join('')}
 
   async function toggle() { setPlaying(!w.playing, true); }
 
+  /* ---------------------------------------------------------------------
+     Artist radio and playlist run a simulated transport.
+
+     Their audio needs an x-ihr-profile-id and x-ihr-session-id, and the only
+     unauthenticated way to get them is loginOrCreateOauthUser, which mints an
+     account on iHeart production per visit. That works from this origin but
+     this page is public, so it is not done. Everything else on these two cards
+     is real: the artist, the playlist, the track list and the artists on it all
+     come from public catalog endpoints.
+
+     What is simulated is the clock. The card steps through its real tracks at
+     their real durations, so the metadata changes when a track would actually
+     end, and stop and skip behave. Nothing is heard.
+     --------------------------------------------------------------------- */
+  const simTick = () => {
+    const d = w.data; if (!d) return;
+    const t = curTrack(d); if (!t) return;
+    w.simPos = (w.simPos || 0) + 1;
+    if (w.simPos >= (t.duration || 180)) nextTrack();
+  };
+  function nextTrack() {
+    const d = w.data; if (!d || !(d.tracks || []).length) return;
+    d.trackIndex = ((d.trackIndex || 0) + 1) % d.tracks.length;
+    w.simPos = 0;
+    paintStream();
+  }
+  function skipTrack() {
+    if (!w.data || !caps(w.data).stopNext) return;
+    if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
+    if (w.skipsLeft <= 0) { authToast(); return; }
+    w.skipsLeft -= 1;
+    const badge = q('.skips'); if (badge) badge.textContent = String(w.skipsLeft);
+    nextTrack();
+  }
+  /* Writes the three metadata lines and the backdrop in place. A re-render
+     would rebuild the card under the listener every time a track changed, which
+     is the thing that broke the drawer and the live track order before. */
+  function paintStream() {
+    const d = w.data; if (!d) return;
+    const t = curTrack(d);
+    const set = (sel, text) => { const e = q(sel + ' .mqi') || q(sel); if (e) e.textContent = text; };
+    if (d.playingSim && t) {
+      if (!q('.h-station')) { render(); return; }    /* idle block has fewer lines */
+      set('.h-station', d.title); set('.h-name', t.title); set('.h-under', t.artist || '');
+    } else { render(); return; }
+    const artEl = q('.art'), want = (t && t.art) || d.art || '';
+    if (artEl && want && artEl.getAttribute('src') !== want) artEl.setAttribute('src', want);
+    markOverflow(root);
+  }
+
   async function setPlaying(on, byUser) {
+    /* The simulated branch. It shares everything below the audio element, so
+       the veil, the playing class, the glyph and the one card at a time rule
+       all behave exactly as they do for real audio. */
+    if (w.data && caps(w.data).stopNext) {
+      clearInterval(w.simTimer); w.simTimer = null;
+      if (on) {
+        INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });
+        w.data.playingSim = true;
+        if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
+        w.simTimer = setInterval(simTick, 1000);
+      } else {
+        /* Stop, not pause. These cards draw a stop square, so leaving the
+           position where it was would be a lie about what the button did. */
+        w.data.playingSim = false;
+        w.simPos = 0;
+      }
+      w.playing = on;
+      setPlayingClass();
+      paintStream();
+      const pi2 = q('.pi');
+      if (pi2) pi2.src = on ? GLYPH.stop : GLYPH.play;
+      const pb2 = q('[data-act="play"]');
+      if (pb2) pb2.setAttribute('aria-label', on ? 'Stop' : 'Play');
+      if (on) { clearVeil(); showVeil(false); }
+      else if (byUser) armVeil();
+      else clearVeil();
+      return;
+    }
     if (on) {
       INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
       if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
@@ -1654,12 +1931,17 @@ ${rowMarkup(d, r)}`).join('')}
      The empty span is still emitted when the left group has nothing in it.
      space-between with a single child pushes that child to the START, which
      would put the lockup on the wrong side of the card. */
-  const cActions = (isPodcast) =>
-    '<span class="lr-side">' +
-      (isPodcast ?
-        '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
-          '<img src="assets/h-list.svg" alt=""></button>' : '') +
-    '</span>' +
+  const BOTTOM_LEFT = {
+    list: '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
+            '<img src="assets/h-list.svg" alt=""></button>',
+    /* The episode frame puts an info button exactly where the show frame puts
+       the list button. It is the same drawer the show card already carries, so
+       only the trigger is new. */
+    info: '<button class="h-btn" data-act="info" aria-haspopup="dialog" aria-expanded="false" aria-label="About This Episode">' +
+            '<img src="assets/h-info.svg" alt=""></button>'
+  };
+  const cActions = (c) =>
+    '<span class="lr-side">' + (BOTTOM_LEFT[c.bottomLeft] || '') + '</span>' +
     '<span class="lr-side">' + IHR_LOCKUP + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
@@ -2227,9 +2509,15 @@ const WIDGET_ROSTER = [
   { key: 'b-podcast', root: 'w-podcast-hero', variant: 'hero',    kind: 'podcast' },
   { key: 'b-live',    root: 'w-live-hero',    variant: 'hero',    kind: 'live' },
   { key: 'c-podcast', root: 'w-podcast-c',    variant: 'c',       kind: 'podcast' },
-  { key: 'c-live',    root: 'w-live-c',       variant: 'c',       kind: 'live' }
+  { key: 'c-live',    root: 'w-live-c',       variant: 'c',       kind: 'live' },
+  /* The three Design D content types. Same design C card, different transport
+     and different metadata, so they take the same variant and differ only in
+     what is loaded into them. */
+  { key: 'c-episode',  root: 'w-episode-c',  variant: 'c', kind: 'episode' },
+  { key: 'c-artist',   root: 'w-artist-c',   variant: 'c', kind: 'artist' },
+  { key: 'c-playlist', root: 'w-playlist-c', variant: 'c', kind: 'playlist' }
 ];
-const WIDGETS = { podcast: [], live: [] };
+const WIDGETS = { podcast: [], live: [], episode: [], artist: [], playlist: [] };
 /* Keyed by the root id with its w- prefix dropped, which is also what a search
    box names in data-for, so the search wiring reads straight off this. */
 const BY_SEARCH = {};
@@ -2501,4 +2789,18 @@ const failAll = (kind, e) => WIDGETS[kind].forEach((w) =>
       showEmbed('live', live);
     } catch (e) { failAll('live', e); }
   }
+  /* The three added content types. Each is independent, so one failing leaves
+     the others alone rather than taking the page's remaining cards with it. */
+  const extra = [
+    ['episode',  () => loadEpisode(31090140)],                            /* Las Culturistas */
+    ['artist',   () => loadArtist(33221)],                                /* Taylor Swift Radio */
+    ['playlist', () => loadPlaylist('312064750', 'E63iPqfbGw4EzKMSgzoWF4')]  /* Clean Top Hits */
+  ];
+  await Promise.all(extra.map(async ([kind, get]) => {
+    if (!WIDGETS[kind].length) return;
+    try {
+      const d = await get();
+      WIDGETS[kind].forEach((w) => w.widget.load(Object.assign({}, d)));
+    } catch (e) { failAll(kind, e); }
+  }));
 })();

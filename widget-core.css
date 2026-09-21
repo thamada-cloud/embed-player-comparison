@@ -159,9 +159,11 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   /* The three shipping types with no design counterpart, stacked under the pair
      that has one. Rows 3 and 4 are already claimed, so these need rows of their
      own or they auto-flow into the design column. */
-  main[data-cols="2"] > [data-design="ship"][data-kind="episode"] { grid-row: 5; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="artist"] { grid-row: 6; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="playlist"] { grid-row: 7; }
+  /* Every content type now exists on BOTH sides, so each takes a row of its own
+     and the two columns line up type against type all the way down. */
+  main[data-cols="2"] > [data-design][data-kind="episode"] { grid-row: 5; }
+  main[data-cols="2"] > [data-design][data-kind="artist"] { grid-row: 6; }
+  main[data-cols="2"] > [data-design][data-kind="playlist"] { grid-row: 7; }
 }
 
 /* The three column option is gone. It existed to put what ships beside design
@@ -271,6 +273,26 @@ section.is-live > .band-note { color: #14532d; }
 /* The Auto button is a state, not an action, so it reads as pressed while no
    height is set rather than looking like a button you have yet to use. */
 .heightctl button[aria-pressed="true"] { background: var(--ihr-grey-600); color: #fff; }
+
+/* ---------- artist radio and playlist, Design D ----------
+   Three additions and nothing else. These cards are design C's card with a
+   different transport, so everything structural is already above. */
+/* The artist radio frame draws a circular artist image where the other cards
+   draw a rounded square. Playlist keeps the square. */
+.topbar .h-thumb.round { border-radius: 50%; }
+/* Skip next carries the free user skip allowance, which the frames draw as a
+   small count tucked into the button's top right. */
+.widget.c .h-btn.skip { position: relative; }
+.widget.c .h-btn.skip .skips {
+  position: absolute; top: 0; right: 0; min-width: 14px; height: 14px; padding: 0 3px;
+  border-radius: 7px; background: var(--ihr-red-550); color: var(--true-white);
+  font-size: 10px; line-height: 14px; font-weight: 700; text-align: center;
+  box-sizing: border-box; pointer-events: none;
+}
+/* A featured artist row selects nothing, so it gets no hover, no pointer and no
+   room reserved for an overflow button. */
+.list .row.inert { cursor: default; padding-right: 16px; }
+.list .row.inert:hover { background: transparent; }
 
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
