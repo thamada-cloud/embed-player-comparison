@@ -65,6 +65,18 @@ section { margin: 0; }
   font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
   color: var(--text-dim);
 }
+/* The height control, built from the page's own chrome rather than the
+   prototype page's: this page has .ctrl and .seg, not .widthctl. */
+#galHeight { width: 150px; accent-color: var(--accent); cursor: pointer; }
+#galHeightOut { font-size: 12px; color: var(--text-dim); min-width: 52px;
+                font-variant-numeric: tabular-nums; }
+#galHeightAuto {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+  background: var(--bg); color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px;
+}
+#galHeightAuto[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg);
+                                      border-color: var(--accent); font-weight: 600; }
 .loaded-count { font-size: 11.5px; color: var(--text-dim); }
 .pagelink { font-size: 13px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .pagelink:hover { border-bottom-color: var(--text); }
@@ -99,6 +111,18 @@ section { margin: 0; }
       <button data-cols="2" aria-pressed="false">2</button>
       <button data-cols="3" aria-pressed="true">3</button>
     </div>
+  </div>
+
+  <!-- Height. Every player here declares its own, from TuneIn's fixed 100 to
+       Spotify's 352, and Auto respects that. Overriding it puts them all in the
+       same slot, which is the only way to see which ones fill a box they did
+       not choose and which ones crop or leave dead space. -->
+  <div class="ctrl">
+    <label for="galHeight">Height</label>
+    <input id="galHeight" type="range" min="100" max="900" step="1" value="300"
+           aria-label="Player height">
+    <output id="galHeightOut">auto</output>
+    <button type="button" id="galHeightAuto" aria-pressed="true">Auto</button>
   </div>
 
   <div class="ctrl">
@@ -152,7 +176,10 @@ const state = {
   mode: 'podcast',   /* 'live' or 'podcast' */
   show: 'sysk',      /* which podcast, when mode is 'podcast' */
   theme: 'light',
-  cols: 3
+  cols: 3,
+  /* null means every player keeps the height it declares. A number overrides
+     all of them, including the ones that size themselves by aspect. */
+  height: null
 };
 
 /* The mode key actually handed to the registry. Live and music both ignore the
@@ -168,6 +195,7 @@ let observer = null;
 /* Exact height a frame will occupy, so the placeholder reserves it and mounting
    causes no layout shift. Aspect frames are 16:9 of their measured column. */
 function reservedHeight(entry, colWidth) {
+  if (state.height) return state.height;
   return entry.aspect ? Math.round(colWidth * 9 / 16) : entry.h;
 }
 
@@ -205,7 +233,9 @@ function cardFor(p) {
       card.appendChild(bar);
     }
     const wrap = document.createElement('div');
-    wrap.className = 'frame-wrap' + (r.entry.aspect ? ' aspect' : '');
+    /* An aspect wrapper derives its height from its width, which is exactly
+       what an override is overriding, so the class comes off while one is set. */
+    wrap.className = 'frame-wrap' + (r.entry.aspect && !state.height ? ' aspect' : '');
     const hold = document.createElement('div');
     hold.className = 'pending';
     hold.innerHTML = '<span>' + escHtml(p.name) + '</span>';
@@ -227,6 +257,14 @@ function mount(wrap) {
   if (!p || r.blocked) return;
   wrap.dataset.mounted = '1';
   const f = applyFrameAttrs(document.createElement('iframe'), p, r.entry, state.theme);
+  /* applyFrameAttrs sets the height from the entry and leaves aspect players to
+     the wrapper's ratio, so the override has to land after it and has to be a
+     style rather than the attribute: an aspect wrapper would otherwise keep
+     sizing the frame from its width. */
+  if (state.height) {
+    f.height = state.height;
+    f.style.height = state.height + 'px';
+  }
   f.loading = 'eager';
   wrap.innerHTML = '';
   wrap.appendChild(f);
@@ -317,6 +355,20 @@ $('#colSeg').addEventListener('click', (e) => {
     x.setAttribute('aria-pressed', String(Number(x.dataset.cols) === state.cols)));
   build();
 });
+
+/* Height. Rebuilds rather than restyling, because every frame is torn down and
+   remounted anyway when the reserved heights change, and a half updated grid of
+   36 cross origin iframes is worse than a rebuild. */
+const galHeight = $('#galHeight'), galHeightOut = $('#galHeightOut'), galHeightAuto = $('#galHeightAuto');
+function applyGalHeight(px) {
+  state.height = px;
+  galHeightOut.textContent = px ? px + ' px' : 'auto';
+  galHeightAuto.setAttribute('aria-pressed', String(!px));
+  if (px) galHeight.value = String(px);
+  build();
+}
+galHeight.addEventListener('input', () => applyGalHeight(Number(galHeight.value)));
+galHeightAuto.addEventListener('click', () => applyGalHeight(null));
 
 $('#themeSeg').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;

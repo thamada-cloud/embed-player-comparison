@@ -317,10 +317,20 @@ section.is-live > .band-note { color: #14532d; }
                             color: var(--ihr-grey-600); }
 .row-more-link:hover { background: var(--ihr-grey-150); }
 .row-more-link .row-out { width: 24px; height: 24px; flex: 0 0 auto; display: block; }
-/* Body 3 from the frame, 16 / 24 at -0.5, centred, with the links in the
-   system's link blue and the pipe in body colour rather than tinted with them. */
-.list-legal { margin: 8px 0 12px; text-align: center; font-size: var(--fs-16);
-              line-height: var(--lh-24); letter-spacing: -0.5px; color: var(--ihr-grey-600); }
+/* Caption 4, not the frame's Body 3.
+
+   The frame draws this at 16 / 24 at -0.5, which is body copy, and body copy is
+   the wrong register for a footnote that sits under every list on every card.
+   accomplice's caption-4 is 12 / 400 / 16 at letterSpacing 4, the kind the
+   system keeps for exactly this, and .k-caption-4 above already carries it.
+   Deliberate departure from the frame, asked for.
+
+   Centred, with the links in the system's link blue and the pipe left in body
+   colour rather than tinted along with them. */
+.list-legal { margin: 8px 0 12px; text-align: center;
+              font-size: var(--fs-12); line-height: var(--lh-16);
+              font-weight: 400; letter-spacing: var(--ls-4);
+              color: var(--ihr-grey-600); }
 .list-legal a { color: #0055b7; text-decoration: none; }
 .list-legal a:hover { text-decoration: underline; }
 .list-legal span { margin: 0 6px; }
