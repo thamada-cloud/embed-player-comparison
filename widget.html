@@ -59,13 +59,12 @@
     <label for="cols1">Columns</label>
     <span class="seg">
       <button type="button" id="cols1" data-cols="1" aria-pressed="false">1</button>
-      <button type="button" id="cols2" data-cols="2" aria-pressed="false">2</button>
-      <button type="button" data-cols="3" aria-pressed="true">3</button>
+      <button type="button" id="cols2" data-cols="2" aria-pressed="true">2</button>
     </span>
   </div>
 </header>
 
-<main data-cols="3" data-wave="off">
+<main data-cols="2" data-wave="off">
   <!-- One search per content type, for the whole page. Choosing a show or a
        station already loads it into every card of that kind, so a box per
        section was four controls doing one job. -->
@@ -161,6 +160,14 @@
 
   -->
 
+  <!-- Design B is hidden for now, the same way design A is. Commented out
+       rather than deleted, because the roster in widget-core.js builds itself
+       from whichever roots exist in the page: with w-podcast-hero and
+       w-live-hero gone no hero widget is created, nothing is fetched for it and
+       no audio element is made. Put the block back to bring it back.
+       The page is now what ships against design C, two sets rather than three,
+       which is why the three column option went with it. -->
+  <!--
   <div class="band band-proto" data-design="b">
     <h2>Design B</h2>
   </div>
@@ -176,6 +183,7 @@
     <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
     <p class="status" id="s-live-hero"></p>
   </section>
+  -->
 
   <div class="band band-proto" data-design="c">
     <h2>Design C</h2>

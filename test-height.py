@@ -80,8 +80,9 @@ def fill(pg):
         check("live at %d, stage is %d" % (h, max(h, 234)), b["stage"], max(h, 234))
         check("live at %d, no list icon" % h, b["icon"], None)
 
-    set_height(pg, 600)
-    check("design B stays 444 while C responds", boxes(pg, "#w-podcast-hero")["card"], 444)
+    # The design B check that used to live here is gone with design B. It is
+    # commented out of the page, so the roster never builds a hero widget and
+    # #w-podcast-hero does not exist to measure.
 
     set_height(pg, 300)
     pg.evaluate("document.documentElement.style.setProperty('--player-w','220px')")
@@ -89,7 +90,7 @@ def fill(pg):
     check("width query still fires at 220 wide, lockup words hidden",
           pg.evaluate("""() => { const w = document.querySelector('#w-podcast-c .ihr-lockup span');
                                  return w ? getComputedStyle(w).display : 'no-span'; }"""), "none")
-    pg.evaluate("document.documentElement.style.removeProperty('--player-w')")
+    pg.evaluate("document.documentElement.style.setProperty('--player-w','411px')")
     set_height(pg, None)
 
 def inline(pg):
@@ -132,6 +133,8 @@ def inline(pg):
 def control(pg):
     print("\n--- Task 3, the height control ---")
     pg.reload(); pg.wait_for_timeout(4500)
+    pg.evaluate("document.documentElement.style.setProperty('--player-w','411px')")
+    pg.wait_for_timeout(200)
 
     check("control exists", pg.evaluate("!!document.getElementById('heightRange')"), True)
     check("defaults to Auto, no flag set",
@@ -177,6 +180,14 @@ def main():
             errs = []
             pg.on("pageerror", lambda e: errs.append(str(e)[:120]))
             pg.goto(URL); pg.wait_for_timeout(4500)
+            # Pin the width for the whole run. Design C's stage is 16:9 when no
+            # height is set, so its natural height is a function of the column
+            # width, and the column width changes with the layout. Every "natural
+            # 234" below is 234 only at this width; unpinned, the same assertions
+            # read 352 in a two column page and would have to be rewritten
+            # whenever the page's columns change.
+            pg.evaluate("document.documentElement.style.setProperty('--player-w','411px')")
+            pg.wait_for_timeout(200)
             for name, fn in GROUPS.items():
                 if which in ("all", name):
                     fn(pg)

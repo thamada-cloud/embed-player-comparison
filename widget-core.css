@@ -136,83 +136,38 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
 @media (min-width: 900px) {
   main[data-cols="2"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
                         column-gap: 28px; align-items: start; }
-  /* The shipping block keeps its band across the full width and puts its two
-     embeds side by side, which is how it read before it was split up. */
+  /* What ships on the left, the design on the right, with podcast beside
+     podcast and live beside live. This used to stack the shipping block full
+     width ABOVE two designs side by side, which was right while there were
+     three sets. There are two now, so the pair being compared is what ships
+     against one design, and they belong in a column each.
+
+     Explicit rows, not auto-flow, for the reason the three column layout gave:
+     auto-flow will not go back for a column it has already passed, so a section
+     with no rule lands wherever there is space rather than where it belongs.
+
+     The design side is selected by exclusion rather than by name, so whichever
+     of A, B and C is uncommented takes the right hand column and no CSS has to
+     change when they are swapped. Uncomment two and they stack there, which is
+     a fair degradation rather than a break. */
   main[data-cols="2"] > .searchrow { grid-column: 1 / -1; grid-row: 1; }
-  main[data-cols="2"] > .band[data-design="ship"] { grid-column: 1 / -1; grid-row: 2; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="podcast"] { grid-column: 1; grid-row: 3; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="live"] { grid-column: 2; grid-row: 3; }
-  /* A and B are alternatives and only ever one of them is in the page, so they
-     share the left column and design C keeps the right. Swapping which of the
-     two is commented out therefore needs no CSS change. */
-  main[data-cols="2"] > [data-design="a"],
-  main[data-cols="2"] > [data-design="b"] { grid-column: 1; }
-  main[data-cols="2"] > [data-design="c"] { grid-column: 2; }
-  /* The three types with no design counterpart, stacked under the pair that
-     has one. They need explicit placement like everything else here: rows 3 and
-     4 are already claimed, and a section with no rule auto-flows into whichever
-     column has space, which put them under the designs rather than under what
-     ships. */
-  main[data-cols="2"] > [data-design="ship"][data-kind="episode"] { grid-column: 1; grid-row: 4; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="artist"] { grid-column: 2; grid-row: 4; }
-  main[data-cols="2"] > [data-design="ship"][data-kind="playlist"] { grid-column: 1; grid-row: 5; }
-  main[data-cols="2"] > .band[data-design]:not([data-design="ship"]) { grid-row: 6; }
-  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 7; }
-  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 8; }
+  main[data-cols="2"] > [data-design="ship"] { grid-column: 1; }
+  main[data-cols="2"] > [data-design]:not([data-design="ship"]) { grid-column: 2; }
+  main[data-cols="2"] > .band[data-design] { grid-row: 2; }
+  main[data-cols="2"] > [data-design][data-kind="podcast"] { grid-row: 3; }
+  main[data-cols="2"] > [data-design][data-kind="live"] { grid-row: 4; }
+  /* The three shipping types with no design counterpart, stacked under the pair
+     that has one. Rows 3 and 4 are already claimed, so these need rows of their
+     own or they auto-flow into the design column. */
+  main[data-cols="2"] > [data-design="ship"][data-kind="episode"] { grid-row: 5; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="artist"] { grid-row: 6; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="playlist"] { grid-row: 7; }
 }
 
-/* Three across: what ships, then the two designs, with podcast beside podcast
-   and live beside live. The same explicit row placement as the two column
-   layout and for the same reason, that auto-flow will not go back for a column
-   it has already passed.
+/* The three column option is gone. It existed to put what ships beside design
+   B beside design C; with design B hidden there are two sets, so two columns is
+   the widest arrangement the page has anything to put in. */
 
-   1200, not 900. Three columns of a 1320 page is about 420 each after the
-   gaps, which is a real embed width; at 900 it would be 280 and the cards
-   would be answering a question nobody asked. Below it the toggle falls back to
-   the two column rules, and below 900 to one. */
-@media (min-width: 1200px) {
-  main[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr));
-                        column-gap: 24px; align-items: start; }
-  main[data-cols="3"] > [data-design="ship"] { grid-column: 1; }
-  main[data-cols="3"] > [data-design="a"],
-  main[data-cols="3"] > [data-design="b"] { grid-column: 2; }
-  main[data-cols="3"] > [data-design="c"] { grid-column: 3; }
-  main[data-cols="3"] > .searchrow { grid-column: 1 / -1; grid-row: 1; }
-  main[data-cols="3"] > .band[data-design] { grid-row: 2; }
-  main[data-cols="3"] > [data-design][data-kind="podcast"] { grid-row: 3; }
-  main[data-cols="3"] > [data-design][data-kind="live"] { grid-row: 4; }
-  /* The three types with no design counterpart, stacked under the pair that
-     has one. They need explicit placement like everything else here: rows 3 and
-     4 are already claimed, and a section with no rule auto-flows into whichever
-     column has space, which put them under the designs rather than under what
-     ships. */
-  main[data-cols="3"] > [data-design="ship"][data-kind="episode"] { grid-row: 5; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="artist"] { grid-row: 6; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="playlist"] { grid-row: 7; }
-}
-/* Between 900 and 1200 a page asking for three columns gets two. */
-@media (min-width: 900px) and (max-width: 1199px) {
-  main[data-cols="3"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-                        column-gap: 28px; align-items: start; }
-  main[data-cols="3"] > .searchrow { grid-column: 1 / -1; grid-row: 1; }
-  main[data-cols="3"] > .band[data-design="ship"] { grid-column: 1 / -1; grid-row: 2; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="podcast"] { grid-column: 1; grid-row: 3; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="live"] { grid-column: 2; grid-row: 3; }
-  main[data-cols="3"] > [data-design="a"],
-  main[data-cols="3"] > [data-design="b"] { grid-column: 1; }
-  main[data-cols="3"] > [data-design="c"] { grid-column: 2; }
-  /* The three types with no design counterpart, stacked under the pair that
-     has one. They need explicit placement like everything else here: rows 3 and
-     4 are already claimed, and a section with no rule auto-flows into whichever
-     column has space, which put them under the designs rather than under what
-     ships. */
-  main[data-cols="3"] > [data-design="ship"][data-kind="episode"] { grid-column: 1; grid-row: 4; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="artist"] { grid-column: 2; grid-row: 4; }
-  main[data-cols="3"] > [data-design="ship"][data-kind="playlist"] { grid-column: 1; grid-row: 5; }
-  main[data-cols="3"] > .band[data-design]:not([data-design="ship"]) { grid-row: 6; }
-  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 7; }
-  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 8; }
-}
 /* Below 900 the two columns would be narrower than the cards are designed for,
    so the toggle is simply ignored rather than disabled: the page falls back to
    one column and the button stays where it was. */
