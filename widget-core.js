@@ -399,8 +399,12 @@ const CAPS = {
   podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  bottomLeft: 'list', rowsLive: true },
   episode:  { seek: true,  speed: true,  scrub: true,  list: false, bottomLeft: 'info' },
   live:     { seek: false, speed: false, scrub: false, list: false, bottomLeft: null },
-  artist:   { seek: false, speed: false, scrub: false, list: true,  bottomLeft: null, stopNext: true, roundThumb: true },
-  playlist: { seek: false, speed: false, scrub: false, list: true,  bottomLeft: null, stopNext: true }
+  /* bottomLeft: 'list' on both, which the frames do not draw. Without it the
+     Featured Artists list is reachable only by making the slot tall enough,
+     so at any ordinary height the card holds a list nobody can open. A list
+     with no way to open it is worse than a button the frame is missing. */
+  artist:   { seek: false, speed: false, scrub: false, list: true,  bottomLeft: 'list', rowsLive: true, stopNext: true, roundThumb: true },
+  playlist: { seek: false, speed: false, scrub: false, list: true,  bottomLeft: 'list', rowsLive: true, stopNext: true }
 };
 const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
 
@@ -1037,10 +1041,11 @@ ${rowMarkup(d, r)}`).join('')}
     buildBars();
     markOverflow(root);
     fitPeek();
+    wirePeekFade(root);
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
-    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitPeek(); });
+    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitPeek(); wirePeekFade(root); });
     w.ro.observe(root);
 
     const art = q('.art');
@@ -1206,6 +1211,21 @@ ${rowMarkup(d, r)}`).join('')}
         if (link) {
           if (navigator.clipboard) navigator.clipboard.writeText(sheetEl.dataset.url || '');
           flash(link.querySelector('.lbl'));
+          return;
+        }
+        const more = e.target.closest('[data-share="more"]');
+        if (more) {
+          const url = sheetEl.dataset.url || '';
+          /* navigator.share needs a user gesture and a secure context, and it
+             rejects when the person dismisses the sheet, which is not an error
+             worth reporting. Anything it cannot do falls back to the clipboard,
+             so the button always does something. */
+          if (navigator.share) {
+            navigator.share({ url, title: (w.data && w.data.title) || '' }).catch(() => {});
+          } else {
+            if (navigator.clipboard) navigator.clipboard.writeText(url);
+            flash(more.querySelector('.lbl'));
+          }
         }
       });
     }
@@ -1322,6 +1342,26 @@ ${rowMarkup(d, r)}`).join('')}
      the row count drops by one, and the space it held becomes drawer below the
      list rather than half a row nobody can see. */
   const PEEK = 24;
+  /* The fade over the peek is pointless once there is nothing below to hint at,
+     so it is turned off at the end of the scroll. Bound per render, on every
+     rows container the card has, since design C carries two. */
+  function wirePeekFade(root) {
+    root.querySelectorAll('.rows').forEach((rows) => {
+      const mark = () => {
+        const atEnd = rows.scrollTop + rows.clientHeight >= rows.scrollHeight - 1;
+        rows.dataset.atEnd = String(atEnd);
+      };
+      /* Bound once per element. render() rewrites the markup so a fresh set
+         arrives each time, but the ResizeObserver calls this on the SAME
+         elements repeatedly and would otherwise stack a listener per resize. */
+      if (!rows.dataset.fadeWired) {
+        rows.addEventListener('scroll', mark, { passive: true });
+        rows.dataset.fadeWired = '1';
+      }
+      mark();
+    });
+  }
+
   function fitPeek() {
     const rows = root.querySelector('.sheet:not(.info-sheet) .rows');
     if (!rows) return;
@@ -1977,17 +2017,22 @@ ${rowMarkup(d, r)}`).join('')}
      The empty span is still emitted when the left group has nothing in it.
      space-between with a single child pushes that child to the START, which
      would put the lockup on the wrong side of the card. */
-  const BOTTOM_LEFT = {
-    list: '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
+  /* A function, not an object literal. The list button's label names what it
+     opens, which is Episodes on a podcast and Featured Artists on the other two,
+     and an object built once at definition time would have captured w.data
+     while it was still null. */
+  const BOTTOM_LEFT = () => ({
+    list: '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show ' +
+            esc((w.data && w.data.listTitle) || 'Episodes') + '">' +
             '<img src="assets/h-list.svg" alt=""></button>',
     /* The episode frame puts an info button exactly where the show frame puts
        the list button. It is the same drawer the show card already carries, so
        only the trigger is new. */
     info: '<button class="h-btn" data-act="info" aria-haspopup="dialog" aria-expanded="false" aria-label="About This Episode">' +
             '<img src="assets/h-info.svg" alt=""></button>'
-  };
+  });
   const cActions = (c) =>
-    '<span class="lr-side">' + (BOTTOM_LEFT[c.bottomLeft] || '') + '</span>' +
+    '<span class="lr-side">' + (BOTTOM_LEFT()[c.bottomLeft] || '') + '</span>' +
     '<span class="lr-side">' + ihrLockup(listenUrl(w.data), listenName(w.data)) + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
@@ -2010,6 +2055,11 @@ ${rowMarkup(d, r)}`).join('')}
     '<path d="M14 4h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="M20 4 10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
     '<path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const GLYPH_MORE =
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<circle cx="5" cy="12" r="2" fill="currentColor"/>' +
+    '<circle cx="12" cy="12" r="2" fill="currentColor"/>' +
+    '<circle cx="19" cy="12" r="2" fill="currentColor"/></svg>';
   const GLYPH_X =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -2233,28 +2283,37 @@ ${rowMarkup(d, r)}`).join('')}
             <img src="assets/sheet-close.svg" alt=""></button>
         </div>
         <div class="share-body">
-          <div class="share-head-row">
-            <img class="share-art" src="${esc(d.art || '')}" alt="">
-            <div class="share-names">
-              <p class="share-name">${esc(d.title || '')}</p>
-              <p class="share-desc">${esc((isLive ? d.desc : d.subtitle) || '')}</p>
-            </div>
-          </div>
+          <!-- No content row. The Design D share drawers all carry a Content
+               frame and all of them have it hidden: 2666:131829 on artist radio
+               and 2670:137537 on the episode both say hidden="true". The drawer
+               names the KIND in its heading and the thing itself in the embed
+               snippet, and the card it covers was showing what you are sharing
+               a moment earlier.
+               It also removed a bug rather than only matching a frame. The row
+               read d.title on one line and d.subtitle on the other, and once
+               shareFields started returning the card's own content the podcast
+               card printed its show name on both. -->
           <div class="share-section"><p>Share on</p><div class="share-targets">
             <button class="share-target" type="button" data-share="copy">
-              <span class="ring">${GLYPH_COPY}</span><span class="lbl">Copy Link</span></button>
+              <span class="ring">${GLYPH_COPY}</span><span class="lbl">Copy link</span></button>
             <a class="share-target" data-share="facebook" target="_blank" rel="noopener"
                href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}">
               <span class="ring">${GLYPH_OUT}</span><span class="lbl">Facebook</span></a>
             <a class="share-target" data-share="x" target="_blank" rel="noopener"
                href="https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(d.title || '')}">
               <span class="ring">${GLYPH_OUT}</span><span class="lbl">X</span></a>
+            <!-- The frames draw four targets and this one was missing. It hands
+                 off to the platform's own share sheet where there is one, and
+                 falls back to copying the link where there is not, which is the
+                 only thing a web page can honestly offer in its place. -->
+            <button class="share-target" type="button" data-share="more">
+              <span class="ring">${GLYPH_MORE}</span><span class="lbl">More</span></button>
           </div></div>
           <div class="share-section" style="width:100%"><p>Embed widget</p>
             <div class="share-embed">
               <input name="embed-code" readonly disabled value="${esc(embedCode)}">
               <button class="share-copy" type="button" data-code="${esc(embedCode)}">
-                ${GLYPH_COPY}<span class="lbl">Copy Code</span></button>
+                ${GLYPH_COPY}<span class="lbl">Copy code</span></button>
             </div>
           </div>
         </div>

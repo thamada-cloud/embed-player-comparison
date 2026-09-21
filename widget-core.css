@@ -1473,6 +1473,25 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
            font-size: var(--fs-14); line-height: var(--lh-18);
            letter-spacing: var(--ls-0); font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+/* The peek fades out instead of being sliced.
+
+   fitPeek() deliberately leaves a partial row showing so the list reads as
+   scrollable, but a row cut clean through its artwork and its title reads as a
+   rendering fault rather than as more content. The mask takes the last 28px to
+   transparent, which is slightly more than the 24 of peek, so the cut edge is
+   never the thing you see: the row is always already fading where it ends.
+
+   Masked on the scroll container, not the last row, so it stays put while the
+   rows move under it and the top of the list is untouched. */
+.rows {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+}
+/* Scrolled to the end there is nothing below to hint at, so the fade would just
+   be dimming the last row for no reason. */
+.rows[data-at-end="true"] {
+  -webkit-mask-image: none; mask-image: none;
+}
 /* The overflow button is a sibling of the row, not a child of it, because the
    row carries role="button" and a control nested inside one is not reliably
    reachable. The wrapper is what lets them sit on top of each other. */
@@ -1717,14 +1736,24 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
 
      The colour dim stays, because that part is close to free and it is what
      makes the card recede while the sheet crosses it. */
-  background-color: rgba(0 0 0 / 0);
+  /* No dim. Measured at the same point in a slowed slide, the share panel and
+     the episode panel sit in exactly the same place and travel for exactly the
+     same 500ms with the same easing, so the transform was never the difference.
+     What differed was this: the strip of card still showing above the panel was
+     BLACK on the share drawer and the artwork on the other two, so share read
+     as a dark wipe and the others as a panel sliding over a card.
+
+     accomplice's Dialog has a scrim and its Drawer does not, which is why they
+     diverged. Consistency across the three drawers on one card matters more
+     here than which component each was lifted from. The element stays, because
+     it is the click away target. */
+  background-color: transparent;
   visibility: hidden;
-  transition: background-color .6s var(--drawer-out), visibility 0s linear .6s;
+  transition: visibility 0s linear .6s;
 }
 .widget.share-open .share-scrim {
-  background-color: rgba(0 0 0 / .8);
   visibility: visible;
-  transition: background-color .6s var(--drawer-in), visibility 0s;
+  transition: visibility 0s;
 }
 
 /* inset:0 with the drawer nested inside, rather than the drawer itself anchored
@@ -1738,6 +1767,31 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
   visibility: hidden; transition: visibility 0s linear .6s;
 }
 .widget.share-open .share-sheet { visibility: visible; transition: visibility 0s; }
+
+/* ---------------------------------------------------------------------------
+   The staged open, for EVERY drawer.
+
+   openStaged() in widget-core.js adds this class for two frames before it flips
+   the open flag, so the panel is painted at its closed position first and the
+   slide starts from something already on screen. The class was being added and
+   removed and NOTHING responded to it: this rule was lost in an earlier edit,
+   so the staging had been a no-op and each drawer began its slide on whatever
+   frame the browser happened to paint it.
+
+   That is what made the share drawer arrive differently from the other two. It
+   carries a scrim and an input and paints heavier than the episode list, so the
+   frame it first appeared on varied more, and its transition effectively began
+   part way through its own travel.
+
+   transition: none is the load-bearing half. The resting rule carries
+   `transition: visibility 0s linear .6s`, so turning visibility on without
+   killing the transition DELAYS it 600ms and the prep frame paints nothing at
+   all, which is the bug this class was written for in the first place. */
+.widget.drawer-prep .share-sheet,
+.widget.drawer-prep .sheet { visibility: visible; transition: none; }
+.widget.drawer-prep .share-panel,
+.widget.drawer-prep .sheet-panel { transition: none; }
+.widget.drawer-prep .share-scrim { visibility: visible; transition: none; }
 .share-panel {
   /* Full height, for the reason .sheet-panel is. */
   pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
