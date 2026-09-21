@@ -21,7 +21,9 @@ const searchStations = (q) => jget(`${API}/v3/search/all?keywords=${encodeURICom
 async function loadPodcast(id) {
   const [show, eps] = await Promise.all([
     jget(`${API}/v3/podcast/podcasts/${id}`),
-    jget(`${API}/v3/podcast/podcasts/${id}/episodes?limit=8`).then((d) => d.data || [])
+    /* Five. The Design D Episodes Drawer draws five rows and then the
+       link out to the rest, where this used to load eight and scroll. */
+    jget(`${API}/v3/podcast/podcasts/${id}/episodes?limit=5`).then((d) => d.data || [])
   ]);
   if (!eps.length) throw new Error('no episodes');
   const first = await jget(`${API}/v3/podcast/episodes/${eps[0].id}`).then((d) => d.episode);
@@ -98,7 +100,7 @@ function featuredFrom(tracks) {
   tracks.forEach((t) => {
     if (t.artist && !seen.has(t.artist)) seen.set(t.artist, { name: t.artist, id: t.artistId, art: t.art });
   });
-  return [...seen.values()].slice(0, 8);
+  return [...seen.values()].slice(0, 5);
 }
 
 /* A single episode, from the same fetch the show card makes. The frames draw no
@@ -398,7 +400,9 @@ function liveMeta(d) {
 const CAPS = {
   podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  bottomLeft: 'list', rowsLive: true },
   episode:  { seek: true,  speed: true,  scrub: true,  list: false, bottomLeft: 'info' },
-  live:     { seek: false, speed: false, scrub: false, list: false, bottomLeft: null },
+  /* Live radio carries the info button in the same corner the episode card
+     does, which frame 2666:125218 draws. It had none at all. */
+  live:     { seek: false, speed: false, scrub: false, list: false, bottomLeft: 'info' },
   /* bottomLeft: 'list' on both, which the frames do not draw. Without it the
      Featured Artists list is reachable only by making the slot tall enough,
      so at any ordinary height the card holds a list nobody can open. A list
@@ -747,6 +751,41 @@ function makeWidget(rootId, statusId, colourId, variant) {
 
   /* The episode list is the same component in both designs, 220 tall with the
      rows clipped at the frame bound, so it is written once. */
+  /* The tail of every list, from the Design D Episodes Drawer 2666:126249.
+
+     Two things, in this order. A row with no artwork carrying the link out to
+     the full thing with an open_new icon, drawn as a Row rather than as a
+     button so it sits in the same rhythm as the episodes above it. Then the
+     legal line, centred, Terms and Privacy as links in #0055b7 with a plain
+     pipe between them.
+
+     The frame's copy reads "List to more episodes". That is a typo for "Listen
+     to more episodes", which is what the shipping embed renders and what the
+     sentence needs to parse, so the shipping copy is used. Say the word and it
+     becomes the frame's string.
+
+     The Featured Artists drawer has NOT been drawn with either of these; its
+     frame is still the short 263 one showing three rows. Both are applied there
+     by parity with Episodes, on instruction, so the artists copy is a
+     placeholder until a frame says otherwise. */
+  const MORE_LABEL = { artist: 'View all artists', playlist: 'View all artists' };
+  function listTail(d) {
+    const label = MORE_LABEL[d.kind] || 'Listen to more episodes';
+    return `
+            <div class="row-wrap">
+              <a class="row row-more-link" href="${esc(listenUrl(d))}" target="_blank" rel="noopener">
+                <div class="row-text"><p class="row-title">${esc(label)}</p></div>
+                <img class="row-out" src="assets/open-new.svg" alt="">
+              </a>
+            </div>
+          </div>
+          <p class="list-legal">
+            <a href="https://www.iheart.com/terms/" target="_blank" rel="noopener">Terms</a>
+            <span aria-hidden="true">|</span>
+            <a href="https://www.iheart.com/privacy/" target="_blank" rel="noopener">Privacy</a>
+          </p>`;
+  }
+
   function listMarkup(d) {
     return `
         <div class="list">
@@ -754,7 +793,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
           <div class="rows">
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}
-          </div>
+${listTail(d)}
         </div>`;
   }
 
@@ -944,6 +983,14 @@ ${rowMarkup(d, r)}`).join('')}
         </div>
         <div class="sheet-body">
           <p class="info-body">${esc(d.infoBody || 'No description available.')}</p>
+          <!-- Both info drawer frames carry it, 2666:125789 on the podcast and
+               2670:197903 on live radio, under the description rather than
+               pinned to the bottom of the panel, so it scrolls with the text. -->
+          <p class="list-legal">
+            <a href="https://www.iheart.com/terms/" target="_blank" rel="noopener">Terms</a>
+            <span aria-hidden="true">|</span>
+            <a href="https://www.iheart.com/privacy/" target="_blank" rel="noopener">Privacy</a>
+          </p>
         </div>
        </div>
       </div>`;
@@ -966,7 +1013,7 @@ ${rowMarkup(d, r)}`).join('')}
           <div class="rows">
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}
-          </div>
+${listTail(d)}
         </div>
        </div>
       </div>`;
@@ -2028,7 +2075,11 @@ ${rowMarkup(d, r)}`).join('')}
     /* The episode frame puts an info button exactly where the show frame puts
        the list button. It is the same drawer the show card already carries, so
        only the trigger is new. */
-    info: '<button class="h-btn" data-act="info" aria-haspopup="dialog" aria-expanded="false" aria-label="About This Episode">' +
+    /* Named for what it opens. Live radio's drawer describes the STATION, so
+       announcing it as About This Episode would have been wrong the moment the
+       button was added there. */
+    info: '<button class="h-btn" data-act="info" aria-haspopup="dialog" aria-expanded="false" aria-label="About ' +
+            esc(w.data && w.data.kind === 'live' ? 'This Station' : 'This Episode') + '">' +
             '<img src="assets/h-info.svg" alt=""></button>'
   });
   const cActions = (c) =>

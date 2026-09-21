@@ -294,6 +294,26 @@ section.is-live > .band-note { color: #14532d; }
 .list .row.inert { cursor: default; padding-right: 16px; }
 .list .row.inert:hover { background: transparent; }
 
+/* ---------- the tail of a list, Design D 2666:126249 ----------
+   A link out to the rest, then the legal line. */
+.row-more-link { display: flex; align-items: center; gap: 12px; text-decoration: none;
+                 min-height: 40px; padding: 8px 12px; border-radius: var(--rad-6); }
+.row-more-link .row-title { font-size: var(--fs-14); line-height: var(--lh-18);
+                            font-weight: 600; letter-spacing: var(--ls-2);
+                            color: var(--ihr-grey-600); }
+.row-more-link:hover { background: var(--ihr-grey-150); }
+.row-more-link .row-out { width: 24px; height: 24px; flex: 0 0 auto; display: block; }
+/* Body 3 from the frame, 16 / 24 at -0.5, centred, with the links in the
+   system's link blue and the pipe in body colour rather than tinted with them. */
+.list-legal { margin: 8px 0 12px; text-align: center; font-size: var(--fs-16);
+              line-height: var(--lh-24); letter-spacing: -0.5px; color: var(--ihr-grey-600); }
+.list-legal a { color: #0055b7; text-decoration: none; }
+.list-legal a:hover { text-decoration: underline; }
+.list-legal span { margin: 0 6px; }
+/* The list is a column, so the tail has to be allowed to sit under a scroll
+   area that grew rather than being squeezed by it. */
+.list .rows, .sheet-body .rows { flex: 1 1 auto; min-height: 0; }
+
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
    every column in the multi column layouts. */
