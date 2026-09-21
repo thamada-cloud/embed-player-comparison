@@ -313,6 +313,10 @@ section.is-live > .band-note { color: #14532d; }
 [data-design="ship"][data-kind="artist"] .embed iframe,
 [data-design="ship"][data-kind="playlist"] .embed iframe { height: 440px; }
 
+/* The Auto button is a state, not an action, so it reads as pressed while no
+   height is set rather than looking like a button you have yet to use. */
+.heightctl button[aria-pressed="true"] { background: var(--ihr-grey-600); color: #fff; }
+
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
    every column in the multi column layouts. */
@@ -778,6 +782,94 @@ a.thumb-link:hover { opacity: .92; }
    against. */
 .widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 360px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
+
+/* ---------------------------------------------------------------------------
+   Design C given a height.
+
+   A publisher slot hands a card a fixed width AND a fixed height, and until now
+   every card here reported the height it wanted and the page obliged. The
+   shipping embed does not do this either: measured at 411 wide it draws one
+   layout 520 tall and lets the frame clip whatever does not fit, which is why
+   the shipped homepage slot at 150 renders its whole episode list below the
+   fold where nobody can see it. The first episode row starts at y=201.
+
+   The flag is an attribute rather than the presence of --player-h, because
+   container-type cannot be made conditional on a custom property's value.
+
+   container-type: size, not inline-size. It queries BOTH axes, so every width
+   query already written here keeps working untouched; the only reason it needs
+   a definite height is that a size container may not take its height from its
+   contents, which is exactly what a fixed slot is.
+
+   aspect-ratio and max-height are dropped at EVERY height, not only above the
+   threshold. They are what makes the card refuse the slot: at a 300 slot a
+   stage still governed by 16 / 9 stops at 234 and leaves 66px of dead space
+   under it, which is the whole defect. They still govern design C when no
+   height is set, which is the page's default and every case shipping today.
+
+   min-height: 234 stays. It is the floor protecting the centred control row
+   from the 48px top bar and the 40px bottom bar; the true collision point is
+   168 and 234 carries 66px of deliberate slack. A shorter slot clips, which is
+   what the shipping widget already does at every height, now with an honest
+   minimum rather than at any size at all. */
+main[data-h="on"] section[data-design="c"] .shell {
+  container-type: size; height: var(--player-h); overflow: hidden;
+}
+/* The chain has to be unbroken. makeWidget renders into a plain div between
+   the shell and the card, so height:100% on .widget alone resolved against an
+   auto height parent and did nothing at all. */
+/* The chain has to be unbroken AND the two links are different properties.
+
+   makeWidget renders into a plain div between the shell and the card, so
+   height: 100% on the card alone resolved against an auto height parent and did
+   nothing. That div takes height, not min-height: a percentage min-height
+   resolves against the parent's SPECIFIED height, and with the div left at auto
+   the card's own 100% resolved to nothing, which is why the card sat at 234
+   while the div correctly reported 600.
+
+   The card then takes min-height, not height. height: 100% caps it AT the slot,
+   so a 150 slot produced a 150 card and the 234 floor could never win. The card
+   has to be able to exceed its slot and be clipped, which is the entire point
+   of having a floor. Above the floor the two are identical, since the stage
+   flexes to fill whatever is left. */
+main[data-h="on"] section[data-design="c"] .shell > div { height: 100%; }
+main[data-h="on"] section[data-design="c"] .widget.c { min-height: 100%; }
+main[data-h="on"] section[data-design="c"] .widget.c .stage {
+  aspect-ratio: auto; max-height: none; flex: 1 1 auto;
+}
+
+/* Hidden by default, since design C's list is the drawer until it has the room
+   not to be. This has to sit BEFORE the container query below: the two rules
+   have identical specificity, so source order is what decides. */
+.widget.c .list { display: none; }
+
+/* 440 = 220 stage + 220 list, two equal halves, which is what makes it a clean
+   number rather than an arbitrary one. It also lands 4px under design B's
+   natural 444, so the two still read as the same size side by side.
+
+   min-height is removed rather than lowered. At exactly 440 the stage is
+   440 - 220 = 220, which is BELOW the 234 floor, and left alone the two rules
+   fight and the card overflows its slot by 14px at precisely the threshold.
+   Above the threshold the stage is height - 220 by definition, so it can never
+   be under 220 and no floor is needed. 220 is still 52px clear of the 168
+   collision point.
+
+   The drawer is taken out entirely up here rather than left underneath. Its
+   button is gone, so a drawer left open by dragging the slider upward would
+   have been sitting over the artwork with the inline list showing below it. Its
+   open state survives, so dragging back under 440 returns it as it was.
+
+   .h-btn in that last selector is load-bearing. The drawer's own close button
+   also carries data-act="list", because closing the drawer is the same toggle
+   as opening it; a selector written as [data-act="list"] alone would hide the
+   close button too. It is .sheet-close, not .h-btn, which is what keeps the
+   two apart. */
+@container (min-height: 440px) {
+  .widget.c .list { display: flex; flex: 0 0 220px; }
+  .widget.c .stage { min-height: 0; }
+  .widget.c .h-btn[data-act="list"] { display: none; }
+  .widget.c .sheet:not(.info-sheet) { display: none; }
+}
 /* Live C ends in a waveform running to the edge, like every other card here,
    so it takes no bottom padding. Its own frame parked three icons at the bottom
    right instead and had no waveform at all; the control row and the waveform

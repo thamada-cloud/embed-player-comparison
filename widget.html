@@ -26,6 +26,21 @@
     <span class="unit">px</span>
     <button type="button" id="widthFill">Fill</button>
   </div>
+  <!-- Height. A slot hands a card a height as surely as it hands it a width,
+       and until this control existed the page could only ask half the question.
+       Auto is the default and means no height is set at all, so the page loads
+       exactly as it did, which is what keeps this additive.
+       150 is the floor on purpose. It is the height the iHeart homepage
+       hardcodes for this slot, and the case most worth being able to look at. -->
+  <div class="widthctl heightctl">
+    <label for="heightRange">Player height</label>
+    <input id="heightRange" type="range" min="150" max="900" step="1" value="440"
+           aria-label="Player height">
+    <input id="heightNum" type="number" min="150" max="900" step="1"
+           aria-label="Player height in pixels">
+    <span class="unit">px</span>
+    <button type="button" id="heightAuto" aria-pressed="true">Auto</button>
+  </div>
   <div class="colctl">
     <label for="wavetog">Waveform</label>
     <span class="seg">
@@ -218,6 +233,56 @@
       if (typeof syncWidthControl === 'function') syncWidthControl();
     });
   });
+
+  /* Height. The control sets exactly two things, the custom property and the
+     flag on <main>, because container-type cannot be made conditional on a
+     custom property's value and the CSS needs something it can select on.
+     Auto removes both rather than setting a large number, so Auto is genuinely
+     the old behaviour and not a tall slot pretending to be it.
+     Design C is the only design that reads them. Design B is deliberately left
+     frozen at 444, so above 440 the comparison is a card that grows beside one
+     that does not, which is worth knowing when reading the results. */
+  const hRange = document.getElementById('heightRange');
+  const hNum = document.getElementById('heightNum');
+  const hAuto = document.getElementById('heightAuto');
+  const H_MIN = 150, H_MAX = 900;
+
+  const applyHeight = (px) => {
+    document.documentElement.style.setProperty('--player-h', px + 'px');
+    main.dataset.h = 'on';
+    hRange.value = String(px);
+    /* Leave the field alone while it is being typed in, or the caret jumps.
+       Same reason as the width control's own guard. */
+    if (document.activeElement !== hNum) hNum.value = String(px);
+    hAuto.setAttribute('aria-pressed', 'false');
+  };
+
+  const autoHeight = () => {
+    document.documentElement.style.removeProperty('--player-h');
+    delete main.dataset.h;
+    hNum.value = '';
+    hAuto.setAttribute('aria-pressed', 'true');
+  };
+
+  hRange.addEventListener('input', () => applyHeight(Number(hRange.value)));
+  hAuto.addEventListener('click', autoHeight);
+
+  const clampHeight = () => {
+    const raw = Number(hNum.value);
+    if (hNum.value.trim() === '' || !Number.isFinite(raw)) { autoHeight(); return; }
+    applyHeight(Math.min(H_MAX, Math.max(H_MIN, Math.round(raw))));
+  };
+  hNum.addEventListener('input', () => {
+    if (hNum.value.trim() === '') return;            /* mid-edit, leave it alone */
+    const raw = Number(hNum.value);
+    if (Number.isFinite(raw) && raw >= H_MIN && raw <= H_MAX) applyHeight(raw);
+  });
+  hNum.addEventListener('change', clampHeight);
+  hNum.addEventListener('blur', clampHeight);
+  hNum.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { clampHeight(); hNum.blur(); }
+  });
+  autoHeight();
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>

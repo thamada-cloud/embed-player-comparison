@@ -674,6 +674,18 @@ ${rowMarkup(d, r)}`).join('')}
             </div>`}
           ${isLive ? '' : sheetMarkup(d)}
         </div>
+        <!-- Design C carries BOTH list forms and CSS shows one. A JS switch
+             would mean re-rendering the card while the height changes, and
+             re-render is what broke the drawer animation and the live track
+             order earlier here; it would also discard drawer state and focus on
+             every crossing. The rows are duplicated in the DOM as a result,
+             which is safe because render() writes both together and the current
+             row highlight is applied with querySelectorAll over every
+             .row[data-ep], so the two cannot drift.
+             Note the placement. sheetMarkup sits INSIDE .stage because the
+             drawer overlays the artwork; this sits after it, a sibling of the
+             stage, which is exactly where heroMarkup puts the same call. -->
+        ${isLive ? '' : listMarkup(d)}
         ${infoMarkup(d)}
         ${shareMarkup(d)}
         ${veilMarkup()}
