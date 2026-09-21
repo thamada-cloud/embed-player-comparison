@@ -70,6 +70,10 @@ async function loadPodcast(id) {
    air that the history had not recorded at all.
    `defaultMetadata=true` is not optional. Without it the same stations answer
    410 rather than 200, since third party listening is disabled on them. */
+/* iHeart's image proxy. Takes a base64 of the source URL and re-serves it with
+   CORS, which is the only way the track artwork above is usable here. */
+const imageProxy = (url) => 'https://i.iheart.com/v3/url/' + btoa(String(url));
+
 async function nowPlaying(id) {
   if (NO_META.has(id)) return null;
   try {
@@ -84,7 +88,18 @@ async function nowPlaying(id) {
        song links are built from. */
     return d && d.title
       ? { track: d.title, artist: d.artist || null,
-          artistId: d.artistId || null, trackId: d.trackId || null }
+          artistId: d.artistId || null, trackId: d.trackId || null,
+          /* The now-playing payload carries the track's own artwork in
+             `imagePath`, and that URL is NOT usable as given: fetched directly
+             it answers 403, over http rather than https, which on an https page
+             would be blocked as mixed content even if it did answer.
+
+             Through iHeart's own image proxy it answers 200 image/png AND
+             sends access-control-allow-origin, which matters twice over: the
+             stage image carries crossorigin="anonymous", so without CORS it
+             would not load at all, and the artwork colour is read off a canvas,
+             which a tainted image cannot do. */
+          art: d.imagePath ? imageProxy(d.imagePath) : null }
       : null;
   } catch (e) { return null; }
 }
@@ -109,6 +124,7 @@ async function loadStation(id) {
        the artist row. */
     track: (np && np.track) || null,
     artist: (np && np.artist) || null,
+    trackArt: (np && np.art) || null,
     artistId: (np && np.artistId) || null,
     trackId: (np && np.trackId) || null,
     title: h.name,
@@ -585,11 +601,27 @@ ${rowMarkup(d, r)}`).join('')}
      thumbnail, two lines of text and the seven control row; live radio has a
      48px thumbnail, ONE line joining the station and its description, three
      icons parked at the bottom right, and no waveform at all. */
+  /* Design C's backdrop follows what is ACTUALLY PLAYING rather than the show
+     or the station. On live radio that is the track's own artwork, which the
+     now-playing poll brings in and changes every few minutes. On podcast it is
+     the chosen episode's artwork, which the list already carries per row and
+     which differs from the show's: every Las Culturistas episode ships its own.
+
+     Both fall back to the show or station image, so a station with no metadata
+     service and a podcast whose episodes reuse the show art both look exactly
+     as they did. */
+  function stageArt(d) {
+    if (!d) return '';
+    if (d.kind === 'live') return d.trackArt || d.art || '';
+    const row = (d.rows || []).find((r) => String(r.id) === String(d.currentEpisodeId));
+    return (row && row.art) || d.art || '';
+  }
+
   function cMarkup(d, isLive) {
     return `
       <div class="widget hero c${isLive ? ' live' : ''}">
         <div class="stage">
-          <img class="art" src="${esc(d.art)}" alt="" crossorigin="anonymous">
+          <img class="art" src="${esc(stageArt(d))}" alt="" crossorigin="anonymous">
           <div class="scrim"></div>
           <div class="topbar">
             <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
@@ -819,7 +851,13 @@ ${rowMarkup(d, r)}`).join('')}
         `since the worst a picture can be is pure white` +
         (m && m.belowAA ? `. ${(m.belowAA * 100).toFixed(1)}% of this one is below AA` : '') + `</span>`);
     };
-    if (art.complete && art.naturalWidth) paint(); else { art.onload = paint; art.onerror = () => say(''); }
+    /* Assigned either way, not only when the image has yet to arrive. Design C
+       swaps this src as the track or the episode changes, and a handler bound
+       only on the slow path would leave the colour read stuck on whatever was
+       showing at first render. */
+    art.onload = paint;
+    art.onerror = () => say('');
+    if (art.complete && art.naturalWidth) paint();
 
     root.onclick = (e) => {
       const b = e.target.closest('[data-act]'); if (!b) return;
@@ -1277,8 +1315,10 @@ ${rowMarkup(d, r)}`).join('')}
       d.infoBody = stripHtml(ep.description);
       d.audio = ep.mediaUrl;
       d.hls = false;
-      /* The card keeps the SHOW's artwork, which is what the frames draw. Only
-         the rows carry per episode images. */
+      /* Designs A and B keep the SHOW's artwork, which is what their frames
+         draw. Design C's backdrop follows the episode, and it needs nothing
+         here: render() runs below and stageArt() reads currentEpisodeId, which
+         has just moved. The thumbnail stays the show either way. */
       ensureAudio();
       w.audio.src = ep.mediaUrl;
       w.audio.load();
@@ -1479,7 +1519,18 @@ ${rowMarkup(d, r)}`).join('')}
     w.data.artist = np.artist || null;
     w.data.artistId = np.artistId || null;
     w.data.trackId = np.trackId || null;
+    w.data.trackArt = np.art || null;
     const has = !!(w.data.track && w.data.artist);
+    /* Design C paints the track's artwork behind itself, so a new track is a
+       new backdrop. This sits ABOVE the two early returns below, because a
+       station dropping out of a song still changes the backdrop: trackArt goes
+       null and stageArt() falls back to the station logo. Guarded on a real
+       change, since assigning the same src restarts the decode and re-runs the
+       colour read for nothing. */
+    if (variant === 'c') {
+      const artEl = q('.art'), want = stageArt(w.data);
+      if (artEl && want && artEl.getAttribute('src') !== want) artEl.setAttribute('src', want);
+    }
     /* Gaining or losing track data changes how many lines the block has, and
        now also its type size, so that edge needs a re-render. */
     /* The artwork cards keep the same number of lines whether a track is on or
