@@ -32,6 +32,9 @@ async function loadPodcast(id) {
     /* Carried so the production embed above the prototypes can be pointed at
        the same episode rather than a hard coded one that goes stale. */
     showId: id, episodeId: eps[0].id, showSlug: show.slug || 'podcast',
+    /* The SHOW's description, kept apart from infoBody, which is the episode's.
+       The share drawer's second line on a show card is the show's. */
+    showDesc: stripHtml(show.description || ''),
     title: first.title, subtitle: show.title,
     /* The info drawer describes the EPISODE, which is what the card is playing,
        not the show it belongs to. The show's own description is one level up
@@ -1572,17 +1575,40 @@ ${listTail(d)}
 
   /* What the share sheet should be describing. A row when the action came from
      a row's overflow, and whatever is loaded otherwise. */
+  /* The share drawer's metadata row, read off the five Design D share drawers.
+     They do not agree, which is why this is a table rather than two lines of
+     markup:
+       2670:137239  show      square  Podcast Name   / Podcast Description
+       2670:137412  episode   square  Episode Title  / Podcast Name
+       2666:130642  live      square  Station Name   / Station Description
+       2666:131704  artist    ROUND   Artist Name    / nothing, one line
+       2666:132112  playlist  square  Playlist Name  / Playlist Description
+
+     I had removed this row entirely on an earlier reading of these frames,
+     where the Content instance was hidden. The frames have since been redrawn
+     and it is visible on all five. */
+  function shareMeta(d) {
+    switch (d.kind) {
+      case 'episode':  return { title: d.title, sub: d.subtitle };
+      case 'live':     return { title: d.title, sub: d.desc || '' };
+      case 'artist':   return { title: d.subtitle, sub: '', round: true };
+      case 'playlist': return { title: d.title, sub: d.subtitle };
+      default:         return { title: d.subtitle, sub: d.showDesc || '' };
+    }
+  }
+
   function shareFields(d, r) {
     /* A row is always an episode of the loaded show, which is the one case that
        is not the card's own content. */
-    if (r) return { title: r.title, art: r.art || d.art,
+    if (r) return { title: r.title, sub: d.subtitle, art: r.art || d.art,
                     url: showUrl(d) + 'episode/episode-' + r.id + '/' };
     /* Everything else shares the card's own content, through the same builder
        the Listen on iHeart link uses. It used to fall through to episodeUrl(),
        which was right while podcast and live were the only two kinds and became
        wrong the moment there were five: on artist radio and playlist it built
        podcast/undefined-undefined/episode/episode-undefined, and shared it. */
-    return { title: listenName(d) || d.title, art: d.art, url: listenUrl(d) };
+    const m = shareMeta(d);
+    return { title: m.title, sub: m.sub, round: m.round, art: d.art, url: listenUrl(d) };
   }
 
   /* Point the share sheet at something.
@@ -1612,6 +1638,9 @@ ${listTail(d)}
     const set = (sel, fn) => { const el = sheet.querySelector(sel); if (el) fn(el); };
     sheet.dataset.url = f.url;
     set('.share-name', (el) => { el.textContent = f.title || ''; });
+    /* Both lines. Setting only the first is what printed the show name twice
+       when the base case changed under it. */
+    set('.share-desc', (el) => { el.textContent = f.sub || ''; });
     set('.share-art', (el) => { el.src = f.art || ''; });
     set('[data-share="facebook"]', (el) => {
       el.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(f.url); });
@@ -1769,7 +1798,18 @@ ${listTail(d)}
        while the veil is up. */
   }
 
+  /* The page can switch the prompt off entirely, and does by default. It covers
+     the card the moment you pause, and on a page whose whole purpose is looking
+     at cards that is usually in the way. Read at arm time rather than cached,
+     so flipping the switch takes effect on the next pause without a reload.
+     The single card page has no <main data-veil>, so it keeps the prompt. */
+  const veilAllowed = () => {
+    const m = document.querySelector('main');
+    return !m || m.dataset.veil !== 'off';
+  };
+
   function armVeil() {
+    if (!veilAllowed()) return;
     if (w.veilSeen) return;          /* once per card, and never again after a close */
     clearVeil();
     w.veilTimer = setTimeout(() => { w.veilTimer = null; showVeil(true); }, VEIL_DELAY);
@@ -2334,16 +2374,14 @@ ${listTail(d)}
             <img src="assets/sheet-close.svg" alt=""></button>
         </div>
         <div class="share-body">
-          <!-- No content row. The Design D share drawers all carry a Content
-               frame and all of them have it hidden: 2666:131829 on artist radio
-               and 2670:137537 on the episode both say hidden="true". The drawer
-               names the KIND in its heading and the thing itself in the embed
-               snippet, and the card it covers was showing what you are sharing
-               a moment earlier.
-               It also removed a bug rather than only matching a frame. The row
-               read d.title on one line and d.subtitle on the other, and once
-               shareFields started returning the card's own content the podcast
-               card printed its show name on both. -->
+          <div class="share-head-row">
+            <img class="share-art${shareMeta(d).round ? ' round' : ''}" src="${esc(d.art || '')}" alt="">
+            <div class="share-names">
+              <p class="share-name">${esc(shareFields(d, null).title || '')}</p>
+              ${shareFields(d, null).sub
+                ? `<p class="share-desc">${esc(shareFields(d, null).sub)}</p>` : ''}
+            </div>
+          </div>
           <div class="share-section"><p>Share on</p><div class="share-targets">
             <button class="share-target" type="button" data-share="copy">
               <span class="ring">${GLYPH_COPY}</span><span class="lbl">Copy link</span></button>

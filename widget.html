@@ -61,6 +61,16 @@
     </span>
   </div>
   -->
+  <!-- The pause overlay. Off by default, because it covers the card the moment
+       you pause and the cards are what this page exists to look at. It is still
+       worth being able to see, so it is a switch rather than a deletion. -->
+  <div class="colctl">
+    <label for="veiltog">Pause overlay</label>
+    <span class="seg">
+      <button type="button" id="veiltog" data-veil="on" aria-pressed="false">On</button>
+      <button type="button" data-veil="off" aria-pressed="true">Off</button>
+    </span>
+  </div>
   <div class="colctl">
     <label for="cols1">Columns</label>
     <span class="seg">
@@ -282,6 +292,17 @@
      Design C is the only design that reads them. Design B is deliberately left
      frozen at 444, so above 440 the comparison is a card that grows beside one
      that does not, which is worth knowing when reading the results. */
+  /* The pause overlay switch. Anchored on its own button, not on '.colctl .seg',
+     which returned the wrong row once there were several of these and silently
+     wired the columns toggle to the waveform one. */
+  const vseg = document.getElementById('veiltog').parentElement;
+  vseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-veil]'); if (!bt) return;
+    [...vseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    main.dataset.veil = bt.dataset.veil;
+  });
+  main.dataset.veil = 'off';
+
   const hRange = document.getElementById('heightRange');
   const hNum = document.getElementById('heightNum');
   const hAuto = document.getElementById('heightAuto');

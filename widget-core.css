@@ -785,29 +785,23 @@ a.thumb-link:hover { opacity: .92; }
    Design B's card with its controls always on, a list button over the scrubber
    on the podcast side, and a live radio side that is genuinely its own layout
    rather than the podcast minus parts. */
-/* 16:9, fluid, the way a YouTube embed behaves: the box keeps its ratio and the
-   height follows the width instead of being pinned to the frame's 263.
-   The floor is the one concession. Everything inside the card is a fixed pixel
-   size, so unlike a video the contents do not shrink with the box: the top bar
-   is 56 tall, the control row is 64 and centred, and the bottom block is 72, so
-   below 234 the centred row starts to overlap what is above and below it. The
-   podcast bottom block is the binding one, a 32px list row, 8, a 16px scrubber,
-   4, and now a 24px waveform, so 84 in total, against a 64px control row whose
-   centre sits at calc(50% + .5px). That half pixel is why 232 still clashed and
-   234 is the real floor, caught by measuring rather than by the arithmetic.
-   16:9 reaches 234 at a width of 416, so the floor applies on phones.
-   The ceiling is the other end of the same argument. A video can be any size
-   because it scales; this card cannot, so past a point 16:9 is just a taller
-   and taller field of artwork around the same 64px button. Past the ceiling the
-   card grows wider rather than taller.
+/* Design C's stage has NO aspect ratio.
 
-   360, asked for. 16:9 reaches it at 640 wide, so the ratio holds true from 416
-   to 640 and the card caps beyond that. The clamps only ever trim the artwork:
-   nothing inside is laid out against the stage height except the control row,
-   which is centred, so there is no width at which the ceiling can clip a
-   control. The floor is the only end that can, which is what 234 is protecting
-   against. */
-.widget.c .stage { height: auto; aspect-ratio: 16 / 9; min-height: 234px; max-height: 360px; }
+   It was `aspect-ratio: 16 / 9` clamped between 234 and 360, so width drove
+   height and the card only ever held that ratio between 416 and 640 wide. That
+   is a video player's contract, not an embed slot's: a slot hands a card a
+   width and a height independently, and a card that derives one from the other
+   can only honour one of them.
+
+   The Design D frames are not 16:9 either, which is what settled it. Every
+   350px frame in that section is 350 by 263; 16:9 at 350 is 197.
+
+   So 263 is the height when the page sets none, taken from those frames, and
+   the height control overrides it outright. min-height stays and is not an
+   aspect ratio rule: it is the floor protecting the centred control row from
+   the 48px top bar and the 40px bottom bar, whose true collision point is 168.
+   A slot shorter than that clips rather than overlapping its own controls. */
+.widget.c .stage { height: 263px; min-height: 234px; }
 .widget.c .hero-controls { top: calc(50% + .5px); }
 
 /* ---------------------------------------------------------------------------
@@ -828,11 +822,10 @@ a.thumb-link:hover { opacity: .92; }
    a definite height is that a size container may not take its height from its
    contents, which is exactly what a fixed slot is.
 
-   aspect-ratio and max-height are dropped at EVERY height, not only above the
-   threshold. They are what makes the card refuse the slot: at a 300 slot a
-   stage still governed by 16 / 9 stops at 234 and leaves 66px of dead space
-   under it, which is the whole defect. They still govern design C when no
-   height is set, which is the page's default and every case shipping today.
+   The stage's own height is dropped at EVERY height, not only above the
+   threshold, so the slot decides and the card fills it. This used to be about
+   clearing an aspect ratio; the ratio is gone now and only the default 263
+   remains to clear.
 
    min-height: 234 stays. It is the floor protecting the centred control row
    from the 48px top bar and the 40px bottom bar; the true collision point is
@@ -874,7 +867,7 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 main[data-h="on"] section[data-design="c"] .shell > div { height: 100%; }
 main[data-h="on"] section[data-design="c"] .widget.c { min-height: 100%; }
 main[data-h="on"] section[data-design="c"] .widget.c .stage {
-  aspect-ratio: auto; max-height: none; flex: 1 1 auto;
+  height: auto; flex: 1 1 auto;
 }
 
 /* Hidden by default, since design C's list is the drawer until it has the room
@@ -1897,6 +1890,9 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
   box-shadow: var(--elevation1); object-fit: cover; background: var(--true-white);
 }
 .share-live .share-art { object-fit: contain; padding: 3px; }
+/* Artist radio alone, which frame 2666:131704 draws as a circle where the other
+   four are rounded squares, the same split the cards' own thumbnails make. */
+.share-art.round { border-radius: 50%; }
 .share-names {
   display: flex; flex-direction: column; align-items: flex-start;
   justify-content: center; min-width: 0; text-align: left;

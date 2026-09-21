@@ -52,8 +52,12 @@ def fill(pg):
     print("\n--- Task 1, fills the slot ---")
     set_height(pg, None)
     b = boxes(pg, "#w-podcast-c")
-    check("auto, podcast card is its natural 234", b["card"], 234)
-    check("auto, podcast stage is its natural 234", b["stage"], 234)
+    # 263, not 234. The stage no longer derives its height from its width: the
+    # 16:9 rule is gone, because a slot hands a card a width and a height
+    # independently and a card deriving one from the other can only honour one.
+    # 263 is what every 350px Design D frame draws.
+    check("auto, podcast card is its natural 263", b["card"], 263)
+    check("auto, podcast stage is its natural 263", b["stage"], 263)
     check("auto, list icon is shown", b["icon"], 32)
 
     for h in (234, 300, 439):
@@ -139,8 +143,8 @@ def control(pg):
     check("control exists", pg.evaluate("!!document.getElementById('heightRange')"), True)
     check("defaults to Auto, no flag set",
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
-    check("defaults to Auto, card is its natural 234",
-          boxes(pg, "#w-podcast-c")["card"], 234)
+    check("defaults to Auto, card is its natural 263",
+          boxes(pg, "#w-podcast-c")["card"], 263)
     check("range floor is the shipped homepage 150",
           pg.evaluate("document.getElementById('heightRange').min"), "150")
     check("range ceiling is 900",
@@ -156,7 +160,7 @@ def control(pg):
     pg.click("#heightAuto"); pg.wait_for_timeout(250)
     check("Auto clears the flag",
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
-    check("Auto restores the natural 234", boxes(pg, "#w-podcast-c")["card"], 234)
+    check("Auto restores the natural 263", boxes(pg, "#w-podcast-c")["card"], 263)
     check("Auto clears the custom property",
           pg.evaluate("document.documentElement.style.getPropertyValue('--player-h')"), "")
 
