@@ -1043,16 +1043,16 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    have identical specificity, so source order is what decides. */
 .widget.c .list { display: none; }
 
-/* 280, down from 440.
+/* 320, down from 440.
 
-   440 was 220 stage + 220 list, two equal halves. 280 cannot be: a fixed 220
-   list would leave the stage 60, less than half the 136 its chrome needs, so
-   lowering the threshold only works if the LIST shrinks as well.
+   440 was 220 stage + 220 list, two equal halves. Below that they cannot both
+   hold: a fixed 220 list at 320 leaves the stage 100, under the 136 its chrome
+   needs, so lowering the threshold only works if the LIST shrinks as well.
 
-   It does, between the same two points. 220 at 440 down to 128 at 280, which is
-   the least a list can be and still read as one: a 32 header, one 72 row, and
-   the 24 of peek that says there is more. The stage takes what is left, 220 at
-   440 and 152 at 280, and 152 is still 16 clear of its floor.
+   It does, between the two ends. 220 at 440 down to 128 at 320, which is the
+   least a list can be and still read as one: a 32 header, one 72 row, and the
+   24 of peek that says there is more. The stage takes what is left, 220 at 440
+   and 192 at 320, comfortably clear of its 136 floor.
 
    Above 440 nothing changes. The list caps at 220 and every further pixel goes
    to the artwork, exactly as before.
@@ -1074,8 +1074,8 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    as opening it; a selector written as [data-act="list"] alone would hide the
    close button too. It is .sheet-close, not .h-btn, which is what keeps the
    two apart. */
-@container (min-height: 280px) {
-  .widget.c .list { display: flex; flex: 0 0 clamp(128px, 57.5cqh - 33px, 220px); }
+@container (min-height: 320px) {
+  .widget.c .list { display: flex; flex: 0 0 clamp(128px, 76.67cqh - 117.3px, 220px); }
   .widget.c .stage { min-height: 0; }
   .widget.c .h-btn[data-act="list"] { display: none; }
   .widget.c .sheet:not(.info-sheet) { display: none; }
