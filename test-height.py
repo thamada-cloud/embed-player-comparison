@@ -70,10 +70,10 @@ def fill(pg):
     set_height(pg, 150)
     b = boxes(pg, "#w-podcast-c")
     check("podcast at 150, shell is 150", b["shell"], 150)
-    # 156, not 234. The card now compresses into a short slot: the paddings run
-    # 16 down to 8 and the play button 64 down to 40, and 156 is where a 40px
-    # button still clears the 48px top bar. See the compression block in the CSS.
-    check("podcast at 150, card holds the 156 floor", b["card"], 156)
+    # 150 now fits outright. The chrome interpolates between the two frames that
+    # exist, 350x263 and 350x147, so at a short slot the thumbnail is 40 rather
+    # than 48 and the top bar shrinks with it. The floor is 136.
+    check("podcast at 150, card fits, no floor hit", b["card"], 150)
     # overflow:hidden still reports scrollHeight past clientHeight, so the
     # honest assertion is that the box is 150 and nothing can be scrolled to.
     check("podcast at 150, shell clips",
@@ -84,7 +84,7 @@ def fill(pg):
     for h in (150, 300, 900):
         set_height(pg, h)
         b = boxes(pg, "#w-live-c")
-        check("live at %d, stage is %d" % (h, max(h, 156)), b["stage"], max(h, 156))
+        check("live at %d, stage is %d" % (h, max(h, 136)), b["stage"], max(h, 136))
         check("live at %d, no list icon" % h, b["icon"], None)
 
     # The design B check that used to live here is gone with design B. It is

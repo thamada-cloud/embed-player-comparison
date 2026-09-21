@@ -915,6 +915,10 @@ ${listTail(d)}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
+            ${c.list ? `
+              <button class="h-btn tb-list" data-act="list" aria-pressed="false"
+                      aria-label="Show ${esc(d.listTitle || 'Episodes')}">
+                <img src="assets/h-list.svg" alt=""></button>` : ''}
             <button class="h-btn tb-share" data-act="share" aria-label="Share">
               <img src="assets/h-share.svg" alt=""></button>
           </div>
@@ -2113,10 +2117,16 @@ ${listTail(d)}
      opens, which is Episodes on a podcast and Featured Artists on the other two,
      and an object built once at definition time would have captured w.data
      while it was still null. */
+  /* The list button has moved to the TOP bar, left of share, which frame
+     2666:125692 draws. That empties the bottom row's left group on every
+     podcast card and leaves the lockup alone in the row, which is what buys
+     the height: the row goes from 32 to the lockup's own 24 and the gap above
+     it drops from 8 to 4.
+     The key stays here, and empty, rather than being deleted. cActions still
+     emits the span for it, because space-between with a single child pushes
+     that child to the START and would put the lockup on the wrong side. */
   const BOTTOM_LEFT = () => ({
-    list: '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show ' +
-            esc((w.data && w.data.listTitle) || 'Episodes') + '">' +
-            '<img src="assets/h-list.svg" alt=""></button>',
+    list: '',
     /* The episode frame puts an info button exactly where the show frame puts
        the list button. It is the same drawer the show card already carries, so
        only the trigger is new. */

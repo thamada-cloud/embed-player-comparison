@@ -104,7 +104,7 @@ header {
    row underneath it; 8 of padding plus that 8 is the 16 that was asked for.
    The consequence is that the buttons, which fill the 32, now sit 8 from the
    edge rather than 16. */
-[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: var(--card-padb, 8px); }
+[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: var(--card-padb, 4px); }
 
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
@@ -927,17 +927,40 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
    before it runs out down. */
 main[data-h="on"] section[data-design="c"] .widget.c {
   --card-pad: clamp(8px, 6cqh, 16px);
-  --card-padb: clamp(0px, 3cqh, 8px);
+  --card-padb: clamp(0px, 1.5cqh, 4px);
 }
+/* Every part of the chrome interpolates between the two frames that exist:
+   2669:137077's 350x263 default and 2666:125692's 350x147 compact. Each clamp
+   is a straight line through those two anchors, so at 263 the card is exactly
+   the tall frame and at 147 exactly the short one, and between them it slides.
+
+     thumbnail    48 -> 40
+     play button  64 -> 40
+     back and fwd 40 -> 24 glyph, so 48 -> 32 with their padding
+
+   Shrinking the TOP BAR is what actually buys the height, and it is not
+   obvious. The play button is centred on the card, so it has to clear the top
+   bar on the short side, and the limit is H - 2*padTop - 2*topBar. Dropping the
+   thumbnail from 48 to 40 takes 16 off that, which is worth more than the 16
+   the bottom row gave back, because the bottom was never the binding side. */
 main[data-h="on"] section[data-design="c"] .widget.c .hero-play {
-  --play: max(40px, min(64px, 100cqw - 8px, 88cqh - 96px));
+  --play: max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px));
+}
+main[data-h="on"] section[data-design="c"] .widget.c .topbar .h-thumb {
+  width: clamp(40px, 6.9cqh + 29.9px, 48px);
+  height: clamp(40px, 6.9cqh + 29.9px, 48px);
+}
+main[data-h="on"] section[data-design="c"] .hero-controls .h-btn[data-act="back"] img,
+main[data-h="on"] section[data-design="c"] .hero-controls .h-btn[data-act="fwd"] img {
+  width: clamp(24px, 13.8cqh + 3.7px, 40px);
+  height: clamp(24px, 13.8cqh + 3.7px, 40px);
 }
 /* The floor falls out of the same equation rather than being chosen. Setting
    play to its 40 minimum in 0.88H - 96 gives H = 154.5, so 156 is the shortest
    slot in which a 40px button still clears the top bar. Below it the card
    clips, as it did below 234 before, but the two floors the change was given,
    8px of padding and a 40px button, are exactly what put it at 156. */
-main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 156px; }
+main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 136px; }
 
 /* Hidden by default, since design C's list is the drawer until it has the room
    not to be. This has to sit BEFORE the container query below: the two rules
@@ -980,7 +1003,10 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 156px;
 /* 48 everywhere now, so the live-only rule is gone. */
 /* The list button sits 8px above the scrubber, and the pair sits 4px above the
    waveform, which is two nested columns in the frame and two here. */
-.c-rows { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+/* 4, not 8. Frame 2666:125692 closes this up along with moving the list button
+   out of the row below, and the two together are most of what makes the card
+   fit a shorter slot. */
+.c-rows { display: flex; flex-direction: column; gap: 4px; width: 100%; }
 
 /* The Listen on iHeart lockup, frame 2613:77793. It replaces the badge that
    used to sit in design C's top right, and the share button took that corner.
@@ -1061,6 +1087,11 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 156px;
 
    A floor of 32, the height of the buttons that set it on podcast, centres the
    lockup in the same box on both. */
+/* 24, not 32. 32 was the height of the buttons that used to sit in this row;
+   with the list button moved to the top bar the lockup is all that is left and
+   it is 14px of logotype on an 18px line. Design C only: the other designs
+   still put controls here. */
+.widget.c .list-row { min-height: 24px; }
 .list-row { display: flex; justify-content: space-between; align-items: center;
             gap: var(--sp-4); min-height: 32px;
             padding: 0 var(--card-pad, 16px); box-sizing: border-box; }
