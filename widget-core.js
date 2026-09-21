@@ -781,12 +781,17 @@ function makeWidget(rootId, statusId, colourId, variant) {
                 <img class="row-out" src="assets/open-new.svg" alt="">
               </a>
             </div>
-          </div>
-          <p class="list-legal">
-            <a href="https://www.iheart.com/terms/" target="_blank" rel="noopener">Terms</a>
-            <span aria-hidden="true">|</span>
-            <a href="https://www.iheart.com/privacy/" target="_blank" rel="noopener">Privacy</a>
-          </p>`;
+            <!-- INSIDE the scroll area, after the link out, not a sibling of it.
+                 As a sibling it was pinned to the bottom of the list while the
+                 rows moved behind it, which is not what the frame draws: the
+                 Drawer Body scrolls as one and the legal line is the last thing
+                 in it, so you reach it by scrolling to the end. -->
+            <p class="list-legal">
+              <a href="https://www.iheart.com/terms/" target="_blank" rel="noopener">Terms</a>
+              <span aria-hidden="true">|</span>
+              <a href="https://www.iheart.com/privacy/" target="_blank" rel="noopener">Privacy</a>
+            </p>
+          </div>`;
   }
 
   function listMarkup(d) {

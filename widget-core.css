@@ -296,8 +296,22 @@ section.is-live > .band-note { color: #14532d; }
 
 /* ---------- the tail of a list, Design D 2666:126249 ----------
    A link out to the rest, then the legal line. */
-.row-more-link { display: flex; align-items: center; gap: 12px; text-decoration: none;
-                 min-height: 40px; padding: 8px 12px; border-radius: var(--rad-6); }
+/* The icon sits at the ROW's right edge, in line with the overflow buttons on
+   the episode rows above, which is where the frame puts it. It was tucked
+   against the end of the label instead, 110px short of them.
+
+   16 of right padding, not 12, and that is arithmetic rather than taste. The
+   overflow button is `right: 12px` and 32 wide with 4px of its own padding, so
+   its 24px glyph starts 16 in from the row's edge. Matching that number here
+   lines the two glyphs up exactly. */
+/* .row.row-more-link, not .row-more-link. The base .row reserves 52px on its
+   right for the absolutely positioned overflow button, and at equal specificity
+   that padding won: the glyph landed at the edge of that reservation, 36px
+   short of the overflow glyphs it is meant to line up with. This row has no
+   overflow button, so it has nothing to reserve. */
+.row.row-more-link { display: flex; align-items: center; gap: 12px; text-decoration: none;
+                     padding: 8px 16px 8px 12px; border-radius: var(--rad-6); }
+.row.row-more-link .row-text { flex: 1 1 auto; min-width: 0; }
 .row-more-link .row-title { font-size: var(--fs-14); line-height: var(--lh-18);
                             font-weight: 600; letter-spacing: var(--ls-2);
                             color: var(--ihr-grey-600); }
@@ -310,9 +324,11 @@ section.is-live > .band-note { color: #14532d; }
 .list-legal a { color: #0055b7; text-decoration: none; }
 .list-legal a:hover { text-decoration: underline; }
 .list-legal span { margin: 0 6px; }
-/* The list is a column, so the tail has to be allowed to sit under a scroll
-   area that grew rather than being squeezed by it. */
+/* The tail scrolls with the rows, so the scroll area is the whole list. */
 .list .rows, .sheet-body .rows { flex: 1 1 auto; min-height: 0; }
+/* It is the last child of a 2px gap column, so it carries its own breathing
+   room rather than inheriting the rhythm of the rows above it. */
+.rows > .list-legal { margin: 12px 0 4px; }
 
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
@@ -1544,6 +1560,11 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
 .row-more:focus-visible { outline: 2px solid var(--ihr-red-550); outline-offset: -2px; }
 /* Room for it, so a long title ellipsises before it runs underneath. */
 .row-wrap .row { padding-right: 52px; }
+/* The link out has no overflow button, so it reserves nothing and its glyph
+   sits where theirs do. Written here rather than beside the rest of the
+   row-more-link rules because `.row-wrap .row` above is the same specificity
+   and comes later, so an override further up the file quietly lost. */
+.row-wrap .row.row-more-link { padding-right: 16px; }
 .row { display: flex; gap: 12px; align-items: center; height: 72px; padding: 8px 12px;
        border-radius: var(--radius-widget); cursor: pointer; }
 .row:hover { background: rgba(0,0,0,.05); }
