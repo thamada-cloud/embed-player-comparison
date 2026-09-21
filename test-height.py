@@ -148,8 +148,7 @@ def control(pg):
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
     check("defaults to Auto, card is its natural 263",
           boxes(pg, "#w-podcast-c")["card"], 263)
-    check("range floor is the shipped homepage 150",
-          pg.evaluate("document.getElementById('heightRange').min"), "150")
+    check("range floor is 100", pg.evaluate("document.getElementById('heightRange').min"), "100")
     check("range ceiling is 900",
           pg.evaluate("document.getElementById('heightRange').max"), "900")
 

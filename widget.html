@@ -30,13 +30,15 @@
        and until this control existed the page could only ask half the question.
        Auto is the default and means no height is set at all, so the page loads
        exactly as it did, which is what keeps this additive.
-       150 is the floor on purpose. It is the height the iHeart homepage
-       hardcodes for this slot, and the case most worth being able to look at. -->
+       100, down from 150. 150 was chosen because it is the height the iHeart
+       homepage hardcodes for this slot, and design C could not fit it anyway.
+       It fits now, so the floor moves below it: the useful range is the one
+       where the card visibly gives up, and design C stops compressing at 136. -->
   <div class="widthctl heightctl">
     <label for="heightRange">Player height</label>
-    <input id="heightRange" type="range" min="150" max="900" step="1" value="440"
+    <input id="heightRange" type="range" min="100" max="900" step="1" value="440"
            aria-label="Player height">
-    <input id="heightNum" type="number" min="150" max="900" step="1"
+    <input id="heightNum" type="number" min="100" max="900" step="1"
            aria-label="Player height in pixels">
     <span class="unit">px</span>
     <button type="button" id="heightAuto" aria-pressed="true">Auto</button>
@@ -306,7 +308,7 @@
   const hRange = document.getElementById('heightRange');
   const hNum = document.getElementById('heightNum');
   const hAuto = document.getElementById('heightAuto');
-  const H_MIN = 150, H_MAX = 900;
+  const H_MIN = 100, H_MAX = 900;
 
   const applyHeight = (px) => {
     document.documentElement.style.setProperty('--player-h', px + 'px');
