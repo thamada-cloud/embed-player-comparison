@@ -3686,3 +3686,39 @@ page. It paints its own white ground, so only its left accent bar and the rules
 between episodes separate it from the page, while both prototypes stay as
 distinct dark blocks. That is a real difference between them and not a fault of
 the switch.
+
+## Design C's episode drawer always shows a partial row
+
+The drawer is as tall as the card, and design C's card is 16:9 between 416 and
+640 wide, so its height is a different number at every width. The peek was
+whatever fell out of the arithmetic, `avail mod pitch`:
+
+| card width | peek |
+| --- | --- |
+| 280 to 411 | **6px**, invisible |
+| 420 | 8px |
+| 470 | 36px |
+| 520 | 65px |
+| 560 | **13px** |
+| 640 and up | 58px |
+
+280 to 411 is the band that matters most: it contains the 352 slot both host
+pages use.
+
+The scroller now gets an explicit height of `n * pitch + peek` rather than
+whatever the layout leaves, with a 24px floor. 24 is the peek design A's fixed
+220px list was built around, so the two designs hint at the same depth.
+
+Swept every width from 260 to 940 in steps of 20: no width has a peek under 20
+and every width still scrolls.
+
+### What it costs
+
+When the leftover was smaller than 24 the row count drops by one, and the space
+that row held becomes drawer below the list. At 350 wide that is one full row
+and a 24px peek where two rows used to fit, with about 56px of white underneath.
+
+The alternative is to keep both rows and squeeze the pitch to
+`(avail - 24) / 2`, which makes rows 63 tall instead of 72 at the tightest
+widths. That trades dead space for a row height that changes with the card,
+which seemed the worse of the two to choose unilaterally. Say the word.

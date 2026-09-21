@@ -761,10 +761,11 @@ ${rowMarkup(d, r)}`).join('')}
   function afterRender() {
     buildBars();
     markOverflow(root);
+    fitPeek();
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
-    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); });
+    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitPeek(); });
     w.ro.observe(root);
 
     const art = q('.art');
@@ -1022,6 +1023,45 @@ ${rowMarkup(d, r)}`).join('')}
     w.bands = null;                      /* bar count changed, so the bands must be rebuilt */
   }
   const idleAt = (i) => wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / w.bars.length))];
+
+  /* Guarantee that design C's episode drawer shows a PARTIAL row.
+
+     The drawer is as tall as the card, and design C's card is 16:9 between 416
+     and 640 wide, so its height is a different number at every width and the
+     peek is whatever is left over after whole rows: `avail mod pitch`. Measured
+     across twelve widths it ran from 6px to 65px, and 6px is invisible. At 280
+     through 411, which includes the 352 slot both host pages use, it was 6.
+
+     So the scroller is given an explicit height of `n * pitch + PEEK` instead
+     of whatever the layout happens to leave. The cut then lands 24px into a row
+     at every width, which is the same peek design A's fixed 220px list was
+     built around.
+
+     The cost is honest and visible: when the leftover was smaller than the peek
+     the row count drops by one, and the space it held becomes drawer below the
+     list rather than half a row nobody can see. */
+  const PEEK = 24;
+  function fitPeek() {
+    const rows = root.querySelector('.sheet:not(.info-sheet) .rows');
+    if (!rows) return;
+    const body = rows.parentElement;
+    const first = rows.firstElementChild;
+    if (!body || !first) return;
+    rows.style.height = '';                        /* measure unconstrained */
+    const gap = parseFloat(getComputedStyle(rows).rowGap) || 0;
+    const pitch = first.getBoundingClientRect().height + gap;
+    const cs = getComputedStyle(body);
+    const avail = body.getBoundingClientRect().height - parseFloat(cs.paddingTop);
+    if (!pitch || avail <= 0) return;
+    /* The height is always set, even when the layout would already have left a
+       usable peek. Leaving that case alone worked, but it meant two different
+       things decided where the list is cut depending on the width, and only one
+       of them was this function. */
+    let n = Math.floor(avail / pitch);
+    let peek = avail - n * pitch;
+    if (peek < PEEK) { n = Math.max(1, n - 1); peek = PEEK; }
+    rows.style.height = (n * pitch + peek) + 'px';
+  }
 
   function act(kind, btn) {
     const a = w.audio;
