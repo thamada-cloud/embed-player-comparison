@@ -404,6 +404,17 @@ const CAPS = {
 };
 const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
 
+/* Share drawer headings, from the Design D frames: 2666:130642 live,
+   2670:137239 podcast show, 2670:137412 podcast episode, 2666:131704 artist
+   radio and 2666:132112 playlist. */
+const SHARE_TITLE = {
+  podcast: 'Share Podcast',
+  episode: 'Share Podcast',
+  live: 'Share Station',
+  artist: 'Share Artist Radio',
+  playlist: 'Share Playlist'
+};
+
 /* The current track of a simulated station. Artist radio and playlist hold a
    real track list and step through it; nothing is heard. */
 const curTrack = (d) => (d.tracks || [])[d.trackIndex || 0] || null;
@@ -1475,10 +1486,16 @@ ${rowMarkup(d, r)}`).join('')}
   /* What the share sheet should be describing. A row when the action came from
      a row's overflow, and whatever is loaded otherwise. */
   function shareFields(d, r) {
-    if (d.kind === 'live') return { title: d.title, art: d.art, url: stationUrl(d) };
+    /* A row is always an episode of the loaded show, which is the one case that
+       is not the card's own content. */
     if (r) return { title: r.title, art: r.art || d.art,
                     url: showUrl(d) + 'episode/episode-' + r.id + '/' };
-    return { title: d.title, art: d.art, url: episodeUrl(d) };
+    /* Everything else shares the card's own content, through the same builder
+       the Listen on iHeart link uses. It used to fall through to episodeUrl(),
+       which was right while podcast and live were the only two kinds and became
+       wrong the moment there were five: on artist radio and playlist it built
+       podcast/undefined-undefined/episode/episode-undefined, and shared it. */
+    return { title: listenName(d) || d.title, art: d.art, url: listenUrl(d) };
   }
 
   /* Point the share sheet at something.
@@ -2194,8 +2211,14 @@ ${rowMarkup(d, r)}`).join('')}
   function shareMarkup(d) {
     if (!d) return '';
     const isLive = d.kind === 'live';
-    const title = isLive ? 'Share Station' : 'Share Episode';
-    const pageUrl = isLive ? stationUrl(d) : episodeUrl(d);
+    /* Read off the Design D share drawer frames rather than derived. Both
+       podcast kinds say "Share Podcast", which is the frames' answer and not a
+       slip: 2670:137239 on the show and 2670:137412 on the episode both say it.
+       The heading names the KIND, and the drawer body names the item, which is
+       why picking Share Episode from a row overflow retargets the body and
+       leaves this alone. */
+    const title = SHARE_TITLE[d.kind] || 'Share';
+    const pageUrl = shareFields(d, null).url;
     const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
       (pageUrl.includes('?') ? pageUrl + '&embed=true' : pageUrl + '?embed=true') +
       '" frameborder="0"></iframe>';
