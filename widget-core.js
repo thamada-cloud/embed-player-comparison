@@ -401,17 +401,17 @@ function liveMeta(d) {
      playlist the same as artist, with two idle lines instead of one
    --------------------------------------------------------------------------*/
 const CAPS = {
-  podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  bottomLeft: 'list', rowsLive: true },
-  episode:  { seek: true,  speed: true,  scrub: true,  list: false, bottomLeft: 'info' },
+  podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  topAction: 'list', rowsLive: true },
+  episode:  { seek: true,  speed: true,  scrub: true,  list: false, topAction: 'info' },
   /* Live radio carries the info button in the same corner the episode card
      does, which frame 2666:125218 draws. It had none at all. */
-  live:     { seek: false, speed: false, scrub: false, list: false, bottomLeft: 'info' },
-  /* bottomLeft: 'list' on both, which the frames do not draw. Without it the
+  live:     { seek: false, speed: false, scrub: false, list: false, topAction: 'info' },
+  /* topAction: 'list' on both, which the frames do not draw. Without it the
      Featured Artists list is reachable only by making the slot tall enough,
      so at any ordinary height the card holds a list nobody can open. A list
      with no way to open it is worse than a button the frame is missing. */
-  artist:   { seek: false, speed: false, scrub: false, list: true,  bottomLeft: 'list', rowsLive: true, stopNext: true, roundThumb: true },
-  playlist: { seek: false, speed: false, scrub: false, list: true,  bottomLeft: 'list', rowsLive: true, stopNext: true }
+  artist:   { seek: false, speed: false, scrub: false, list: true,  topAction: 'list', rowsLive: true, stopNext: true, roundThumb: true },
+  playlist: { seek: false, speed: false, scrub: false, list: true,  topAction: 'list', rowsLive: true, stopNext: true }
 };
 const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
 
@@ -915,6 +915,10 @@ ${listTail(d)}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
+            ${c.topAction === 'info' ? `
+              <button class="h-btn tb-info" data-act="info" aria-haspopup="dialog" aria-expanded="false"
+                      aria-label="About ${esc(d.kind === 'live' ? 'This Station' : 'This Episode')}">
+                <img src="assets/h-info.svg" alt=""></button>` : ''}
             ${c.list ? `
               <button class="h-btn tb-list" data-act="list" aria-pressed="false"
                       aria-label="Show ${esc(d.listTitle || 'Episodes')}">
@@ -951,9 +955,9 @@ ${listTail(d)}
                   </div>
                   <span class="t dur">--:--</span>
                 </div>
-                <div class="list-row">${cActions(c)}</div>
+                <div class="list-row">${cActions()}</div>
               </div>` : `
-              <div class="list-row">${cActions(c)}</div>`}
+              <div class="list-row">${cActions()}</div>`}
             <div class="wave"></div>
           </div>
           ${c.list && c.rowsLive ? sheetMarkup(d) : ''}
@@ -2117,28 +2121,16 @@ ${listTail(d)}
      opens, which is Episodes on a podcast and Featured Artists on the other two,
      and an object built once at definition time would have captured w.data
      while it was still null. */
-  /* The list button has moved to the TOP bar, left of share, which frame
-     2666:125692 draws. That empties the bottom row's left group on every
-     podcast card and leaves the lockup alone in the row, which is what buys
-     the height: the row goes from 32 to the lockup's own 24 and the gap above
-     it drops from 8 to 4.
-     The key stays here, and empty, rather than being deleted. cActions still
-     emits the span for it, because space-between with a single child pushes
-     that child to the START and would put the lockup on the wrong side. */
-  const BOTTOM_LEFT = () => ({
-    list: '',
-    /* The episode frame puts an info button exactly where the show frame puts
-       the list button. It is the same drawer the show card already carries, so
-       only the trigger is new. */
-    /* Named for what it opens. Live radio's drawer describes the STATION, so
-       announcing it as About This Episode would have been wrong the moment the
-       button was added there. */
-    info: '<button class="h-btn" data-act="info" aria-haspopup="dialog" aria-expanded="false" aria-label="About ' +
-            esc(w.data && w.data.kind === 'live' ? 'This Station' : 'This Episode') + '">' +
-            '<img src="assets/h-info.svg" alt=""></button>'
-  });
-  const cActions = (c) =>
-    '<span class="lr-side">' + (BOTTOM_LEFT()[c.bottomLeft] || '') + '</span>' +
+  /* Every card action now lives in the TOP bar, left of share, which frame
+     2666:125692 draws for the list button and which info follows. The bottom
+     row holds nothing but the lockup, which is what buys the height: it goes
+     from 32 to the lockup's own 24 and the gap above it from 8 to 4.
+
+     The empty span below is still emitted rather than dropped. space-between
+     with a single child pushes that child to the START, which would put the
+     lockup on the wrong side of the card. */
+  const cActions = () =>
+    '<span class="lr-side"></span>' +
     '<span class="lr-side">' + ihrLockup(listenUrl(w.data), listenName(w.data)) + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
