@@ -418,6 +418,23 @@ const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
 /* Share drawer headings, from the Design D frames: 2666:130642 live,
    2670:137239 podcast show, 2670:137412 podcast episode, 2666:131704 artist
    radio and 2666:132112 playlist. */
+/* The height iHeart itself publishes for each content type, read off its oEmbed
+   endpoint rather than chosen here:
+
+     GET /oembed/?url=...&format=json
+     show 300, episode 200, live 200, artist 300, playlist 300, all width 100%
+
+   fixedWidth comes back as 450 on every one, but that is metadata for consumers
+   that need a number; the markup says width="100%", so in practice the host's
+   container decides the width outright and this table is only about height.
+
+   Used in three places that used to disagree: the embed snippet the share
+   drawer hands out, the shipping frames on the prototype page, and design C's
+   own default height. The snippet said 200 for everything, which was right for
+   two of the five and 100px short for the other three. */
+const EMBED_H = { podcast: 300, episode: 200, live: 200, artist: 300, playlist: 300 };
+const embedHeight = (d) => EMBED_H[d && d.kind] || 200;
+
 const SHARE_TITLE = {
   podcast: 'Share Podcast',
   episode: 'Share Podcast',
@@ -438,7 +455,7 @@ const curTrack = (d) => (d.tracks || [])[d.trackIndex || 0] || null;
 function streamMeta(d) {
   const t = curTrack(d);
   const ctx = d.title;
-  if (d.playingSim && t) {
+  if (d.startedSim && t) {
     return `<p class="h-station mq">${esc(ctx)}</p>
             <p class="h-name mq">${esc(t.title)}</p>
             <p class="h-under mq">${esc(t.artist || '')}</p>`;
@@ -902,7 +919,7 @@ ${listTail(d)}
     const c = caps(d);
     const stream = c.stopNext;                    /* artist radio and playlist */
     return `
-      <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}">
+      <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}" data-kind="${esc(d.kind)}">
         <div class="stage">
           <img class="art" src="${esc(stageArt(d))}" alt="" crossorigin="anonymous">
           <div class="scrim"></div>
@@ -1645,7 +1662,7 @@ ${listTail(d)}
     const sheet = root.querySelector('.share-sheet');
     if (!d || !sheet) return;
     const f = shareFields(d, r);
-    const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
+    const embedCode = '<iframe allow="autoplay" width="100%" height="' + embedHeight(d) + '" src="' +
       (f.url.includes('?') ? f.url + '&embed=true' : f.url + '?embed=true') +
       '" frameborder="0"></iframe>';
     const set = (sel, fn) => { const el = sheet.querySelector(sel); if (el) fn(el); };
@@ -1877,7 +1894,7 @@ ${listTail(d)}
     const d = w.data; if (!d) return;
     const t = curTrack(d);
     const set = (sel, text) => { const e = q(sel + ' .mqi') || q(sel); if (e) e.textContent = text; };
-    if (d.playingSim && t) {
+    if (d.startedSim && t) {
       if (!q('.h-station')) { render(); return; }    /* idle block has fewer lines */
       set('.h-station', d.title); set('.h-name', t.title); set('.h-under', t.artist || '');
     } else { render(); return; }
@@ -1895,21 +1912,27 @@ ${listTail(d)}
       if (on) {
         INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });
         w.data.playingSim = true;
+        /* Set on the first play and never cleared. It decides whether the
+           metadata block shows a track, and a PAUSED card is still on a track,
+           so it has to outlive playingSim. */
+        w.data.startedSim = true;
         if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
         w.simTimer = setInterval(simTick, 1000);
       } else {
-        /* Stop, not pause. These cards draw a stop square, so leaving the
-           position where it was would be a lie about what the button did. */
+        /* Pause, not stop. These drew a stop square and reset to zero, on the
+           reading that a station cannot be resumed. Asked for as a pause, so
+           the position is kept and the glyph says so. The two had to change
+           together: a pause glyph over a transport that silently returns to
+           zero is worse than either on its own. */
         w.data.playingSim = false;
-        w.simPos = 0;
       }
       w.playing = on;
       setPlayingClass();
       paintStream();
       const pi2 = q('.pi');
-      if (pi2) pi2.src = on ? GLYPH.stop : GLYPH.play;
+      if (pi2) pi2.src = on ? GLYPH.pause : GLYPH.play;
       const pb2 = q('[data-act="play"]');
-      if (pb2) pb2.setAttribute('aria-label', on ? 'Stop' : 'Play');
+      if (pb2) pb2.setAttribute('aria-label', on ? 'Pause' : 'Play');
       if (on) { clearVeil(); showVeil(false); }
       else if (byUser) armVeil();
       else clearVeil();
@@ -2367,7 +2390,7 @@ ${listTail(d)}
        leaves this alone. */
     const title = SHARE_TITLE[d.kind] || 'Share';
     const pageUrl = shareFields(d, null).url;
-    const embedCode = '<iframe allow="autoplay" width="100%" height="200" src="' +
+    const embedCode = '<iframe allow="autoplay" width="100%" height="' + embedHeight(d) + '" src="' +
       (pageUrl.includes('?') ? pageUrl + '&embed=true' : pageUrl + '?embed=true') +
       '" frameborder="0"></iframe>';
     return `
