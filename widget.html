@@ -41,6 +41,11 @@
     <span class="unit">px</span>
     <button type="button" id="heightAuto" aria-pressed="true">Auto</button>
   </div>
+  <!-- The waveform and background switches are hidden for now. Their DEFAULTS
+       are still in force and are the only thing that was ever shipping here:
+       data-wave="off" on <main> below and data-bg="grey" on <body>. Putting
+       these two blocks back, along with their listeners in the script at the
+       foot of this file, is all it takes to bring the controls back.
   <div class="colctl">
     <label for="wavetog">Waveform</label>
     <span class="seg">
@@ -55,6 +60,7 @@
       <button type="button" data-bg="white" aria-pressed="false">White</button>
     </span>
   </div>
+  -->
   <div class="colctl">
     <label for="cols1">Columns</label>
     <span class="seg">
@@ -208,9 +214,12 @@
    halves when the designs go side by side. */
 (function () {
   const main = document.querySelector('main');
-  /* The page background. The cards are dark surfaces meant to sit on a
-     publisher's page, and a publisher's page is usually white, so being able to
-     put them on both without leaving the prototype is worth a switch. */
+  /* The background and waveform listeners go with their controls. They are
+     commented out rather than guarded on a null, because a guard would quietly
+     hide the fact that the markup is missing; this way the pairing is visible
+     and uncommenting the two header blocks without these does nothing, which is
+     an obvious symptom rather than a silent one.
+
   const bseg = document.getElementById('bggrey').parentElement;
   bseg.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-bg]'); if (!b) return;
@@ -218,14 +227,13 @@
     document.body.dataset.bg = b.dataset.bg;
   });
 
-  /* The waveform switch. Designs B and C only: the bar card's strip is not part
-     of what is being asked about here. */
   const wseg = document.getElementById('wavetog').parentElement;
   wseg.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-wave]'); if (!b) return;
     [...wseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     main.dataset.wave = b.dataset.wave;
   });
+  */
 
   /* Anchored on its own button, not on '.colctl .seg'. There are two of those
      rows now and that selector quietly started returning the waveform one, so
