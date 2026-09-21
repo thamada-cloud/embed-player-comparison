@@ -160,6 +160,7 @@ async function loadPlaylist(owner, id) {
   const tracks = await tracksByIds((pl.tracks || []).map((t) => t.trackId));
   return {
     kind: 'playlist', playlistOwner: owner, playlistId: id,
+    webUrl: (pl.urls && pl.urls.web) || `https://www.iheart.com/playlist/${pl.slug}-${owner}-${id}/`,
     /* Two idle lines on this one where artist radio has one, the playlist's
        name and its description. */
     title: pl.name, subtitle: pl.description || pl.author || '',
@@ -300,9 +301,37 @@ const WAVE = {
    107 by 24 box at 61 by 13.7. 14 sits between accomplice's 12 and 16 rungs and
    is what the frame draws, so it is what this uses. 8px between the two, and
    the whole lockup ends 16 from the card's right edge. */
-const IHR_LOCKUP =
-  '<a class="ihr-lockup" href="https://www.iheart.com/" target="_blank" rel="noopener"' +
-    ' aria-label="Listen on iHeart">' +
+/* Where "Listen on iHeart" goes. The card's own content, not the iHeart home
+   page, which is what it pointed at while there were two content types and no
+   good answer for a third.
+
+   Built from the API's own url where one is given rather than reconstructed.
+   The playlist endpoint returns urls.web and the slug is cosmetic in exactly
+   the way the podcast slugs are, so reconstructing it is a chance to be wrong
+   for no gain. */
+/* The name has to match the destination. The show card's d.title is the
+   EPISODE it happens to be playing while its link goes to the show, so reading
+   d.title everywhere labelled "Listen to <episode> on iHeart" a link that opens
+   the show. Every other kind's title is its own. */
+const listenName = (d) => !d ? null : (d.kind === 'podcast' ? d.subtitle : d.title);
+
+function listenUrl(d) {
+  if (!d) return 'https://www.iheart.com/';
+  if (d.webUrl) return d.webUrl;
+  switch (d.kind) {
+    case 'live': return stationUrl(d);
+    case 'episode': return episodeUrl(d);
+    case 'artist': return `https://www.iheart.com/artist/${d.slug}/`;
+    default: return showUrl(d);
+  }
+}
+
+/* The label names the destination rather than saying "Listen on iHeart" five
+   times over, so a screen reader hears which thing the link opens. The visible
+   words are unchanged; only the accessible name carries the content. */
+const ihrLockup = (href, what) =>
+  '<a class="ihr-lockup" href="' + esc(href) + '" target="_blank" rel="noopener"' +
+    ' aria-label="' + esc(what ? 'Listen to ' + what + ' on iHeart' : 'Listen on iHeart') + '">' +
     '<span>Listen on</span>' +
     '<img src="assets/ihr-logotype-white.svg" alt="" width="62" height="14">' +
   '</a>';
@@ -738,8 +767,8 @@ ${rowMarkup(d, r)}`).join('')}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
-               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
+            <a class="ihr-link" href="${esc(listenUrl(d))}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(listenName(d))} on iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
           </div>
           <div class="hero-controls">
             ${isLive ? `
@@ -950,8 +979,8 @@ ${rowMarkup(d, r)}`).join('')}
                 <p class="title mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                 <p class="subtitle mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            <a class="ihr-link" href="https://www.iheart.com/" target="_blank" rel="noopener"
-               aria-label="Open iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
+            <a class="ihr-link" href="${esc(listenUrl(d))}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(listenName(d))} on iHeart"><img class="ihr" src="assets/ihr-logo.svg" alt="iHeart"></a>
             <div class="controls-row">
               <button class="play-btn" data-act="play" aria-label="Play"><img class="pi" src="${GLYPH.play}" alt="">
                 <svg class="spin" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle></svg>
@@ -1942,7 +1971,7 @@ ${rowMarkup(d, r)}`).join('')}
   };
   const cActions = (c) =>
     '<span class="lr-side">' + (BOTTOM_LEFT[c.bottomLeft] || '') + '</span>' +
-    '<span class="lr-side">' + IHR_LOCKUP + '</span>';
+    '<span class="lr-side">' + ihrLockup(listenUrl(w.data), listenName(w.data)) + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself
