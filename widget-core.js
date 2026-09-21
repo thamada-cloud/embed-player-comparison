@@ -638,6 +638,7 @@ ${rowMarkup(d, r)}`).join('')}
           <div class="hero-controls">
             <span class="cc-side">
               ${isLive ? '' : `
+                <button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed"><span class="h-speed">1x</span></button>
                 <button class="h-btn" data-act="back" aria-label="Back 15 Seconds"><img src="assets/back15.svg" alt=""></button>
               `}
             </span>
@@ -1638,11 +1639,24 @@ ${rowMarkup(d, r)}`).join('')}
      its left group is emitted empty. It still has to be emitted: space-between
      with a single child pushes that child to the START, which would put the
      lockup on the wrong side of the card. */
+  /* Speed used to sit here beside the list button. It moved up into the control
+     row, to the left of the back 15 button, which is where it is asked for.
+
+     Two things follow from that move and neither is a side effect to fix. It is
+     now hidden until the first play, because the whole control row is
+     (.widget.hero:not(.started) .hero-controls .h-btn), and being left of a
+     button that does not exist yet is not a position. And the play button does
+     not shift, because design C's control row is a 1fr auto 1fr grid rather
+     than a centred flex row, so the two sides hold the same width whatever they
+     hold; that grid was put in for exactly this failure and it is the reason
+     the left side can now carry two buttons against the right side's one.
+
+     The empty span is still emitted when the left group has nothing in it.
+     space-between with a single child pushes that child to the START, which
+     would put the lockup on the wrong side of the card. */
   const cActions = (isPodcast) =>
     '<span class="lr-side">' +
       (isPodcast ?
-        '<button class="h-btn" data-act="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Change Playback Speed">' +
-          '<span class="h-speed">1x</span></button>' +
         '<button class="h-btn" data-act="list" aria-pressed="false" aria-label="Show Episodes">' +
           '<img src="assets/h-list.svg" alt=""></button>' : '') +
     '</span>' +
@@ -1781,6 +1795,20 @@ ${rowMarkup(d, r)}`).join('')}
     }
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
+
+    /* A capped menu opens on its current value rather than at the top. Design
+       C's speed button sits in the middle of a 234px card, which leaves about
+       90px over it against the 170 the five speeds want, so the menu scrolls
+       more often than not and 2x would otherwise be off screen the moment it
+       is the one selected.
+       scrollTop is set directly rather than through scrollIntoView, which is
+       free to scroll every ancestor as well and would move the page under the
+       card the menu was opened from. */
+    const current = menu.querySelector('[aria-checked="true"]');
+    if (current && menu.scrollHeight > menu.clientHeight + 1) {
+      menu.scrollTop = Math.max(0,
+        current.offsetTop - (menu.clientHeight - current.offsetHeight) / 2);
+    }
 
     w.menuBtn = btn;
     btn.setAttribute('aria-expanded', 'true');
