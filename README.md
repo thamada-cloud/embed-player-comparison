@@ -3669,3 +3669,20 @@ TikTok's own facts, which is where I found it.
 The others are frameable and deliberately left out: Internet Archive, PeerTube
 and Odysee are not surfaces iHeart content would ever be distributed on, and a
 gallery is more useful short than complete. Happy to add any of them.
+
+## A background switch on the prototype page
+
+`Background  Grey | White` in the header. Grey is `#e9edef`, the ground these
+cards have always been judged on, and it stays the default. White is what most
+publisher pages actually are.
+
+The attribute goes on `<body>`, because that is the element being painted, and
+the rule is `body[data-bg="white"]`, which outranks the base `body` rule on
+specificity rather than on order. Every other page in the repo carries no
+attribute and keeps the grey.
+
+Worth looking at once: on white, the shipping embed nearly disappears into the
+page. It paints its own white ground, so only its left accent bar and the rules
+between episodes separate it from the page, while both prototypes stay as
+distinct dark blocks. That is a real difference between them and not a fault of
+the switch.

@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260917213431">
+<link rel="stylesheet" href="widget-core.css?v=20260921141637">
 </head>
-<body>
+<body data-bg="grey">
 
 <header>
   <div class="brand">Widget Prototype</div>
@@ -31,6 +31,13 @@
     <span class="seg">
       <button type="button" id="wavetog" data-wave="on" aria-pressed="false">On</button>
       <button type="button" data-wave="off" aria-pressed="true">Off</button>
+    </span>
+  </div>
+  <div class="colctl">
+    <label for="bggrey">Background</label>
+    <span class="seg">
+      <button type="button" id="bggrey" data-bg="grey" aria-pressed="true">Grey</button>
+      <button type="button" data-bg="white" aria-pressed="false">White</button>
     </span>
   </div>
   <div class="colctl">
@@ -144,6 +151,16 @@
    halves when the designs go side by side. */
 (function () {
   const main = document.querySelector('main');
+  /* The page background. The cards are dark surfaces meant to sit on a
+     publisher's page, and a publisher's page is usually white, so being able to
+     put them on both without leaving the prototype is worth a switch. */
+  const bseg = document.getElementById('bggrey').parentElement;
+  bseg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-bg]'); if (!b) return;
+    [...bseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.body.dataset.bg = b.dataset.bg;
+  });
+
   /* The waveform switch. Designs B and C only: the bar card's strip is not part
      of what is being asked about here. */
   const wseg = document.getElementById('wavetog').parentElement;
@@ -170,6 +187,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260917213431"></script>
+<script src="widget-core.js?v=20260921141637"></script>
 </body>
 </html>

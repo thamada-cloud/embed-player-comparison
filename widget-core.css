@@ -61,6 +61,12 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* The page ground, switchable on the prototype page. #e9edef is the grey these
+   cards have always been judged on; white is what most publisher pages actually
+   are, and a dark card reads differently against each. The attribute lives on
+   <body> because that is the element being painted; every other page has no
+   attribute and keeps the grey. */
+body[data-bg="white"] { background: var(--true-white); }
 body {
   background: #e9edef; color: var(--ihr-grey-600);
   font: 14px/1.4 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
