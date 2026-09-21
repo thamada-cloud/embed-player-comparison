@@ -1462,7 +1462,15 @@ ${rowMarkup(d, r)}`).join('')}
         }
         if (w.ctx.state === 'suspended') await w.ctx.resume();
         await w.audio.play();
-        status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
+        /* Design C says nothing here. The card already answers "is it playing"
+           with the button glyph, the scrubber and, on live, the track line, so
+           a line of prose under the card repeats what is on it. It is cleared
+           rather than left alone, so an error from a previous attempt does not
+           sit there while the audio plays. The other designs keep the line;
+           only C was asked to drop it. Errors still report on every design,
+           being the one thing the card cannot show by itself. */
+        if (variant === 'c') status('');
+        else status(w.data.kind === 'live' ? 'Live now.' : 'Playing.');
       } catch (e) { w.want = false; refreshBuffering(); status('Playback blocked. ' + e.message, true); return; }
     } else if (w.audio) {
       w.want = false;

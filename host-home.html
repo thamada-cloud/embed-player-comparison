@@ -181,11 +181,11 @@ a { color: inherit; text-decoration: none; }
 .iheart-slot .credit { font-size: 14px; line-height: 18px; font-weight: 500;
                        letter-spacing: .7px; margin: 12px 0 0; }
 body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
-/* The module under test wears a quiet marker so nobody mistakes which of the
-   two stacked players is the prototype. */
-.under-test .module-title { border-bottom-color: #c8102e; }
-.under-test .flag { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px;
-                    text-transform: uppercase; color: #c8102e; display: block; margin-bottom: 4px; }
+/* The module under test used to wear a red rule and a PROTOTYPE flag so nobody
+   mistook which of the two stacked players was ours. Both are gone: the point
+   of this page is to see the widget as a reader would meet it, and a marker
+   that says LOOK HERE is the one thing a real article page would never have.
+   The module now matches every other rail module, black rule and no flag. */
 
 .footer { margin-top: 64px; border-top: 2px solid #000; }
 .footer .bar { max-width: var(--wrap); margin: 0 auto; padding: 28px var(--gutter);
@@ -400,8 +400,8 @@ body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
       </section>
 
       <!-- The slot under test, directly below it. -->
-      <section class="rail-module iheart-slot under-test" id="slot">
-        <h2 class="module-title"><span class="flag">Prototype</span><span id="slot-title">Las Culturistas</span></h2>
+      <section class="rail-module iheart-slot" id="slot">
+        <h2 class="module-title"><span id="slot-title">Las Culturistas</span></h2>
         <iframe class="slot-frame" id="slot-frame" title="Audio player, prototype"
                 allow="autoplay" scrolling="no" referrerpolicy="no-referrer-when-downgrade"></iframe>
         <p class="credit" id="slot-credit">An iHeartRadio Podcast</p>
@@ -443,7 +443,7 @@ const SOURCES = {
 
    EMBED_V is rewritten at deploy, so the URL changes whenever anything ships
    and the frame cannot come from cache. */
-const EMBED_V = '20260921153045';
+const EMBED_V = '20260921153834';
 ['a', 'b', 'c'].forEach((d) => {
   SOURCES[d + '-podcast'] = { src: `embed.html?design=${d}&mode=podcast&v=${EMBED_V}`,
                               title: 'Las Culturistas', credit: 'An iHeartRadio Podcast' };
