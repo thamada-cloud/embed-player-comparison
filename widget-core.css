@@ -104,7 +104,7 @@ header {
    row underneath it; 8 of padding plus that 8 is the 16 that was asked for.
    The consequence is that the buttons, which fill the 32, now sit 8 from the
    edge rather than 16. */
-[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: 8px; }
+[data-wave="off"] .widget.hero .hero-bottom { padding-bottom: var(--card-padb, 8px); }
 
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
@@ -549,7 +549,7 @@ a.thumb-link:hover { opacity: .92; }
 .widget.hero .sheet, .widget.hero .slider { cursor: auto; }
 .stage { position: relative; height: 224px; width: 100%; overflow: hidden;
          display: flex; flex-direction: column; justify-content: space-between;
-         padding-top: 16px; background: var(--stage-plate); }
+         padding-top: var(--card-pad, 16px); background: var(--stage-plate); }
 /* The plate under the artwork is a THEME colour, not something read off the
    picture. It was the artwork's own mean colour for live radio for a while:
    a station's logo is a transparent PNG drawn for a white tile, so a white
@@ -579,7 +579,8 @@ a.thumb-link:hover { opacity: .92; }
    16: the slider, the bottom row and the episode rows were all 16 already, and
    the top bar's own right side had been brought to 16 for the logo, so the left
    was the last 24 on the card. */
-.topbar { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 16px; width: 100%; }
+.topbar { position: relative; display: flex; align-items: center; gap: 8px;
+          padding: 0 var(--card-pad, 16px); width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
    and let the two lines of text run underneath it. Second time a class name
@@ -649,7 +650,7 @@ a.thumb-link:hover { opacity: .92; }
 .hero-controls {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 0 16px; box-sizing: border-box;
+  width: 100%; padding: 0 var(--card-pad, 16px); box-sizing: border-box;
 }
 /* Design C's centre row is a three column grid rather than a centred flex row,
    so the play button is centred on the CARD rather than on whatever happens to
@@ -896,6 +897,48 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
   height: auto; flex: 1 1 auto;
 }
 
+/* ---------------------------------------------------------------------------
+   Design C compressing into a short slot.
+
+   The card had one size for its chrome and a 234 floor, so below that it simply
+   clipped. Everything here is driven off cqh, the container's own height, which
+   is available because the shell is a size container the moment a height is
+   set. None of it applies in auto mode, where the card is 263 and comfortable,
+   and every clamp lands on today's value at that height anyway.
+
+   The paddings run 16 down to 8, and the bottom runs 8 down to 0. 6cqh is 15.8
+   at 263, so the top of the range is today's 16 and the card only starts
+   tightening once the slot is genuinely short.
+
+   The play button takes what is left, and the arithmetic is not the obvious
+   one. It is centred on the CARD, while the space it has to fit in is not
+   centred on the card: the top bar is 48 and the bottom bar is 32, so the top
+   is always the binding side. Half the button has to clear the padding plus the
+   48, which gives play = H - 2*padTop - 96, and with padTop at 6cqh that is
+   0.88H - 96, the 88cqh below.
+
+   Sizing it against the free band instead, H - 96 - 32, looked right and was
+   wrong: it overlapped the top bar by 9px at 160 and by more further down,
+   because it spent space it did not have on the short side. Caught by measuring
+   the button's top edge against the top bar's bottom edge rather than by eye.
+
+   It holds 64 until that sum says otherwise, which is around 176, and stops at
+   40. The width guard stays, since a narrow card can run out of room across
+   before it runs out down. */
+main[data-h="on"] section[data-design="c"] .widget.c {
+  --card-pad: clamp(8px, 6cqh, 16px);
+  --card-padb: clamp(0px, 3cqh, 8px);
+}
+main[data-h="on"] section[data-design="c"] .widget.c .hero-play {
+  --play: max(40px, min(64px, 100cqw - 8px, 88cqh - 96px));
+}
+/* The floor falls out of the same equation rather than being chosen. Setting
+   play to its 40 minimum in 0.88H - 96 gives H = 154.5, so 156 is the shortest
+   slot in which a 40px button still clears the top bar. Below it the card
+   clips, as it did below 234 before, but the two floors the change was given,
+   8px of padding and a 40px button, are exactly what put it at 156. */
+main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 156px; }
+
 /* Hidden by default, since design C's list is the drawer until it has the room
    not to be. This has to sit BEFORE the container query below: the two rules
    have identical specificity, so source order is what decides. */
@@ -1020,7 +1063,7 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
    lockup in the same box on both. */
 .list-row { display: flex; justify-content: space-between; align-items: center;
             gap: var(--sp-4); min-height: 32px;
-            padding: 0 16px; box-sizing: border-box; }
+            padding: 0 var(--card-pad, 16px); box-sizing: border-box; }
 .lr-side { display: flex; align-items: center; gap: var(--sp-4); }
 /* The drawer, frame 2533:85717. It slides up over the player inside the card
    rather than opening a panel beneath it, which is what the frame draws: the

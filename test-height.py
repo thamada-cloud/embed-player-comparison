@@ -70,7 +70,10 @@ def fill(pg):
     set_height(pg, 150)
     b = boxes(pg, "#w-podcast-c")
     check("podcast at 150, shell is 150", b["shell"], 150)
-    check("podcast at 150, card holds the 234 floor", b["card"], 234)
+    # 156, not 234. The card now compresses into a short slot: the paddings run
+    # 16 down to 8 and the play button 64 down to 40, and 156 is where a 40px
+    # button still clears the 48px top bar. See the compression block in the CSS.
+    check("podcast at 150, card holds the 156 floor", b["card"], 156)
     # overflow:hidden still reports scrollHeight past clientHeight, so the
     # honest assertion is that the box is 150 and nothing can be scrolled to.
     check("podcast at 150, shell clips",
@@ -81,7 +84,7 @@ def fill(pg):
     for h in (150, 300, 900):
         set_height(pg, h)
         b = boxes(pg, "#w-live-c")
-        check("live at %d, stage is %d" % (h, max(h, 234)), b["stage"], max(h, 234))
+        check("live at %d, stage is %d" % (h, max(h, 156)), b["stage"], max(h, 156))
         check("live at %d, no list icon" % h, b["icon"], None)
 
     # The design B check that used to live here is gone with design B. It is
