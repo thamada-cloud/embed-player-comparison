@@ -2384,14 +2384,41 @@ const lineLink = (href, text, aria) =>
    and the thing worth comparing them against. Checked by loading both directly:
    the show embed draws the transport, then "The Show Must Go OFF", "Yumming My
    Yuck", "Class FTM License" and on down. */
+/* The six routes the shipping widget serves are declared in the monorepo at
+   apps-legacy/www/src/widget/routes.ts: playlist, live, podcast, podcast
+   episode, artist and favorites. Five of them are embeddable without a signed
+   in user; favorites is the one that is not, so it is not here.
+
+   Slugs are cosmetic. The trailing numeric id resolves the content and a wrong
+   slug silently returns something else, so every one of these is built from an
+   id and given a throwaway slug rather than a real one that could drift.
+   Confirmed against the public oEmbed endpoint, which answered for all five. */
 const embedUrl = {
   podcast: (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}/?embed=true`,
+  /* Follows the podcast search rather than being pinned to one episode, because
+     the show data is already loaded here and carries the episode ids. Searching
+     a different podcast moves the show frame and this one together. */
+  episode: (d) => `https://www.iheart.com/podcast/podcast-${d.showId}/episode/episode-${d.currentEpisodeId}/?embed=true`,
   live: (d) => `https://www.iheart.com/live/station-${d.stationId}/?embed=true`
+};
+
+/* Artist radio and playlist have no search box on this page and nothing loads
+   them, so they are fixed reference examples. Both ids were resolved from
+   us.api.iheart.com rather than read off a URL. */
+const FIXED_EMBEDS = {
+  'e-artist': 'https://www.iheart.com/artist/artist-33221/?embed=true',
+  'e-playlist': 'https://www.iheart.com/playlist/clean-top-hits-312064750-E63iPqfbGw4EzKMSgzoWF4?embed=true'
 };
 
 /* Nothing is fetched for a source the page is not showing, so the single card
    page makes one API call rather than two. */
 const setIfPresent = (id, apply) => { const el = document.getElementById(id); if (el) apply(el); };
+
+/* Applied here rather than beside FIXED_EMBEDS itself, because setIfPresent is
+   a const declared below that point and reaching it early is a dead zone throw
+   rather than a hoisted function call. */
+Object.entries(FIXED_EMBEDS).forEach(([id, src]) =>
+  setIfPresent(id, (el) => { el.src = src; }));
 
 /* Point a shipping embed at some content, and SAY what it is pointing at.
    It has always followed the search; there was simply no way to tell from
@@ -2399,6 +2426,13 @@ const setIfPresent = (id, apply) => { const el = document.getElementById(id); if
    looking player and the section had no label beyond "Podcast". */
 function showEmbed(kind, d) {
   setIfPresent('e-' + kind, (el) => { el.src = embedUrl[kind](d); });
+  /* The episode frame rides on the podcast fetch. It is a separate section with
+     its own heading, not a second view of the show frame, so it is set here
+     rather than given a kind of its own in WIDGETS. */
+  if (kind === 'podcast') {
+    setIfPresent('e-episode', (el) => { el.src = embedUrl.episode(d); });
+    setIfPresent('n-episode', (el) => { el.textContent = d.title || ''; });
+  }
   setIfPresent('n-' + kind, (el) => {
     el.textContent = kind === 'live'
       ? (d.title || '')

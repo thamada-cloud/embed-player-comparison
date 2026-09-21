@@ -148,9 +148,17 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="2"] > [data-design="a"],
   main[data-cols="2"] > [data-design="b"] { grid-column: 1; }
   main[data-cols="2"] > [data-design="c"] { grid-column: 2; }
-  main[data-cols="2"] > .band[data-design]:not([data-design="ship"]) { grid-row: 4; }
-  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 5; }
-  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 6; }
+  /* The three types with no design counterpart, stacked under the pair that
+     has one. They need explicit placement like everything else here: rows 3 and
+     4 are already claimed, and a section with no rule auto-flows into whichever
+     column has space, which put them under the designs rather than under what
+     ships. */
+  main[data-cols="2"] > [data-design="ship"][data-kind="episode"] { grid-column: 1; grid-row: 4; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="artist"] { grid-column: 2; grid-row: 4; }
+  main[data-cols="2"] > [data-design="ship"][data-kind="playlist"] { grid-column: 1; grid-row: 5; }
+  main[data-cols="2"] > .band[data-design]:not([data-design="ship"]) { grid-row: 6; }
+  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 7; }
+  main[data-cols="2"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 8; }
 }
 
 /* Three across: what ships, then the two designs, with podcast beside podcast
@@ -173,6 +181,14 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="3"] > .band[data-design] { grid-row: 2; }
   main[data-cols="3"] > [data-design][data-kind="podcast"] { grid-row: 3; }
   main[data-cols="3"] > [data-design][data-kind="live"] { grid-row: 4; }
+  /* The three types with no design counterpart, stacked under the pair that
+     has one. They need explicit placement like everything else here: rows 3 and
+     4 are already claimed, and a section with no rule auto-flows into whichever
+     column has space, which put them under the designs rather than under what
+     ships. */
+  main[data-cols="3"] > [data-design="ship"][data-kind="episode"] { grid-row: 5; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="artist"] { grid-row: 6; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="playlist"] { grid-row: 7; }
 }
 /* Between 900 and 1200 a page asking for three columns gets two. */
 @media (min-width: 900px) and (max-width: 1199px) {
@@ -185,9 +201,17 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="3"] > [data-design="a"],
   main[data-cols="3"] > [data-design="b"] { grid-column: 1; }
   main[data-cols="3"] > [data-design="c"] { grid-column: 2; }
-  main[data-cols="3"] > .band[data-design]:not([data-design="ship"]) { grid-row: 4; }
-  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 5; }
-  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 6; }
+  /* The three types with no design counterpart, stacked under the pair that
+     has one. They need explicit placement like everything else here: rows 3 and
+     4 are already claimed, and a section with no rule auto-flows into whichever
+     column has space, which put them under the designs rather than under what
+     ships. */
+  main[data-cols="3"] > [data-design="ship"][data-kind="episode"] { grid-column: 1; grid-row: 4; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="artist"] { grid-column: 2; grid-row: 4; }
+  main[data-cols="3"] > [data-design="ship"][data-kind="playlist"] { grid-column: 1; grid-row: 5; }
+  main[data-cols="3"] > .band[data-design]:not([data-design="ship"]) { grid-row: 6; }
+  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="podcast"] { grid-row: 7; }
+  main[data-cols="3"] > [data-design]:not([data-design="ship"])[data-kind="live"] { grid-row: 8; }
 }
 /* Below 900 the two columns would be narrower than the cards are designed for,
    so the toggle is simply ignored rather than disabled: the page falls back to
@@ -273,6 +297,21 @@ section.is-live > .band-note { color: #14532d; }
    down by 4, so the two sit at the same height in a column and the comparison
    is not a comparison of frame sizes. */
 [data-design="ship"][data-kind="podcast"] .embed iframe { height: 440px; }
+/* Artist radio and playlist carry a "Featured artists in this playlist" list
+   under the transport, which is the same shape of thing the show's episode list
+   is, so they take the same 440 and the whole column reads at one height.
+
+   Measured at 411 wide, the natural content runs to 517 on the show, 581 on
+   artist radio and 481 on playlist, so 440 clips artist by 141 and playlist by
+   41. That is left alone deliberately. The shipping widget clips at every
+   height anyway, which is the finding this section exists to show, and picking
+   a different height per type would trade a real behaviour for a tidy column.
+
+   The episode frame keeps the base 200. Its content measured exactly 200 at
+   411 wide, so it is the one type here with nothing below the fold to reveal,
+   and 440 would give it 240 of empty grey. */
+[data-design="ship"][data-kind="artist"] .embed iframe,
+[data-design="ship"][data-kind="playlist"] .embed iframe { height: 440px; }
 
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning

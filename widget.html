@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260921153834">
+<link rel="stylesheet" href="widget-core.css?v=20260921162130">
 </head>
 <body data-bg="grey">
 
@@ -84,6 +84,40 @@
     <div class="h2row"><h2>Live radio</h2></div>
     <div class="embed">
       <iframe id="e-live" title="iHeart live radio embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <!-- Podcast, then live, THEN the three that have no design counterpart. The
+       order is not grouping podcast with its episode, on purpose: the multi
+       column layouts put podcast beside podcast and live beside live, so those
+       two have to stay in the first two rows, and having the page read in a
+       different order at one width than at another is worse than splitting the
+       two podcast frames apart. -->
+
+  <section data-design="ship" data-kind="episode">
+    <div class="h2row"><h2>Podcast episode</h2></div>
+    <div class="embed">
+      <iframe id="e-episode" title="iHeart podcast episode embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <!-- Artist radio and playlist have no search box, so these two are fixed
+       examples. Their src is set in widget-core.js beside the others rather
+       than hardcoded here, so every embed URL on the page lives in one place. -->
+  <section data-design="ship" data-kind="artist">
+    <div class="h2row"><h2>Artist radio</h2></div>
+    <div class="embed">
+      <iframe id="e-artist" title="iHeart artist radio embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <section data-design="ship" data-kind="playlist">
+    <div class="h2row"><h2>Playlist</h2></div>
+    <div class="embed">
+      <iframe id="e-playlist" title="iHeart playlist embed, current production player"
               allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
   </section>
@@ -187,6 +221,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260921153834"></script>
+<script src="widget-core.js?v=20260921162130"></script>
 </body>
 </html>
