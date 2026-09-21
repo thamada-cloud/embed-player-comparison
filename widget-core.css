@@ -629,7 +629,28 @@ a.thumb-link:hover { opacity: .92; }
    button. The 4px of Button padding still applies, so the button itself grows
    to 48 and the grid either side of the play button absorbs it. */
 .widget.c .hero-controls .h-btn[data-act="back"] img,
-.widget.c .hero-controls .h-btn[data-act="fwd"] img { width: 40px; height: 40px; }
+.widget.c .hero-controls .h-btn[data-act="fwd"] img,
+/* Skip next is a control row button like the other two, so it takes their 40
+   rather than the 24 every other icon button on the card uses. */
+.widget.c .hero-controls .h-btn[data-act="next"] img { width: 40px; height: 40px; }
+
+/* 1x sized to the buttons it now sits beside.
+
+   This is a deliberate departure from production, which is documented just
+   below: PlaybackSpeed keeps a FIXED 32px box and drops the type rather than
+   letting the button grow, because at 32 it has to. That reasoning was written
+   while 1x sat in the bottom bar among 32px icons. It has moved into the
+   control row beside back 15 and forward 30, which are 48, and a 32 box next to
+   two 48s reads as a mistake rather than as restraint.
+
+   40 plus the 4px of Button padding is 48, the same arithmetic the other two
+   make. The type steps with the box, which is production's own rule rather than
+   an invention: PlaybackSpeed sets caption-3 at 12 on small screens and steps
+   up to caption-1 at 14 when there is room. Measured at 14 SemiBold the widest
+   label, 1.25x, is 34.5, so a 40 box holds every step of the cycle. */
+.widget.c .hero-controls .h-btn[data-act="speed"] { padding: 4px; }
+.widget.c .hero-controls .h-speed { width: 40px; height: 40px; line-height: 40px;
+                                    font-size: var(--fs-14); }
 /* The Figma component in this slot is named Web Internal / Podcast Playback
    Speed, but the asset it exports is a play triangle, its own root being
    <g id="Web Internal / Play">. What the frame RENDERS there is the text 1x, so
