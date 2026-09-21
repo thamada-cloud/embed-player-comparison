@@ -1385,12 +1385,16 @@ ${rowMarkup(d, r)}`).join('')}
   /* ---------------------------------------------------------------------
      The pause veil, frame 2581:363615.
 
-     Five seconds after listening stops, the card covers itself with the
-     iHeart prompt. The delay is the whole point of the thing: pausing is
+     After listening stops, the card covers itself with the iHeart prompt.
+
+     How long after is per design, because the two are asking different
+     questions. Design B waits five seconds, on the argument that pausing is
      usually a two second interruption, someone taking a call or talking to
-     the person next to them, and a prompt that lands on the same frame as
-     the pause punishes a listener who is coming straight back. Waiting five
-     seconds means the prompt only meets people who actually stopped.
+     the person next to them, and a prompt landing on the same frame as the
+     pause punishes a listener who is coming straight back. Design C raises
+     it immediately, so the prompt reads as the answer to the pause rather
+     than as something that arrives later on its own. Keeping one of each is
+     deliberate, it is the comparison.
 
      Only a pause the listener asked for arms it. setPlaying(false) is also
      how a card is stopped when another one starts, and how the episode
@@ -1402,7 +1406,7 @@ ${rowMarkup(d, r)}`).join('')}
      into it. Asking a second time after someone has already said no is the
      same nagging the five second delay exists to avoid.
      --------------------------------------------------------------------- */
-  const VEIL_DELAY = 5000;
+  const VEIL_DELAY = variant === 'c' ? 0 : 5000;
 
   function clearVeil() { clearTimeout(w.veilTimer); w.veilTimer = null; }
 
@@ -1412,11 +1416,12 @@ ${rowMarkup(d, r)}`).join('')}
     if (!card || !veil) return;
     card.classList.toggle('veil-open', on);
     veil.setAttribute('aria-hidden', on ? 'false' : 'true');
-    /* Focus is deliberately not moved here. This opens on a timer rather than
-       on a keypress, and pulling focus five seconds after someone pressed
-       pause would take it from wherever they had moved on to. The close
-       button is reachable the moment they Tab, because the trap pulls focus
-       in on the first Tab while the veil is up. */
+    /* Focus is deliberately not moved here, on either delay. It opens off a
+       pause rather than off a request to open it, and taking focus away from
+       wherever the listener had moved on to is wrong whether that is five
+       seconds later or the same moment. The close button is reachable as
+       soon as they Tab, because the trap pulls focus in on the first Tab
+       while the veil is up. */
   }
 
   function armVeil() {
