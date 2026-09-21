@@ -334,8 +334,11 @@ section.is-live > .band-note { color: #14532d; }
 /* The tail scrolls with the rows, so the scroll area is the whole list. */
 .list .rows, .sheet-body .rows { flex: 1 1 auto; min-height: 0; }
 /* It is the last child of a 2px gap column, so it carries its own breathing
-   room rather than inheriting the rhythm of the rows above it. */
-.rows > .list-legal { margin: 12px 0 4px; }
+   room rather than inheriting the rhythm of the rows above it. 16 below, so the
+   list does not end flush against the bottom of the drawer.
+   The rows are a flex column, so this is a real gap rather than a margin that
+   collapses away or gets ignored at the end of a scroll container. */
+.rows > .list-legal { margin: 12px 0 16px; }
 
 /* ---------- drawer scrollbars ----------
    Shown whenever there is overflow, rather than left to the platform to fade in
