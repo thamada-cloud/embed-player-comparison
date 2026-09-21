@@ -1253,6 +1253,15 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    header is light. */
 .sheet-close:hover { background: rgba(0,0,0,.08); }
 .sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; }
+/* In the LIST drawer the rows scroll, not the body around them. The body keeps
+   the overflow for the info drawer, whose content is a block of text with no
+   scroller of its own.
+
+   fitPeek used to force an explicit height on .rows, and that was quietly the
+   only thing bounding it. With it gone the rows grew to their full content
+   height, the body took over the scrolling, and the drawn scrollbar, which is
+   attached to the rows, saw nothing to scroll. */
+.sheet-body.rows-body { overflow: hidden; display: flex; flex-direction: column; }
 .sheet-body .rows { gap: 2px; }
 
 /* The info drawer, frame 2562:285883. Same component, one layer higher so it
@@ -1693,25 +1702,10 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
            font-size: var(--fs-14); line-height: var(--lh-18);
            letter-spacing: var(--ls-0); font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
-/* The peek fades out instead of being sliced.
-
-   fitPeek() deliberately leaves a partial row showing so the list reads as
-   scrollable, but a row cut clean through its artwork and its title reads as a
-   rendering fault rather than as more content. The mask takes the last 28px to
-   transparent, which is slightly more than the 24 of peek, so the cut edge is
-   never the thing you see: the row is always already fading where it ends.
-
-   Masked on the scroll container, not the last row, so it stays put while the
-   rows move under it and the top of the list is untouched. */
-.rows {
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
-          mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
-}
-/* Scrolled to the end there is nothing below to hint at, so the fade would just
-   be dimming the last row for no reason. */
-.rows[data-at-end="true"] {
-  -webkit-mask-image: none; mask-image: none;
-}
+/* No fade over the last row, and no forced peek under it. Both were there to
+   hint that the list scrolled; the drawn scrollbar says that outright, and a
+   mask over a list that ends where it ends was softening a cut that no longer
+   needs making. */
 /* The overflow button is a sibling of the row, not a child of it, because the
    row carries role="button" and a control nested inside one is not reliably
    reachable. The wrapper is what lets them sit on top of each other. */

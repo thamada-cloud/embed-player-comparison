@@ -1043,7 +1043,7 @@ ${listTail(d)}
           <h3>${esc(d.listTitle)}</h3>
           <button class="sheet-close" data-act="list" aria-label="Close Episodes"><img src="assets/sheet-close.svg" alt=""></button>
         </div>
-        <div class="sheet-body">
+        <div class="sheet-body rows-body">
           <div class="rows">
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}
@@ -1122,12 +1122,11 @@ ${listTail(d)}
   function afterRender() {
     buildBars();
     markOverflow(root);
-    fitPeek();
-    wirePeekFade(root);
+    wireRowsBar(root);
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
-    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitPeek(); wirePeekFade(root); });
+    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); wireRowsBar(root); });
     w.ro.observe(root);
 
     const art = q('.art');
@@ -1407,43 +1406,26 @@ ${listTail(d)}
   }
   const idleAt = (i) => wave.idle[Math.min(wave.idle.length - 1, Math.floor(i * wave.idle.length / w.bars.length))];
 
-  /* Guarantee that design C's episode drawer shows a PARTIAL row.
+  /* The drawer's scrollbar, drawn rather than the platform's.
 
-     The drawer is as tall as the card, and design C's card is 16:9 between 416
-     and 640 wide, so its height is a different number at every width and the
-     peek is whatever is left over after whole rows: `avail mod pitch`. Measured
-     across twelve widths it ran from 6px to 65px, and 6px is invisible. At 280
-     through 411, which includes the 352 slot both host pages use, it was 6.
+     ::-webkit-scrollbar was styled first and did nothing: on macOS the
+     scrollbar is an overlay, it reserves no width, and measured here it painted
+     no pixels at all until touched. Setting scrollbar-width to bring Firefox
+     along made it worse, because specifying it makes Chrome ignore every
+     ::-webkit-scrollbar rule. So the bar is drawn, which is also what the
+     Design D drawers show: they carry a Scroll Bar instance rather than leaving
+     it to the platform.
 
-     So the scroller is given an explicit height of `n * pitch + PEEK` instead
-     of whatever the layout happens to leave. The cut then lands 24px into a row
-     at every width, which is the same peek design A's fixed 220px list was
-     built around.
-
-     The cost is honest and visible: when the leftover was smaller than the peek
-     the row count drops by one, and the space it held becomes drawer below the
-     list rather than half a row nobody can see. */
-  const PEEK = 24;
-  /* The fade over the peek is pointless once there is nothing below to hint at,
-     so it is turned off at the end of the scroll. Bound per render, on every
-     rows container the card has, since design C carries two. */
-  function wirePeekFade(root) {
+     This replaced a forced 24px peek and a fade over it. Both existed to hint
+     that the list scrolled, by cutting a row part way and softening the cut.
+     A scrollbar says the same thing without lying about where the list ends,
+     and it says it at a glance rather than only once you notice a half row. */
+  function wireRowsBar(root) {
     root.querySelectorAll('.rows').forEach((rows) => {
-      /* A drawn scrollbar rather than the platform's.
-
-         ::-webkit-scrollbar was styled first and did nothing: on macOS the
-         scrollbar is an overlay, it reserves no width, and measured here it
-         painted no pixels at all until touched. Setting scrollbar-width to
-         bring Firefox along made it worse, because specifying it makes Chrome
-         ignore every ::-webkit-scrollbar rule. So the bar is drawn, which is
-         also what the Design D drawers show: they carry a Scroll Bar instance
-         rather than leaving it to the platform. */
       const bar = rows.parentElement.querySelector('.rows-bar');
       const thumb = bar && bar.querySelector('.rows-thumb');
+      if (!bar || !thumb) return;
       const mark = () => {
-        const atEnd = rows.scrollTop + rows.clientHeight >= rows.scrollHeight - 1;
-        rows.dataset.atEnd = String(atEnd);
-        if (!bar || !thumb) return;
         const over = rows.scrollHeight - rows.clientHeight;
         /* Absent, not empty, when everything already fits. A track with a full
            height thumb in it is just a line down the side saying nothing. */
@@ -1458,34 +1440,12 @@ ${listTail(d)}
       /* Bound once per element. render() rewrites the markup so a fresh set
          arrives each time, but the ResizeObserver calls this on the SAME
          elements repeatedly and would otherwise stack a listener per resize. */
-      if (!rows.dataset.fadeWired) {
+      if (!rows.dataset.barWired) {
         rows.addEventListener('scroll', mark, { passive: true });
-        rows.dataset.fadeWired = '1';
+        rows.dataset.barWired = '1';
       }
       mark();
     });
-  }
-
-  function fitPeek() {
-    const rows = root.querySelector('.sheet:not(.info-sheet) .rows');
-    if (!rows) return;
-    const body = rows.parentElement;
-    const first = rows.firstElementChild;
-    if (!body || !first) return;
-    rows.style.height = '';                        /* measure unconstrained */
-    const gap = parseFloat(getComputedStyle(rows).rowGap) || 0;
-    const pitch = first.getBoundingClientRect().height + gap;
-    const cs = getComputedStyle(body);
-    const avail = body.getBoundingClientRect().height - parseFloat(cs.paddingTop);
-    if (!pitch || avail <= 0) return;
-    /* The height is always set, even when the layout would already have left a
-       usable peek. Leaving that case alone worked, but it meant two different
-       things decided where the list is cut depending on the width, and only one
-       of them was this function. */
-    let n = Math.floor(avail / pitch);
-    let peek = avail - n * pitch;
-    if (peek < PEEK) { n = Math.max(1, n - 1); peek = PEEK; }
-    rows.style.height = (n * pitch + peek) + 'px';
   }
 
   function act(kind, btn) {
