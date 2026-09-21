@@ -656,6 +656,9 @@ a.thumb-link:hover { opacity: .92; }
 .h-name { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
           letter-spacing: var(--ls-0); font-weight: 600;
           color: var(--ihr-grey-100); }
+/* The bullet between the track and the artist. Dimmed, so the separator reads
+   as punctuation rather than as a third piece of information. */
+.np-sep { color: var(--ihr-grey-250); }
 .h-under { margin: 0; font-size: var(--fs-14); line-height: var(--lh-18);
            letter-spacing: var(--ls-0); font-weight: 400;
            color: var(--ihr-grey-100); }
@@ -872,18 +875,19 @@ a.thumb-link:hover { opacity: .92; }
 .widget.c[data-kind="episode"] .stage,
 .widget.c[data-kind="live"] .stage { height: 200px; }
 
-/* Live radio alone needs its play button capped at its 200 default, and the
-   reason is its metadata block. Playing, it carries THREE lines, station then
-   track then artist, so its top bar measures 52 where the episode card's two
-   lines measure 48, and its control row sits a further 1px high on
-   `top: calc(50% - 1px)`. At 200 that puts a 64px button's top edge at 67
-   against a top bar ending at 68, so it overlapped the artist line by a pixel.
-   With a longer artist name it would have overlapped the text itself.
+/* Live radio's play button used to be capped at 60 at its 200 default, because
+   its metadata block ran to THREE lines, station then track then artist, which
+   made its top bar 52 where the episode card's two lines made 48, and a 64px
+   button overlapped the artist line.
 
-   60, from 2 * (100 - 1 - 16 - 52) = 62, minus 2 for clearance. Only at the
-   default: once a height is set the compression block owns --play and this
-   rule is overridden by it. */
-.widget.c[data-kind="live"] .hero-play { --play: min(64px, 100cqw - 8px, 60px); }
+   The cap is gone with the third line: track and artist now share one line, so
+   the block is two lines like every other card's. The gain is larger than the
+   4px the line heights suggest, and that is the interesting part. At three
+   lines the text was TALLER than the 48px thumbnail, so the thumbnail's own
+   compression did nothing and the top bar stayed 52 at every height. At two
+   lines the thumbnail governs again, so the top bar shrinks with the card:
+   measured 48 at 300 down to 40 at 150, and the clearance above the button went
+   from -7 to +5 there. */
 .widget.c .hero-controls { top: calc(50% + .5px); }
 
 /* ---------------------------------------------------------------------------

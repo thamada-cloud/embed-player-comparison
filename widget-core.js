@@ -373,15 +373,20 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
 function liveMeta(d) {
   const L = heroLines(d);
   const link = (t) => lineLink(stationUrl(d), t);
-  /* Track on the SemiBold line, artist under it, which is what frame 2613:76846
-     draws. It was the other way round, and that was not a slip: design A's own
-     live frame, 2600:92866, puts the ARTIST on the bold line and the track
-     below. The two designs genuinely disagree and each follows its own frame,
-     so the bar card is untouched. */
+  /* Track and artist share ONE line, separated by a bullet, where they used to
+     be two. Frame 2613:76846 draws them stacked, track on the SemiBold line and
+     artist under it; this collapses that pair so the playing card is two lines
+     like the idle one rather than three.
+
+     Each half keeps its own link, so the song and the artist still go to
+     different places. The bullet is not inside either anchor and is hidden from
+     assistive tech, since it separates rather than says anything. */
   return L.station
     ? `<p class="h-station mq">${link(L.station)}</p>
-       <p class="h-name mq">${maybeLink(trackUrl(d), L.name, 'Open this song on iHeart')}</p>
-       <p class="h-under mq">${maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart')}</p>`
+       <p class="h-name mq"><span class="mqi">${
+         maybeLink(trackUrl(d), L.name, 'Open this song on iHeart', true)}${
+         L.sub ? `<span class="np-sep" aria-hidden="true"> • </span>${
+           maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart', true)}` : ''}</span></p>`
     : `<p class="h-name mq">${link(L.name)}</p>
        <p class="h-sub mq">${link(L.sub)}</p>`;
 }
@@ -2062,12 +2067,18 @@ ${listTail(d)}
          five seconds later this put the artist back on the bold line and left
          the track line untouched, because it was still looking for .h-track. */
       const L = heroLines(w.data);
-      const st = q('.h-station .mqi'), n = q('.h-name .mqi'), un = q('.h-under .mqi');
+      const st = q('.h-station .mqi');
       if (st) st.textContent = L.station;
-      if (n) n.textContent = L.name;
-      if (un) un.textContent = L.sub;
-      retarget('.h-name', trackUrl(w.data));
-      retarget('.h-under', artistUrl(w.data));
+      /* The playing line is now track and artist together, so it is rebuilt
+         rather than patched: two anchors and a separator cannot be set with a
+         textContent. This is the writer that silently disagreed with the
+         renderer once before, which is why it is the same call rather than a
+         second copy of the layout. */
+      const name = q('.h-name');
+      if (name) name.innerHTML = `<span class="mqi">${
+        maybeLink(trackUrl(w.data), L.name, 'Open this song on iHeart', true)}${
+        L.sub ? `<span class="np-sep" aria-hidden="true"> \u2022 </span>${
+          maybeLink(artistUrl(w.data), L.sub, 'Open this artist on iHeart', true)}` : ''}</span>`;
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
@@ -2918,10 +2929,16 @@ function contentUrl(d) {
 /* A metadata line that is also a link. The anchor sits inside the paragraph so
    the clickable area is the text rather than the whole line box, and so the
    paragraph keeps the clipping and the marquee. */
-const maybeLink = (href, text, aria) => href ? lineLink(href, text, aria) : mqs(text);
-const lineLink = (href, text, aria) =>
+/* `raw` skips the marquee wrapper. A line normally carries exactly one .mqi,
+   which is what markOverflow measures and animates, but live radio's playing
+   line holds two links with a bullet between them, so the wrapper belongs
+   around the whole line and not around each half. Nesting one inside another
+   gave markOverflow two candidates per line and it measured the wrong one. */
+const maybeLink = (href, text, aria, raw) =>
+  href ? lineLink(href, text, aria, raw) : (raw ? esc(text) : mqs(text));
+const lineLink = (href, text, aria, raw) =>
   `<a class="line-link" href="${esc(href)}" target="_blank" rel="noopener"` +
-  (aria ? ` aria-label="${esc(aria)}"` : '') + `>${mqs(text)}</a>`;
+  (aria ? ` aria-label="${esc(aria)}"` : '') + `>${raw ? esc(text) : mqs(text)}</a>`;
 
 /* The SHOW, not the episode. Both are valid embeds and they render differently:
    the episode URL is a player and nothing else, while the show URL is a player
