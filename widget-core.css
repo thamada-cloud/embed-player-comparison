@@ -629,10 +629,19 @@ a.thumb-link:hover { opacity: .92; }
    button. The 4px of Button padding still applies, so the button itself grows
    to 48 and the grid either side of the play button absorbs it. */
 .widget.c .hero-controls .h-btn[data-act="back"] img,
-.widget.c .hero-controls .h-btn[data-act="fwd"] img,
-/* Skip next is a control row button like the other two, so it takes their 40
-   rather than the 24 every other icon button on the card uses. */
-.widget.c .hero-controls .h-btn[data-act="next"] img { width: 40px; height: 40px; }
+.widget.c .hero-controls .h-btn[data-act="fwd"] img { width: 40px; height: 40px; }
+
+/* Skip next gets its own rule rather than joining the two above, and the
+   difference is the glyph, not the button. It is iheart.com's own Play-Next,
+   lifted off the live embed: a 16x16 viewBox filled edge to edge, where back15
+   and fwd30 are 24x24 with their margin baked in. At 40 it read a third larger
+   than its neighbours. 28 inside the same 48 button puts the same amount of ink
+   on screen, and the padding grows to hold the button at 48.
+
+   It was briefly folded into the selector group above, which quietly took back
+   and forward down to 28 as well and left them 36px buttons beside a 48px 1x. */
+.widget.c .hero-controls .h-btn[data-act="next"] img { width: 28px; height: 28px; }
+.widget.c .hero-controls .h-btn[data-act="next"] { padding: 10px; }
 
 /* 1x sized to the buttons it now sits beside.
 
@@ -813,6 +822,18 @@ a.thumb-link:hover { opacity: .92; }
 main[data-h="on"] section[data-design="c"] .shell {
   container-type: size; height: var(--player-h); overflow: hidden;
 }
+/* The shipping embeds answer the height control as well as the width one.
+
+   A slot hands every player on the page the same box, so a comparison run at
+   one height and one width is the only honest one; leaving the shipping frames
+   pinned at 200 and 440 meant the control changed one side of the comparison
+   and not the other.
+
+   This is where the difference shows. Measured at 411 wide, the shipping embed
+   draws one layout 520 tall at every height and lets the frame clip it, so
+   shrinking the slot crops it and growing the slot leaves grey under it. Design
+   C fills whatever it is given. That contrast is the point of the control. */
+main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--player-h); }
 /* The chain has to be unbroken. makeWidget renders into a plain div between
    the shell and the card, so height:100% on .widget alone resolved against an
    auto height parent and did nothing at all. */
