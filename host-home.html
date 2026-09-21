@@ -216,8 +216,8 @@ body.show-bounds .iheart-slot .slot-frame { outline: 2px dashed #c8102e; }
   </select>
   <label for="fit">Slot height</label>
   <select id="fit">
-    <option value="fit" selected>Fit to the widget</option>
-    <option value="fixed">Fixed 150, as shipped</option>
+    <option value="fixed" selected>Fixed 150, as shipped</option>
+    <option value="fit">Fit to the widget</option>
   </select>
   <label><input type="checkbox" id="bounds"> Show slot bounds</label>
   <a class="jump" href="#slot">Jump to slot</a>
@@ -458,12 +458,17 @@ const creditEl = document.getElementById('slot-credit');
 
 /* ---------------------------------------------------------------------------
    Slot height. The homepage hardcodes 150, which is half what the article pages
-   give the same widget and less than every one of the six cards needs. An
-   iframe cannot size itself, so the card inside reports the height it wants and
-   this page decides. Fitting is the default; the shipped 150 is one control
-   away, because the difference between the two is the thing worth looking at.
-   Only the prototypes can report, being served from this origin. The shipping
-   embeds are cross-origin and stay at 150, which is what they get for real.
+   give the same widget. An iframe cannot size itself, so the card inside
+   reports the height it wants and this page decides; only the prototypes can
+   report, being served from this origin, while the shipping embed above is
+   cross-origin and sits at 150 whatever it would prefer.
+
+   150 is now the DEFAULT rather than one control away. Fitting was the default
+   while 150 was a height design C could not survive, so the honest comparison
+   was the one where it got the room it asked for. It compresses to a floor of
+   136 now, so it can take the slot the shipping player actually gets, and two
+   players in one rail at two different heights is not a comparison of players.
+   Fitting is still one control away, for seeing what each card would ask for.
    ------------------------------------------------------------------------ */
 const FIXED_H = 150;
 const fitSel = document.getElementById('fit');

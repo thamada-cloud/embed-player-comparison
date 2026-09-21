@@ -283,15 +283,9 @@ section.is-live > .band-note { color: #14532d; }
 /* The artist radio frame draws a circular artist image where the other cards
    draw a rounded square. Playlist keeps the square. */
 .topbar .h-thumb.round { border-radius: 50%; }
-/* Skip next carries the free user skip allowance, which the frames draw as a
-   small count tucked into the button's top right. */
-.widget.c .h-btn.skip { position: relative; }
-.widget.c .h-btn.skip .skips {
-  position: absolute; top: 0; right: 0; min-width: 14px; height: 14px; padding: 0 3px;
-  border-radius: 7px; background: var(--ihr-red-550); color: var(--true-white);
-  font-size: 10px; line-height: 14px; font-weight: 700; text-align: center;
-  box-sizing: border-box; pointer-events: none;
-}
+/* The free user skip allowance used to be a separate badge pinned to this
+   button's corner. The supplied asset draws the count into the glyph itself, so
+   the badge would have been a second 6 beside the first. */
 /* A featured artist row selects nothing, so it gets no hover, no pointer and no
    room reserved for an overflow button. */
 .list .row.inert { cursor: default; padding-right: 16px; }
@@ -342,6 +336,37 @@ section.is-live > .band-note { color: #14532d; }
 /* It is the last child of a 2px gap column, so it carries its own breathing
    room rather than inheriting the rhythm of the rows above it. */
 .rows > .list-legal { margin: 12px 0 4px; }
+
+/* ---------- drawer scrollbars ----------
+   Shown whenever there is overflow, rather than left to the platform to fade in
+   on the first scroll. macOS hides overlay scrollbars until you touch them, so
+   on a trackpad a drawer with six more rows below the fold looked like a drawer
+   with three rows in it. The Design D drawers draw a Scroll Bar instance for
+   exactly this reason.
+
+   Styling ::-webkit-scrollbar at an explicit width opts that element out of
+   overlay scrollbars entirely, so it is present and visible whenever the
+   content overflows and absent when it does not. */
+/* The rows keep their own scrolling; the bar is painted beside them and never
+   takes the pointer, so a drag still lands on a row. */
+.list, .sheet-body { position: relative; }
+.rows { scrollbar-width: none; }
+.rows::-webkit-scrollbar { width: 0; height: 0; }
+.rows-bar {
+  position: absolute; right: 4px; width: 4px; border-radius: 10px;
+  background: var(--ihr-grey-250); pointer-events: none; z-index: 2;
+}
+.rows-thumb {
+  position: absolute; left: 0; width: 100%; border-radius: 10px;
+  background: var(--ihr-grey-500);
+}
+/* Firefox has no pseudo elements for this and needs the standard properties,
+   but they cannot simply sit alongside: once scrollbar-width is specified,
+   Chrome ignores every ::-webkit-scrollbar rule above and falls back to its
+   overlay scrollbar, which is the thing being fixed. Measured, the track took
+   zero layout width with both declared and 8px with only the pseudo elements.
+   So they are given only to engines that have no pseudo elements to ignore. */
+
 
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
@@ -681,17 +706,15 @@ a.thumb-link:hover { opacity: .92; }
 .widget.c .hero-controls .h-btn[data-act="back"] img,
 .widget.c .hero-controls .h-btn[data-act="fwd"] img { width: 40px; height: 40px; }
 
-/* Skip next gets its own rule rather than joining the two above, and the
-   difference is the glyph, not the button. It is iheart.com's own Play-Next,
-   lifted off the live embed: a 16x16 viewBox filled edge to edge, where back15
-   and fwd30 are 24x24 with their margin baked in. At 40 it read a third larger
-   than its neighbours. 28 inside the same 48 button puts the same amount of ink
-   on screen, and the padding grows to hold the button at 48.
+/* Skip next now takes the same 40 as its neighbours, because the supplied asset
+   is drawn for it: a 40 viewBox with the arrow inset to the middle 16 and the
+   skip count sitting above it. The margin is inside the artwork, so shrinking
+   the element as well would have shrunk it twice. That is what the 28 here was
+   compensating for, back when the glyph was a 16 box filled edge to edge.
 
-   It was briefly folded into the selector group above, which quietly took back
-   and forward down to 28 as well and left them 36px buttons beside a 48px 1x. */
-.widget.c .hero-controls .h-btn[data-act="next"] img { width: 28px; height: 28px; }
-.widget.c .hero-controls .h-btn[data-act="next"] { padding: 10px; }
+   It was also briefly folded into the selector group above, which quietly took
+   back and forward down to 28 too and left them 36px buttons beside a 48px 1x. */
+.widget.c .hero-controls .h-btn[data-act="next"] img { width: 40px; height: 40px; }
 
 /* 1x sized to the buttons it now sits beside.
 
@@ -888,8 +911,13 @@ a.thumb-link:hover { opacity: .92; }
    168 and 234 carries 66px of deliberate slack. A shorter slot clips, which is
    what the shipping widget already does at every height, now with an honest
    minimum rather than at any size at all. */
-main[data-h="on"] section[data-design="c"] .shell {
-  container-type: size; height: var(--player-h); overflow: hidden;
+.shell[data-fill] {
+  /* 100% is the fallback, not decoration. The prototype page sets --player-h
+     and embed.html does not: it simply fills the frame it was given. Without
+     the fallback the height was invalid there, and a size container takes no
+     height from its contents, so the shell collapsed to 0 and the card vanished
+     inside an apparently empty slot. */
+  container-type: size; height: var(--player-h, 100%); overflow: hidden;
 }
 /* The shipping embeds answer the height control as well as the width one.
 
@@ -920,14 +948,21 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    has to be able to exceed its slot and be clipped, which is the entire point
    of having a floor. Above the floor the two are identical, since the stage
    flexes to fill whatever is left. */
-main[data-h="on"] section[data-design="c"] .shell > div { height: 100%; }
-main[data-h="on"] section[data-design="c"] .widget.c { min-height: 100%; }
-main[data-h="on"] section[data-design="c"] .widget.c .stage {
+.shell[data-fill] > div { height: 100%; }
+.shell[data-fill] .widget.c { min-height: 100%; }
+.shell[data-fill] .widget.c .stage {
   height: auto; flex: 1 1 auto;
 }
 
 /* ---------------------------------------------------------------------------
    Design C compressing into a short slot.
+
+   Keyed on the SHELL rather than on the prototype page's <main data-h>. It was
+   the page, which meant the compression existed only where the height slider
+   did: inside embed.html, which is what host-home.html actually frames, the
+   card never learned its height and a 150 slot clipped it instead of
+   compressing it. Both pages now mark the shell they have sized, so the same
+   rules apply wherever a card is given a box.
 
    The card had one size for its chrome and a 234 floor, so below that it simply
    clipped. Everything here is driven off cqh, the container's own height, which
@@ -954,7 +989,7 @@ main[data-h="on"] section[data-design="c"] .widget.c .stage {
    It holds 64 until that sum says otherwise, which is around 176, and stops at
    40. The width guard stays, since a narrow card can run out of room across
    before it runs out down. */
-main[data-h="on"] section[data-design="c"] .widget.c {
+.shell[data-fill] .widget.c {
   --card-pad: clamp(8px, 6cqh, 16px);
   --card-padb: clamp(0px, 1.5cqh, 4px);
 }
@@ -972,24 +1007,36 @@ main[data-h="on"] section[data-design="c"] .widget.c {
    bar on the short side, and the limit is H - 2*padTop - 2*topBar. Dropping the
    thumbnail from 48 to 40 takes 16 off that, which is worth more than the 16
    the bottom row gave back, because the bottom was never the binding side. */
-main[data-h="on"] section[data-design="c"] .widget.c .hero-play {
+.shell[data-fill] .widget.c .hero-play {
   --play: max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px));
 }
-main[data-h="on"] section[data-design="c"] .widget.c .topbar .h-thumb {
+.shell[data-fill] .widget.c .topbar .h-thumb {
   width: clamp(40px, 6.9cqh + 29.9px, 48px);
   height: clamp(40px, 6.9cqh + 29.9px, 48px);
 }
-main[data-h="on"] section[data-design="c"] .hero-controls .h-btn[data-act="back"] img,
-main[data-h="on"] section[data-design="c"] .hero-controls .h-btn[data-act="fwd"] img {
+.shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
+.shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
+.shell[data-fill] .hero-controls .h-btn[data-act="next"] img {
   width: clamp(24px, 13.8cqh + 3.7px, 40px);
   height: clamp(24px, 13.8cqh + 3.7px, 40px);
+}
+/* 1x is a text box rather than a glyph, so it needs the same clamp written for
+   it or it does not compress. It matched its neighbours at 300 and stood 48
+   beside their 42 at 220 and their 34 at 160, which is exactly the mismatch
+   this rule removes. The type steps with the box on production's own rule,
+   caption-3 at 12 up to caption-1 at 14 when there is room. */
+.shell[data-fill] .hero-controls .h-speed {
+  width: clamp(24px, 13.8cqh + 3.7px, 40px);
+  height: clamp(24px, 13.8cqh + 3.7px, 40px);
+  line-height: clamp(24px, 13.8cqh + 3.7px, 40px);
+  font-size: clamp(12px, 1.72cqh + 9.5px, 14px);
 }
 /* The floor falls out of the same equation rather than being chosen. Setting
    play to its 40 minimum in 0.88H - 96 gives H = 154.5, so 156 is the shortest
    slot in which a 40px button still clears the top bar. Below it the card
    clips, as it did below 234 before, but the two floors the change was given,
    8px of padding and a 40px button, are exactly what put it at 156. */
-main[data-h="on"] section[data-design="c"] .widget.c .stage { min-height: 136px; }
+.shell[data-fill] .widget.c .stage { min-height: 136px; }
 
 /* Hidden by default, since design C's list is the drawer until it has the room
    not to be. This has to sit BEFORE the container query below: the two rules

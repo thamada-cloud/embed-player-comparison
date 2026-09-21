@@ -819,6 +819,7 @@ function makeWidget(rootId, statusId, colourId, variant) {
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}
 ${listTail(d)}
+          <div class="rows-bar" hidden><div class="rows-thumb"></div></div>
         </div>`;
   }
 
@@ -959,7 +960,7 @@ ${listTail(d)}
                 <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>` : ''}
               ${c.stopNext ? `
                 <button class="h-btn skip" data-act="next" aria-label="Next Track">
-                  <img src="assets/h-next.svg" alt=""><span class="skips">${SKIP_LIMIT}</span></button>` : ''}
+                  <img src="assets/h-next.svg" alt=""></button>` : ''}
             </span>
           </div>
           <div class="hero-bottom">
@@ -1047,6 +1048,7 @@ ${listTail(d)}
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}
 ${listTail(d)}
+          <div class="rows-bar" hidden><div class="rows-thumb"></div></div>
         </div>
        </div>
       </div>`;
@@ -1427,9 +1429,31 @@ ${listTail(d)}
      rows container the card has, since design C carries two. */
   function wirePeekFade(root) {
     root.querySelectorAll('.rows').forEach((rows) => {
+      /* A drawn scrollbar rather than the platform's.
+
+         ::-webkit-scrollbar was styled first and did nothing: on macOS the
+         scrollbar is an overlay, it reserves no width, and measured here it
+         painted no pixels at all until touched. Setting scrollbar-width to
+         bring Firefox along made it worse, because specifying it makes Chrome
+         ignore every ::-webkit-scrollbar rule. So the bar is drawn, which is
+         also what the Design D drawers show: they carry a Scroll Bar instance
+         rather than leaving it to the platform. */
+      const bar = rows.parentElement.querySelector('.rows-bar');
+      const thumb = bar && bar.querySelector('.rows-thumb');
       const mark = () => {
         const atEnd = rows.scrollTop + rows.clientHeight >= rows.scrollHeight - 1;
         rows.dataset.atEnd = String(atEnd);
+        if (!bar || !thumb) return;
+        const over = rows.scrollHeight - rows.clientHeight;
+        /* Absent, not empty, when everything already fits. A track with a full
+           height thumb in it is just a line down the side saying nothing. */
+        if (over <= 1) { bar.hidden = true; return; }
+        bar.hidden = false;
+        bar.style.top = rows.offsetTop + 'px';
+        bar.style.height = rows.clientHeight + 'px';
+        const h = Math.max(24, rows.clientHeight * rows.clientHeight / rows.scrollHeight);
+        thumb.style.height = h + 'px';
+        thumb.style.top = (rows.scrollTop / over) * (rows.clientHeight - h) + 'px';
       };
       /* Bound once per element. render() rewrites the markup so a fresh set
          arrives each time, but the ResizeObserver calls this on the SAME
@@ -1884,7 +1908,10 @@ ${listTail(d)}
     if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
     if (w.skipsLeft <= 0) { authToast(); return; }
     w.skipsLeft -= 1;
-    const badge = q('.skips'); if (badge) badge.textContent = String(w.skipsLeft);
+    /* No badge to update any more. The supplied asset draws the count as part
+       of the glyph, so the 6 is artwork rather than state and cannot tick down.
+       The allowance is still enforced below, it simply is not shown counting.
+       Putting a live number back means overlaying it on the icon again. */
     nextTrack();
   }
   /* Writes the three metadata lines and the backdrop in place. A re-render

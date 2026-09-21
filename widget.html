@@ -310,9 +310,15 @@
   const hAuto = document.getElementById('heightAuto');
   const H_MIN = 100, H_MAX = 900;
 
+  /* The compression rules key off the SHELL, so the shells have to be marked.
+     Design C only: it is the one design that fills the height it is given. */
+  const markFill = (on) => document.querySelectorAll('section[data-design="c"] .shell')
+    .forEach((sh) => { if (on) sh.dataset.fill = ''; else delete sh.dataset.fill; });
+
   const applyHeight = (px) => {
     document.documentElement.style.setProperty('--player-h', px + 'px');
     main.dataset.h = 'on';
+    markFill(true);
     hRange.value = String(px);
     /* Leave the field alone while it is being typed in, or the caret jumps.
        Same reason as the width control's own guard. */
@@ -323,6 +329,7 @@
   const autoHeight = () => {
     document.documentElement.style.removeProperty('--player-h');
     delete main.dataset.h;
+    markFill(false);
     hNum.value = '';
     hAuto.setAttribute('aria-pressed', 'true');
   };

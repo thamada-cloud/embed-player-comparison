@@ -28,9 +28,16 @@ def set_height(pg, h):
     pg.evaluate("""(h) => {
       const main = document.querySelector('main');
       if (h === null) { document.documentElement.style.removeProperty('--player-h');
-                        delete main.dataset.h; return; }
+                        delete main.dataset.h;
+                        document.querySelectorAll('section[data-design="c"] .shell')
+                          .forEach((s) => { delete s.dataset.fill; });
+                        return; }
       document.documentElement.style.setProperty('--player-h', h + 'px');
       main.dataset.h = 'on';
+      /* The compression rules key off the shell now, not the page, so the same
+         marker the height control sets has to be set here too. */
+      document.querySelectorAll('section[data-design="c"] .shell')
+        .forEach((s) => { s.dataset.fill = ''; });
     }""", h)
     pg.wait_for_timeout(120)
 

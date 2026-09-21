@@ -14,6 +14,12 @@
      chrome: whatever the host sized the iframe to is the whole budget. */
   html, body { margin: 0; padding: 0; background: transparent; }
   body { display: block; }
+  /* The frame's height IS the card's budget, so the shell takes all of it and
+     the card compresses into it. Without this the card drew its own default
+     height inside the frame and a short slot simply clipped it, which is what
+     host-home.html's 150 was doing: the compression rules had nothing to
+     measure against because the shell had no definite height. */
+  html, body, .shell { height: 100%; }
   .shell { width: 100%; max-width: none; }
   /* The status line and the colour readout belong to the prototype page's
      instrumentation, not to an embed. They stay in the DOM because the widget
@@ -22,7 +28,7 @@
 </style>
 </head>
 <body>
-<div class="shell" id="slot"></div>
+<div class="shell" id="slot" data-fill></div>
 
 <script>
 /* Which card to build, read from the query string. The root id is what the
