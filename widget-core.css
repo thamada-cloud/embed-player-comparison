@@ -1030,8 +1030,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    40. The width guard stays, since a narrow card can run out of room across
    before it runs out down. */
 .shell[data-fill] .widget.c {
-  --card-pad: clamp(8px, 6cqh, 16px);
-  --card-padb: clamp(0px, 1.5cqh, 4px);
+  /* round(), so every derived size lands on a whole pixel. The clamps produce
+     fractions otherwise, 15.766px of padding at a 263 slot, and a card whose
+     rows all start on a subpixel boundary renders soft: straight edges get
+     anti-aliased along one axis and not the other, which reads as blur and, on
+     a square tile, as not-quite-square. */
+  --card-pad: round(clamp(8px, 6cqh, 16px), 1px);
+  --card-padb: round(clamp(0px, 1.5cqh, 4px), 1px);
 }
 /* Every part of the chrome interpolates between the two frames that exist:
    2669:137077's 350x263 default and 2666:125692's 350x147 compact. Each clamp
@@ -1048,13 +1053,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    thumbnail from 48 to 40 takes 16 off that, which is worth more than the 16
    the bottom row gave back, because the bottom was never the binding side. */
 .shell[data-fill] .widget.c .hero-play {
-  --play: max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px));
+  --play: round(max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px)), 1px);
 }
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="next"] img {
-  width: clamp(24px, 13.8cqh + 3.7px, 40px);
-  height: clamp(24px, 13.8cqh + 3.7px, 40px);
+  width: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
+  height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
 }
 /* 1x is a text box rather than a glyph, so it needs the same clamp written for
    it or it does not compress. It matched its neighbours at 300 and stood 48
@@ -1062,10 +1067,10 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    this rule removes. The type steps with the box on production's own rule,
    caption-3 at 12 up to caption-1 at 14 when there is room. */
 .shell[data-fill] .hero-controls .h-speed {
-  width: clamp(24px, 13.8cqh + 3.7px, 40px);
-  height: clamp(24px, 13.8cqh + 3.7px, 40px);
-  line-height: clamp(24px, 13.8cqh + 3.7px, 40px);
-  font-size: clamp(12px, 1.72cqh + 9.5px, 14px);
+  width: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
+  height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
+  line-height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
+  font-size: round(clamp(12px, 1.72cqh + 9.5px, 14px), 1px);
 }
 /* The floor falls out of the same equation rather than being chosen. Setting
    play to its 40 minimum in 0.88H - 96 gives H = 154.5, so 156 is the shortest
@@ -1079,16 +1084,16 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    have identical specificity, so source order is what decides. */
 .widget.c .list { display: none; }
 
-/* 320, down from 440.
+/* 300, down from 440.
 
    440 was 220 stage + 220 list, two equal halves. Below that they cannot both
-   hold: a fixed 220 list at 320 leaves the stage 100, under the 136 its chrome
-   needs, so lowering the threshold only works if the LIST shrinks as well.
+   hold: a fixed 220 list at 300 leaves the stage 80, well under the 136 its
+   chrome needs, so lowering the threshold only works if the LIST shrinks too.
 
-   It does, between the two ends. 220 at 440 down to 128 at 320, which is the
+   It does, between the two ends. 220 at 440 down to 128 at 300, which is the
    least a list can be and still read as one: a 32 header, one 72 row, and the
-   24 of peek that says there is more. The stage takes what is left, 220 at 440
-   and 192 at 320, comfortably clear of its 136 floor.
+   24 that says there is more below. The stage takes what is left, 220 at 440
+   and 172 at 300, comfortably clear of its 136 floor.
 
    Above 440 nothing changes. The list caps at 220 and every further pixel goes
    to the artwork, exactly as before.
@@ -1110,8 +1115,9 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    as opening it; a selector written as [data-act="list"] alone would hide the
    close button too. It is .sheet-close, not .h-btn, which is what keeps the
    two apart. */
-@container (min-height: 320px) {
-  .widget.c .list { display: flex; flex: 0 0 clamp(128px, 76.67cqh - 117.3px, 220px); }
+@container (min-height: 300px) {
+  .widget.c .list { display: flex;
+                    flex: 0 0 round(clamp(128px, 65.7cqh - 69.1px, 220px), 1px); }
   .widget.c .stage { min-height: 0; }
   .widget.c .h-btn[data-act="list"] { display: none; }
   .widget.c .sheet:not(.info-sheet) { display: none; }

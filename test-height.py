@@ -70,7 +70,7 @@ def fill(pg):
     check("auto, podcast stage is iHeart's published 300", b["stage"], 300)
     check("auto, list icon is shown", b["icon"], 32)
 
-    for h in (234, 260, 319):
+    for h in (234, 260, 299):
         set_height(pg, h)
         b = boxes(pg, "#w-podcast-c")
         check("podcast at %d, card is %d" % (h, h), b["card"], h)
@@ -111,7 +111,7 @@ def fill(pg):
     set_height(pg, None)
 
 def inline(pg):
-    print("\n--- Task 2, the inline list above 320 ---")
+    print("\n--- Task 2, the inline list above 300 ---")
     set_height(pg, 440)
     b = boxes(pg, "#w-podcast-c")
     check("at 440, card is exactly 440 not 454", b["card"], 440)
@@ -120,20 +120,20 @@ def inline(pg):
     check("at 440, list icon is gone", b["icon"], "none")
 
     # One pixel under the threshold, nothing has changed.
-    set_height(pg, 319)
+    set_height(pg, 299)
     b = boxes(pg, "#w-podcast-c")
-    check("at 319, card is 319", b["card"], 319)
-    check("at 319, inline list is hidden", b["list"], "none")
-    check("at 319, list icon is shown", b["icon"], 32)
+    check("at 299, card is 299", b["card"], 299)
+    check("at 299, inline list is hidden", b["list"], "none")
+    check("at 299, list icon is shown", b["icon"], 32)
 
     # The threshold itself. A fixed 220 list cannot fit here, so the list shrinks
-    # with the card between 320 and 440: 128 at the bottom, 220 at the top.
-    set_height(pg, 320)
+    # with the card between 300 and 440: 128 at the bottom, 220 at the top.
+    set_height(pg, 300)
     b = boxes(pg, "#w-podcast-c")
-    check("at 320, card is exactly 320", b["card"], 320)
-    check("at 320, list is its 128 minimum", b["list"], 128)
-    check("at 320, stage clears its 136 floor", b["stage"] >= 136, True)
-    check("at 320, list icon is gone", b["icon"], "none")
+    check("at 300, card is exactly 300", b["card"], 300)
+    check("at 300, list is its 128 minimum", b["list"], 128)
+    check("at 300, stage clears its 136 floor", b["stage"] >= 136, True)
+    check("at 300, list icon is gone", b["icon"], "none")
 
     for h, stage in ((600, 380), (900, 680)):
         set_height(pg, h)
@@ -153,7 +153,7 @@ def inline(pg):
     # and the button that opens the drawer is deliberately gone.
     set_height(pg, 260)
     pg.click('#w-podcast-c .h-btn[data-act="list"]'); pg.wait_for_timeout(900)
-    check("below 320 the drawer still opens",
+    check("below 300 the drawer still opens",
           pg.evaluate("""() => { const s = document.querySelector('#w-podcast-c .sheet:not(.info-sheet)');
                                  return getComputedStyle(s).visibility; }"""), "visible")
     pg.click('#w-podcast-c .sheet-close'); pg.wait_for_timeout(900)
