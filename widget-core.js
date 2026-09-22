@@ -582,23 +582,40 @@ const curTrack = (d) => (d.tracks || [])[d.trackIndex || 0] || null;
    classes too and the now playing writer can patch all three the same way.
    Idle they collapse: artist radio to its one line, playlist to its name and
    description, which is exactly what the frames draw. */
+/* A simulated station's track, shaped the way trackUrl and artistUrl expect.
+   Its tracks come from the catalog, so they carry the ids those builders need,
+   exactly as the Featured Artists rows do. The slug is cosmetic: iHeart resolves
+   on the trailing id and 301s to the canonical name, checked against a collab
+   credit whose display name is not its artist's. */
+function streamRef(t) {
+  return t ? { artist: t.artist, artistId: t.artistId, track: t.title, trackId: t.id } : null;
+}
+
 function streamMeta(d) {
   const t = curTrack(d);
   const ctx = d.title;
   if (d.startedSim && t) {
     /* Two lines, the same as live radio: the station or playlist name on top
        and the track and artist together under it. These carried three.
-       No hrefs: a simulated station's tracks come from the catalog and this
-       card is not signed in, so there is no per track page to open. */
-    return `<p class="h-station mq">${esc(ctx)}</p>
-            <p class="h-name mq">${trackArtistLine(t.title, t.artist, null, null)}</p>`;
+
+       Linked, like live radio's. They used to be plain text on the belief that a
+       simulated station had no page to open, which was wrong: the tracks come
+       from the catalog with their ids, so the song and the artist both resolve.
+       Being plain text was also visible, since these were the only metadata
+       lines on the page that did not underline on hover. */
+    const r = streamRef(t);
+    return `<p class="h-station mq">${lineLink(contentUrl(d), ctx)}</p>
+            <p class="h-name mq">${trackArtistLine(t.title, t.artist, trackUrl(r), artistUrl(r))}</p>`;
   }
   /* Artist radio's idle frame is ONE line, "<artist> Radio", and playlist's is
      two, its name and its description. The artist name is carried on the data
      for links and labels but is deliberately not a second line here: repeating
      "Taylor Swift" under "Taylor Swift Radio" says nothing. */
-  return `<p class="h-name mq">${esc(ctx)}</p>` +
-         (d.kind === 'playlist' && d.subtitle ? `<p class="h-sub mq">${esc(d.subtitle)}</p>` : '');
+  /* The idle lines link too, to the artist or the playlist, which is what live
+     radio's idle lines already do with the station. */
+  return `<p class="h-name mq">${lineLink(contentUrl(d), ctx)}</p>` +
+         (d.kind === 'playlist' && d.subtitle
+           ? `<p class="h-sub mq">${lineLink(contentUrl(d), d.subtitle)}</p>` : '');
 }
 
 /* Three states for a live station, not two.
@@ -2092,6 +2109,9 @@ ${listTail(d)}
   function paintStream() {
     const d = w.data; if (!d) return;
     const t = curTrack(d);
+    /* .mqi first: the line is an anchor wrapping that span now, and writing to
+       the <p> itself would replace the anchor with bare text and silently drop
+       the link on the first track change. */
     const set = (sel, text) => { const e = q(sel + ' .mqi') || q(sel); if (e) e.textContent = text; };
     if (d.startedSim && t) {
       if (!q('.h-station')) { render(); return; }    /* idle block has fewer lines */
@@ -2100,7 +2120,10 @@ ${listTail(d)}
          now, which a textContent cannot express. Same builder the renderer
          uses, so the two cannot drift. */
       const nm = q('.h-name');
-      if (nm) nm.innerHTML = trackArtistLine(t.title, t.artist, null, null);
+      if (nm) {
+        const r = streamRef(t);
+        nm.innerHTML = trackArtistLine(t.title, t.artist, trackUrl(r), artistUrl(r));
+      }
     } else { render(); return; }
     const artEl = q('.art'), want = (t && t.art) || d.art || '';
     if (artEl && want && artEl.getAttribute('src') !== want) artEl.setAttribute('src', want);
@@ -3196,9 +3219,22 @@ const showUrl = (d) => `https://www.iheart.com/podcast/${d.showSlug}-${d.showId}
 const episodeUrl = (d) => `${showUrl(d)}episode/episode-${d.episodeId}/`;
 const stationUrl = (d) => `https://www.iheart.com/live/station-${d.stationId}/`;
 /* The artwork's destination, and the fallback for anything unlabelled. */
+/* The page this CARD is for, used by the tile and by the idle metadata lines.
+   Not the same as listenUrl for an episode: the tile there wears the show's
+   cover, so it opens the show, while "Listen on iHeart" opens the episode.
+
+   Artist and playlist had no branch and fell through to showUrl, which builds
+   from showSlug and showId. Neither exists on those records, so the tile and the
+   idle lines pointed at /podcast/undefined-undefined/. They take listenUrl,
+   which already knows both: the artist's own slug, and the playlist's canonical
+   url straight from the API. */
 function contentUrl(d) {
   if (!d) return null;
-  return d.kind === 'live' ? stationUrl(d) : showUrl(d);
+  switch (d.kind) {
+    case 'live': return stationUrl(d);
+    case 'artist': case 'playlist': return listenUrl(d);
+    default: return showUrl(d);
+  }
 }
 /* A metadata line that is also a link. The anchor sits inside the paragraph so
    the clickable area is the text rather than the whole line box, and so the
