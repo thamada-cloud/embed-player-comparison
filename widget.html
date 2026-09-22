@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260922150958">
+<link rel="stylesheet" href="widget-core.css?v=20260922153416">
 </head>
 <body data-bg="grey">
 
@@ -122,6 +122,13 @@
     <h2>What ships today</h2>
   </div>
 
+  <section data-design="ship" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="embed">
+      <iframe id="e-live" title="iHeart live radio embed, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
   <section data-design="ship" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
     <div class="embed">
@@ -131,13 +138,6 @@
     <p class="status" id="s-embeds"></p>
   </section>
 
-  <section data-design="ship" data-kind="live">
-    <div class="h2row"><h2>Live radio</h2></div>
-    <div class="embed">
-      <iframe id="e-live" title="iHeart live radio embed, current production player"
-              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-    </div>
-  </section>
 
   <!-- Podcast, then live, THEN the three that have no design counterpart. The
        order is not grouping podcast with its episode, on purpose: the multi
@@ -183,17 +183,17 @@
     <h2>Design A</h2>
   </div>
 
+  <section data-design="a" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell"><div id="w-live"></div></div>
+    <p class="status" id="s-live"></p>
+  </section>
   <section data-design="a" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
     <div class="shell"><div id="w-podcast"></div></div>
     <p class="status" id="s-podcast"></p>
   </section>
 
-  <section data-design="a" data-kind="live">
-    <div class="h2row"><h2>Live radio</h2></div>
-    <div class="shell"><div id="w-live"></div></div>
-    <p class="status" id="s-live"></p>
-  </section>
 
   -->
 
@@ -209,34 +209,34 @@
     <h2>Design B</h2>
   </div>
 
+  <section data-design="b" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
+    <p class="status" id="s-live-hero"></p>
+  </section>
   <section data-design="b" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
     <div class="shell" data-nobreak><div id="w-podcast-hero"></div></div>
     <p class="status" id="s-podcast-hero"></p>
   </section>
 
-  <section data-design="b" data-kind="live">
-    <div class="h2row"><h2>Live radio</h2></div>
-    <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
-    <p class="status" id="s-live-hero"></p>
-  </section>
   -->
 
   <div class="band band-proto" data-design="c">
     <h2>Design C</h2>
   </div>
 
+  <section data-design="c" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell" data-nobreak><div id="w-live-c"></div></div>
+    <p class="status" id="s-live-c"></p>
+  </section>
   <section data-design="c" data-kind="podcast">
     <div class="h2row"><h2>Podcast</h2></div>
     <div class="shell" data-nobreak><div id="w-podcast-c"></div></div>
     <p class="status" id="s-podcast-c"></p>
   </section>
 
-  <section data-design="c" data-kind="live">
-    <div class="h2row"><h2>Live radio</h2></div>
-    <div class="shell" data-nobreak><div id="w-live-c"></div></div>
-    <p class="status" id="s-live-c"></p>
-  </section>
 
   <!-- The three Design D content types, frames 2669:136836, 2669:137076 and
        2669:136837. Ordered to sit opposite their shipping counterparts.
@@ -406,6 +406,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922150958"></script>
+<script src="widget-core.js?v=20260922153416"></script>
 </body>
 </html>

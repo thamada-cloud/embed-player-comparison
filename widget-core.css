@@ -154,8 +154,12 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="2"] > [data-design="ship"] { grid-column: 1; }
   main[data-cols="2"] > [data-design]:not([data-design="ship"]) { grid-column: 2; }
   main[data-cols="2"] > .band[data-design] { grid-row: 2; }
-  main[data-cols="2"] > [data-design][data-kind="podcast"] { grid-row: 3; }
-  main[data-cols="2"] > [data-design][data-kind="live"] { grid-row: 4; }
+  /* Live radio first, podcast second. The rows are explicit, so this order is
+     set here and NOT by the document; the sections are ordered to match so the
+     one column layout, which has no rules of its own and simply follows the
+     document, reads the same way round. Change one and change the other. */
+  main[data-cols="2"] > [data-design][data-kind="live"] { grid-row: 3; }
+  main[data-cols="2"] > [data-design][data-kind="podcast"] { grid-row: 4; }
   /* The three shipping types with no design counterpart, stacked under the pair
      that has one. Rows 3 and 4 are already claimed, so these need rows of their
      own or they auto-flow into the design column. */
