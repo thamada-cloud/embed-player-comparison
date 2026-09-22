@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Design C responsive behaviour</title>
-<link rel="stylesheet" href="shared.css?v=20260922141711">
-<link rel="stylesheet" href="widget-core.css?v=20260922141711">
+<link rel="stylesheet" href="shared.css?v=20260922150958">
+<link rel="stylesheet" href="widget-core.css?v=20260922150958">
 <style>
 /* This page loads widget-core.css for the card in the playground, and that
    stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
@@ -382,7 +382,7 @@ tbody tr:hover { background: var(--bg); }
       <tr><td class="name">Card inset, bottom</td>
           <td class="mono">clamp(0px, 1.5cqh, 4px)</td><td class="num">0&ndash;4</td></tr>
       <tr><td class="name">Artwork tile</td>
-          <td class="mono">measured in JS from the text block's height, square, floor 36px</td><td class="num">36&ndash;</td></tr>
+          <td class="mono">max(36px, min(80px, 9.5cqh + 23px, 100cqw - 216px))</td><td class="num">36&ndash;80</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -399,11 +399,17 @@ tbody tr:hover { background: var(--bg); }
                 button half a pixel. That is more specific than a plain <code>.widget.c</code> and
                 later in the file, so any rule repositioning the controls has to carry both
                 selectors or it will move every card except live.</td></tr>
-        <tr><td class="name">The artwork tile is sized in JavaScript</td>
-            <td>It is square and derived from the height of the text block beside it. Three CSS-only
-                attempts failed: the image stretched to 3000px through a circular dependency, and a
-                link with a min-height collapsed to 6px wide inside a size container. It is measured
-                after layout instead.</td></tr>
+        <tr><td class="name">The tile is sized from the card, not the text</td>
+            <td>It used to be measured in JavaScript from the text block beside it, which made it 36
+                at every height and every width, because the text is always two lines. That is 12
+                under the frame, which draws it at 48. Sizing it from the card has none of the
+                circularity that defeated the earlier CSS attempts, so it is a plain clamp now and the
+                JavaScript is gone. It passes through 48 at 263, the height its frame is drawn at.</td></tr>
+        <tr><td class="name">The tile and the play button are coupled</td>
+            <td>A taller tile makes the top bar taller, which eats into the band the play button is
+                centred in. They do not actually collide at any size, but checking that needs real
+                rectangle intersection: the bar is full width while the tile sits at its left edge and
+                the button is centred, so the two share a vertical band without ever touching.</td></tr>
         <tr><td class="name">The play button animates its own size</td>
             <td><code>.hero-play</code> carries <code>transition: 300ms</code>, an all-properties
                 shorthand rather than a transform-only one, so width and height animate after any
@@ -448,7 +454,7 @@ tbody tr:hover { background: var(--bg); }
 </div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922141711"></script>
+<script src="widget-core.js?v=20260922150958"></script>
 <script>
 (function () {
   var seg = document.getElementById('themeSeg');

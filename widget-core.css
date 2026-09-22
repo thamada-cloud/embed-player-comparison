@@ -1124,6 +1124,23 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    edge of a 280 card, where the old interpolated size still fitted. */
 .shell[data-fill] .widget.c {
   --ctl: round(max(24px, min(40px, 100cqh - 96px, 25cqw - 32px)), 1px);
+  /* The tile, sized from the CARD rather than from the text beside it.
+
+     It was 36 at every height and every width, because fitThumb() measured the
+     text block and the text block is always two lines. That is 12 under the
+     frame: 2676:542137 draws it at 48 square with a 6px radius.
+
+     Two anchors are the design's own and two are chosen. 9.5cqh + 23 passes
+     through 48 at 263, which is the frame this card is drawn at, and reaches 80
+     at 600. Below that it falls to the 36 floor at around 137, and above 600 it
+     holds 80. The gentler slope of the 600 anchor also keeps the tile nearer the
+     frames at short heights: 42 at a 200 card, against the 40 the compact frame
+     draws, where the steeper 440 version had already dropped to the floor.
+
+     The width term is not decoration. The row also carries the title, a gap and
+     two action buttons, so an 80px tile on a 280px card would leave the title
+     almost nothing; this caps the tile by what is actually left over. */
+  --thumb: round(max(36px, min(80px, 9.5cqh + 23px, 100cqw - 216px)), 1px);
 }
 /* No scrubber on these three, so the same 40 looser bound the button gets. */
 .shell[data-fill] .widget.c[data-kind="live"],

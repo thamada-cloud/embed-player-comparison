@@ -1305,7 +1305,6 @@ ${listTail(d)}
   function afterRender() {
     buildBars();
     markOverflow(root);
-    fitThumb(root);
     wireRowsBar(root);
     /* After wireRowsBar, so the bar it just drew reflects the restored position
        rather than the top of the list. */
@@ -1313,7 +1312,7 @@ ${listTail(d)}
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
-    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitThumb(root); wireRowsBar(root); });
+    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); wireRowsBar(root); });
     w.ro.observe(root);
 
     const art = q('.art');
@@ -1617,17 +1616,11 @@ ${listTail(d)}
 
      Written only when it changes, because this runs from a ResizeObserver and
      setting a custom property that affects layout would otherwise re-enter. */
-  function fitThumb(root) {
-    root.querySelectorAll('.topbar').forEach((tb) => {
-      const meta = tb.querySelector('.meta');
-      if (!meta) return;
-      /* 36 is the floor, which is also the podcast card's natural two line
-         height, so in practice every card in a rail shows the same tile and
-         only a taller than usual block grows it. */
-      const px = Math.max(36, Math.round(meta.getBoundingClientRect().height)) + 'px';
-      if (tb.style.getPropertyValue('--thumb') !== px) tb.style.setProperty('--thumb', px);
-    });
-  }
+  /* fitThumb() is gone. It measured the text block and wrote --thumb inline, to
+     keep the tile square without the circular sizing that defeated three CSS
+     attempts. Sizing the tile from the CARD has no circularity, so it is a plain
+     clamp in the stylesheet now and the inline write that was overriding it, and
+     pinning every card to 36, went with it. */
 
   function wireRowsBar(root) {
     root.querySelectorAll('.rows').forEach((rows) => {
