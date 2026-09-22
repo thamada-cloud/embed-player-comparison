@@ -1050,8 +1050,18 @@ ${listTail(d)}
      Both fall back to the show or station image, so a station with no metadata
      service and a podcast whose episodes reuse the show art both look exactly
      as they did. */
+  /* Fixed means the thing the CARD is for: the station's logo, the show's cover,
+     the playlist's art. Live, the default, means what is playing right now.
+     Read here rather than cached, so the switch takes effect on the next render
+     and the pollers below cannot reinstate the other one behind it. */
+  function fixedArt() {
+    const m = document.querySelector('main');
+    return !!m && m.dataset.bg === 'fixed';
+  }
+
   function stageArt(d) {
     if (!d) return '';
+    if (fixedArt()) return d.art || '';
     if (d.kind === 'live') return d.trackArt || d.art || '';
     /* Artist radio and playlist paint the track they are on, the same rule live
        radio follows, falling back to the artist image or the playlist's first
@@ -2307,6 +2317,11 @@ ${listTail(d)}
     w.npTimer = setInterval(refreshNowPlaying, NP_INTERVAL);
   }
   w.startNowPlaying = startNowPlaying;
+  /* Redraw in place, keeping the data and the playback state. The prototype's
+     background switch needs this: the backdrop is chosen at render time, so
+     without a redraw the cards sit on whatever the previous setting picked
+     until something else happens to re-render them. */
+  w.repaint = () => { if (w.data) render(); };
 
   const fmt = (s) => !isFinite(s) ? '--:--' :
     (Math.floor(s / 60) < 10 ? '0' : '') + Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
@@ -3262,6 +3277,12 @@ function showEmbed(kind, d) {
       : [d.subtitle, d.title].filter(Boolean).join(' \u2022 ');
   });
 }
+/* Every card on the page, redrawn. Exposed for the prototype's switches. */
+function repaintAll() {
+  Object.keys(WIDGETS).forEach((k) =>
+    WIDGETS[k].forEach((w) => { if (w.widget.repaint) w.widget.repaint(); }));
+}
+
 const failAll = (kind, e) => WIDGETS[kind].forEach((w) =>
   setIfPresent(w.statusId, (el) => { el.textContent = 'Could not reach the iHeart API. ' + e.message; }));
 

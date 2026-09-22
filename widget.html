@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260922173632">
+<link rel="stylesheet" href="widget-core.css?v=20260922210533">
 </head>
 <body data-bg="grey">
 
@@ -76,6 +76,31 @@
       <button type="button" data-veil="off" aria-pressed="true">Off</button>
     </span>
   </div>
+  <!-- The backdrop follows what is PLAYING by default: the track on a station,
+       the chosen episode on a show. Switched to "Fixed" it stays on the thing
+       the card is for, the station logo, the show's cover, the playlist art,
+       and never changes while you listen. Worth being able to compare, since
+       one reads as a now-playing screen and the other as a poster. -->
+  <div class="colctl">
+    <label for="bgtog">Background</label>
+    <span class="seg">
+      <button type="button" id="bgtog" data-bg="live" aria-pressed="true">Follows play</button>
+      <button type="button" data-bg="fixed" aria-pressed="false">Fixed</button>
+    </span>
+  </div>
+
+  <!-- Above 300 the episode and featured artist lists sit inline under the
+       player. Switched to "Drawer" they never do, and the list icon opens them
+       at every height instead, which is what a publisher gets who wants the
+       card to stay a player. -->
+  <div class="colctl">
+    <label for="listtog">List</label>
+    <span class="seg">
+      <button type="button" id="listtog" data-list="auto" aria-pressed="true">Inline when it fits</button>
+      <button type="button" data-list="drawer" aria-pressed="false">Drawer only</button>
+    </span>
+  </div>
+
   <div class="colctl">
     <label for="cols1">Columns</label>
     <span class="seg">
@@ -324,6 +349,30 @@
   });
   main.dataset.veil = 'off';
 
+  /* Both of these are the same shape as the pause overlay switch above: the
+     choice lands on <main> and the card reads it where it is used, so flipping
+     one takes effect without a reload. */
+  const bseg = document.getElementById('bgtog').parentElement;
+  bseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-bg]'); if (!bt) return;
+    [...bseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    main.dataset.bg = bt.dataset.bg;
+    /* The backdrop is written at render time, so the cards are redrawn rather
+       than left on the artwork the old setting chose. */
+    repaintAll();
+  });
+  main.dataset.bg = 'live';
+
+  const lseg = document.getElementById('listtog').parentElement;
+  lseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-list]'); if (!bt) return;
+    [...lseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    /* On the document element, not on <main>: the CSS guard has to work on
+       embed.html too, which has no <main> to hang it off. */
+    document.documentElement.dataset.list = bt.dataset.list;
+  });
+  document.documentElement.dataset.list = 'auto';
+
   const hRange = document.getElementById('heightRange');
   const hNum = document.getElementById('heightNum');
   const hAuto = document.getElementById('heightAuto');
@@ -406,6 +455,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922173632"></script>
+<script src="widget-core.js?v=20260922210533"></script>
 </body>
 </html>

@@ -1290,10 +1290,21 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c {
     --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
   }
-  .widget.c .list { display: flex; flex: 0 0 var(--list-h); }
-  .widget.c .stage { min-height: 0; }
-  .widget.c .h-btn[data-act="list"] { display: none; }
-  .widget.c .sheet:not(.info-sheet) { display: none; }
+  /* All four gated on the page's List switch. A container query only decides
+     WHEN a rule applies; the selector still matches the whole document, so an
+     ancestor outside the container is a perfectly good guard. Set to "drawer"
+     the card never puts the list inline, keeps the list button at every height
+     and leaves the sheet working, which is the pre-300 behaviour held at all
+     sizes.
+
+     The guard is on :root and not on <main>. embed.html and host-home.html have
+     no <main> at all, so a guard hung off one matched nothing there and an
+     embedded card lost its inline list entirely. :root is always present, so a
+     page with no switch simply has no [data-list] and takes the default. */
+  :root:not([data-list="drawer"]) .widget.c .list { display: flex; flex: 0 0 var(--list-h); }
+  :root:not([data-list="drawer"]) .widget.c .stage { min-height: 0; }
+  :root:not([data-list="drawer"]) .widget.c .h-btn[data-act="list"] { display: none; }
+  :root:not([data-list="drawer"]) .widget.c .sheet:not(.info-sheet) { display: none; }
 
   /* The tile is sized from the STAGE once a list is on the card, not from the
      card. cqh is the card, and the card is not what the tile sits in: the list
@@ -1309,9 +1320,9 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   /* Only the three kinds that actually carry a list. Unscoped, this docked the
      list's height off the episode and live cards too, which have no list, and
      gave them a tile sized for a player area smaller than the one they have. */
-  .shell[data-fill] .widget.c[data-kind="podcast"],
-  .shell[data-fill] .widget.c[data-kind="artist"],
-  .shell[data-fill] .widget.c[data-kind="playlist"] {
+  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="podcast"],
+  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="artist"],
+  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="playlist"] {
     --thumb: round(max(36px, min(80px, 9.5cqh + 23px - 0.095 * var(--list-h),
                                  100cqw - 216px)), 1px);
   }
