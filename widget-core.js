@@ -122,7 +122,18 @@ function featuredFrom(tracks) {
    so the rows are dropped rather than hidden. */
 async function loadEpisode(showId) {
   const d = await loadPodcast(showId);
-  return Object.assign({}, d, { kind: 'episode', rows: [], listTitle: null });
+  /* The episode's own artwork, carried apart before the rows are dropped.
+     It is the rows that hold it, so stripping them took it with them and the
+     card fell back to the SHOW's image for its backdrop. Episodes really do
+     ship their own art here, a different one per episode, so that fallback was
+     visible rather than academic.
+
+     Only the backdrop. The thumbnail stays the show, which is exactly how the
+     podcast card behaves: the tile is what you are listening to in general and
+     the backdrop is what is playing right now. */
+  const ep = (d.rows || []).find((r) => String(r.id) === String(d.currentEpisodeId)) || (d.rows || [])[0];
+  return Object.assign({}, d, { kind: 'episode', rows: [], listTitle: null,
+                                episodeArt: (ep && ep.art) || null });
 }
 
 async function loadArtist(id) {
@@ -1010,6 +1021,9 @@ ${listTail(d)}
        radio follows, falling back to the artist image or the playlist's first
        track before anything is playing. */
     if (caps(d).stopNext) { const t = curTrack(d); return (t && t.art) || d.art || ''; }
+    /* The episode card has no rows to look the current episode up in, so its
+       own art is carried on the record instead. */
+    if (d.kind === 'episode') return d.episodeArt || d.art || '';
     const row = (d.rows || []).find((r) => String(r.id) === String(d.currentEpisodeId));
     return (row && row.art) || d.art || '';
   }
