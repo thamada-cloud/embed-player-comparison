@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Design C responsive behaviour</title>
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="widget-core.css">
+<style>
+/* min-width:0 because shared.css makes body a flex column, which gives every
+   child min-width:auto and therefore a floor of its own min-content width. The
+   fixed-width demo card then pushed main out to 564 inside a 400px viewport and
+   the whole page scrolled sideways. The boxes that hold wide things scroll for
+   themselves instead. */
+/* This page loads widget-core.css for the card in the playground, and that
+   stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
+   main and `section > h2`. Those came along uninvited. Everything below either
+   restates what this page wants or raises specificity enough to win, rather than
+   leaving the look to whichever file happens to load last.
+
+   `display: block` is the load-bearing one. widget-core.css makes main a grid,
+   which made .wrap a grid item with min-width:auto, so .wrap took a floor of its
+   own min-content: the widest table pushed it to 524 inside a 400px viewport and
+   the whole page scrolled sideways. */
+/* widget-core.css hardcodes these for a light-only page and loads after
+   shared.css, so it won a white header and a dark-grey body colour that the
+   dark theme then rendered on a dark ground. Everything not carrying its own
+   colour inherits from body, which is why whole tables went nearly invisible.
+   These put both back on the themed tokens. */
+body { background: var(--bg); color: var(--text); }
+/* .pagelink is defined per page, not in shared.css, so without this the header
+   links fell back to the browser's default blue, which is unreadable on the dark
+   header. Same rule the other pages carry. */
+.pagelink { font-size: 13px; color: var(--text); text-decoration: none;
+            border-bottom: 1px solid var(--border); }
+.pagelink:hover { border-bottom-color: var(--text); }
+header { background: var(--surface); border-bottom: 1px solid var(--border); }
+
+main { background: var(--stage); padding: 24px 20px 90px;
+       display: block; max-width: none; margin: 0;
+       width: 100%; min-width: 0; box-sizing: border-box; }
+.wrap { max-width: 1120px; margin: 0 auto; min-width: 0; }
+section { margin: 0 0 40px; scroll-margin-top: 72px; }
+.wrap section > h2 { font-size: 17px; margin: 0 0 4px; letter-spacing: -.01em;
+                     text-transform: none; color: var(--text); font-weight: 700; }
+.wrap h3 { font-size: 13.5px; margin: 22px 0 6px; letter-spacing: -.01em; }
+.lede { margin: 0 0 16px; font-size: 13.5px; color: var(--text-dim); max-width: 84ch; }
+.lede b { color: var(--text); font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--border);
+         border-radius: var(--radius); padding: 16px 18px; }
+.why { border-left: 3px solid var(--border); padding: 2px 0 2px 12px;
+       margin: 12px 0 0; font-size: 12.5px; color: var(--text-dim); max-width: 84ch; }
+.why b { color: var(--text); font-weight: 600; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+     color: var(--text-dim); font-weight: 700; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.name { font-weight: 600; white-space: nowrap; }
+tbody tr:hover { background: var(--bg); }
+
+/* the live demo */
+.demo { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .demo { grid-template-columns: minmax(0,1fr); } }
+/* The card is a fixed pixel width on purpose, since that is the thing being
+   demonstrated, so on a narrow screen this box scrolls rather than the page. */
+.stagebox { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 20px; display: flex; justify-content: center; align-items: center;
+            min-height: 340px; overflow-x: auto; }
+.demo .shell { margin: 0 auto; }
+.kind[hidden] { display: none !important; }
+.ctrls { display: flex; flex-direction: column; gap: 14px; }
+.ctrlrow { display: flex; flex-direction: column; gap: 5px; }
+.ctrlrow label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+                 color: var(--text-dim); font-weight: 700; }
+.ctrlrow .line { display: flex; align-items: center; gap: 8px; }
+.ctrlrow input[type=range] { flex: 1 1 auto; accent-color: var(--accent); cursor: pointer; min-width: 0; }
+.ctrlrow output { font-variant-numeric: tabular-nums; font-size: 12px; min-width: 52px; text-align: right; }
+.seg2 { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border);
+        border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.seg2 button { appearance: none; border: 0; background: var(--surface); color: var(--text-dim);
+               font: inherit; font-size: 11.5px; padding: 4px 8px; cursor: pointer;
+               flex: 1 1 auto; min-width: 0; }
+.seg2 button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.active { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.active h4 { margin: 0; padding: 9px 12px; border-bottom: 1px solid var(--border);
+             font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); }
+.active ul { list-style: none; margin: 0; padding: 8px 12px 10px; }
+.active li { font-size: 12px; padding: 3px 0; display: flex; gap: 8px; justify-content: space-between; }
+.active li span:first-child { color: var(--text-dim); }
+.active li b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.rules { list-style: none; margin: 0; padding: 8px 12px 10px; }
+.rules li { font-size: 11.5px; padding: 3px 0; color: var(--text-dim);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.rules li.on { color: var(--accent); font-weight: 600; }
+.rules li.on::before { content: "\25CF "; }
+.rules li.off::before { content: "\25CB "; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
+.toc a { font-size: 12px; text-decoration: none; color: var(--text-dim);
+         border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; }
+.toc a:hover { color: var(--text); }
+</style>
+</head>
+<body data-wave="off">
+
+<header>
+  <div class="brandmark">Design C responsive behaviour</div>
+  <div class="ctrl">
+    <label>Theme</label>
+    <div class="seg" id="themeSeg">
+      <button data-theme="light" aria-pressed="true">Light</button>
+      <button data-theme="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+  <div class="ctrl"><a class="pagelink" href="widget.html">Widget prototype &rarr;</a></div>
+  <div class="ctrl"><a class="pagelink" href="analysis.html">Analysis &rarr;</a></div>
+  <div class="ctrl"><a class="pagelink" href="index.html">One at a time &rarr;</a></div>
+</header>
+
+<main><div class="wrap">
+
+<p class="toc">
+  <a href="#model">The model</a>
+  <a href="#play">Live playground</a>
+  <a href="#height">Height</a>
+  <a href="#width">Width</a>
+  <a href="#continuous">Continuous values</a>
+  <a href="#notes">Implementation notes</a>
+</p>
+
+<section id="model">
+  <h2>The model</h2>
+  <p class="lede">
+    The card responds to <b>the box it is given</b>, not to the viewport. Everything here is
+    driven by CSS container queries on the element that wraps the player, so a 300px card in a
+    narrow sidebar behaves exactly like a 300px card on a 4K monitor. There are no
+    <code>@media</code> width rules in the layout.
+  </p>
+  <div class="panel">
+    <h3 style="margin-top:0">Two container modes, and the difference matters</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Wrapper</th><th>container-type</th><th>Queries that apply</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td class="name"><code>.shell</code></td><td><code>inline-size</code></td>
+            <td>Width only</td>
+            <td>Default. The host gives a width; the card keeps its own default height.</td></tr>
+        <tr><td class="name"><code>.shell[data-fill]</code></td><td><code>size</code></td>
+            <td>Width <b>and</b> height</td>
+            <td>The host gives an explicit height, via <code>--player-h</code>. The card fills it.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="why">
+      <b>The single most important thing to know.</b> Every height rule on this page is inert unless
+      the wrapper carries <code>data-fill</code>. A size container needs a definite height to resolve
+      against, so without one the height queries never match and the card simply sits at its default.
+      In the prototype the height control sets this; in an embed, <code>embed.html</code> sets it so the
+      iframe fills whatever the publisher's slot gives it.
+    </p>
+  </div>
+
+  <h3>Default heights, when the host sets none</h3>
+  <p class="lede">These are iHeart's own published oEmbed heights, not design decisions taken here.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Content type</th><th class="num">Default height</th><th>Width</th></tr></thead>
+    <tbody>
+      <tr><td class="name">Podcast</td><td class="num">300</td><td rowspan="5">Always the host's. iHeart proposes a height through oEmbed; the publisher controls both dimensions.</td></tr>
+      <tr><td class="name">Podcast episode</td><td class="num">200</td></tr>
+      <tr><td class="name">Live radio</td><td class="num">200</td></tr>
+      <tr><td class="name">Artist radio</td><td class="num">300</td></tr>
+      <tr><td class="name">Playlist</td><td class="num">300</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="play">
+  <h2>Live playground</h2>
+  <p class="lede">
+    A real card, the same code as the prototype. Drag either axis and watch which rules switch on.
+    The readout is <b>measured from the live DOM</b>, not predicted, so it is the same method the
+    test suites use.
+  </p>
+  <div class="demo">
+    <div class="stagebox">
+      <div class="shell" data-fill id="shell">
+        <div class="kind" data-kind="podcast"  id="w-podcast-c"></div>
+        <div class="kind" data-kind="episode"  id="w-episode-c"></div>
+        <div class="kind" data-kind="live"     id="w-live-c"></div>
+        <div class="kind" data-kind="artist"   id="w-artist-c"></div>
+        <div class="kind" data-kind="playlist" id="w-playlist-c"></div>
+      </div>
+      <p class="status" id="s-podcast-c" hidden></p><p id="s-episode-c" hidden></p>
+      <p id="s-live-c" hidden></p><p id="s-artist-c" hidden></p><p id="s-playlist-c" hidden></p>
+    </div>
+    <div class="ctrls">
+      <div class="ctrlrow">
+        <label for="dh">Height</label>
+        <div class="line">
+          <input id="dh" type="range" min="50" max="900" step="1" value="300">
+          <output id="dho">300 px</output>
+        </div>
+      </div>
+      <div class="ctrlrow">
+        <label for="dw">Width</label>
+        <div class="line">
+          <input id="dw" type="range" min="160" max="700" step="1" value="411">
+          <output id="dwo">411 px</output>
+        </div>
+      </div>
+      <div class="ctrlrow">
+        <label>Content type</label>
+        <div class="seg2" id="kinds">
+          <button data-kind="podcast" aria-pressed="true">Podcast</button>
+          <button data-kind="episode" aria-pressed="false">Episode</button>
+          <button data-kind="live" aria-pressed="false">Live</button>
+          <button data-kind="artist" aria-pressed="false">Artist</button>
+          <button data-kind="playlist" aria-pressed="false">Playlist</button>
+        </div>
+      </div>
+      <div class="ctrlrow">
+        <label>Jump to a breakpoint</label>
+        <div class="seg2" id="jumps">
+          <button data-h="440">440</button><button data-h="300">300</button>
+          <button data-h="200">200</button><button data-h="128">128</button>
+          <button data-h="127">127</button><button data-h="75">75</button>
+          <button data-h="50">50</button>
+        </div>
+      </div>
+      <div class="active">
+        <h4>Measured</h4>
+        <ul id="readout"></ul>
+      </div>
+      <div class="active">
+        <h4>Rules in effect</h4>
+        <ul class="rules" id="rules"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="height">
+  <h2>Height</h2>
+  <p class="lede">
+    Four thresholds, each one set by <b>measuring where the layout actually breaks</b> rather than by
+    picking a round number. Below each, something gives way so that the play button is never cut and
+    never drops under its 40px minimum.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">Height</th><th>What changes</th><th>Why there</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="num">300 and up</td>
+        <td>The episode / featured-artist list becomes <b>inline</b> under the player. The list button
+            disappears from the top bar and the drawer is disabled.</td>
+        <td>The shortest card that can hold a usable list, at its 128px minimum, plus a stage that
+            still clears its own floor.</td>
+      </tr>
+      <tr>
+        <td class="num">299 down to 128</td>
+        <td>The full stacked hero. Play button centred over the artwork, metadata and actions in the
+            top bar, lockup and scrubber at the foot. The list returns as a <b>drawer</b>.</td>
+        <td>The reference layout. Both published defaults, 300 and 200, sit here.</td>
+      </tr>
+      <tr>
+        <td class="num">127 down to 76</td>
+        <td><b>Compact row.</b> The play button leaves the centre and takes the left of the metadata
+            row, beside the artwork tile. Info, list and share are hidden, as are seek, speed and
+            skip. The lockup stays below.</td>
+        <td>Measured: a centred button and the top bar collide at 128, because they compete for the
+            same vertical space. Moving the button into that row removes the competition instead of
+            resolving it, so the metadata survives instead of being hidden.</td>
+      </tr>
+      <tr>
+        <td class="num">75 down to 56</td>
+        <td>The bottom block goes: scrubber and the <b>Listen on iHeart</b> lockup. The card is the
+            row and the artwork behind it.</td>
+        <td>Measured: at 76 the block still clears the row by 3px; at 70 it is already past the
+            bottom of the card.</td>
+      </tr>
+      <tr>
+        <td class="num">55 down to 50</td>
+        <td>The 8px card inset gives way, reaching 5px at 50.</td>
+        <td>A 40px button with 8px above and below needs 56. Under that, the inset is the only
+            variable left that keeps the button whole and at its stated minimum.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h3>The play button through the range</h3>
+  <p class="lede">
+    It holds 64 for as long as the geometry allows and only then shrinks, rather than scaling on a
+    ratio from the top. Measured, podcast card at 411 wide.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr>
+      <th class="num">Card height</th><th class="num">900</th><th class="num">300</th><th class="num">200</th>
+      <th class="num">176</th><th class="num">160</th><th class="num">150</th><th class="num">136</th>
+      <th class="num">129</th><th class="num">100</th><th class="num">50</th>
+    </tr></thead>
+    <tbody><tr>
+      <td class="name">Play button</td><td class="num">64</td><td class="num">64</td><td class="num">64</td>
+      <td class="num">64</td><td class="num">64</td><td class="num">54</td><td class="num">41</td>
+      <td class="num">40</td><td class="num">40</td><td class="num">40</td>
+    </tr></tbody>
+  </table></div>
+  <p class="why">
+    <b>Why two formulas.</b> The button is centred on the card, so each side has to clear its own bar
+    and each bound is twice the room on that side. A card with a scrubber has a taller bottom block,
+    so the bottom binds; live radio, artist radio and playlist have no scrubber, so the top bar binds
+    instead. Both bounds are the height minus a constant, so which one wins never depends on the
+    height, and each rule carries only the bound that can actually bind.
+  </p>
+</section>
+
+<section id="width">
+  <h2>Width</h2>
+  <p class="lede">
+    Far less happens across width than across height. The card is fluid, the metadata truncates and
+    marquees on its own, and only two things actually switch.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">Width</th><th>What changes</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="num">319 and under</td>
+          <td>The pause overlay's copy and its call to action step down a size.</td>
+          <td>The overlay is centred text over the artwork; at this width the larger size wraps badly.
+              Off by default in the prototype.</td></tr>
+      <tr><td class="num">239 and under</td>
+          <td>The words <b>Listen on</b> are hidden. The iHeart logotype stays.</td>
+          <td>The lockup is the last thing on its row and the words are the part that can go without
+              losing the attribution.</td></tr>
+      <tr><td class="num">Very narrow</td>
+          <td>The play button is bound by the card's width as well as its height, through
+              <code>100cqw - 8px</code>. At a 50px-wide card it measures 42.</td>
+          <td>A narrow card can run out of room across before it runs out down.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="why">
+    <b>Not a breakpoint, but width-driven.</b> Every metadata line is measured after layout and gets a
+    marquee only when its text really is wider than its box, which depends on the card's current
+    width. So the same title scrolls at 240 and sits still at 500 with no rule involved.
+  </p>
+</section>
+
+<section id="continuous">
+  <h2>Continuous values</h2>
+  <p class="lede">
+    These interpolate rather than switching. <code>cqh</code> and <code>cqw</code> are percentages of
+    the container's height and width. Every one is wrapped in <code>round(…, 1px)</code>, because the
+    clamps otherwise land on fractions and a card whose rows all start on a subpixel boundary renders
+    visibly soft.
+  </p>
+  <div class="scroll"><table>
+    <thead><tr><th>What</th><th>Value</th><th class="num">Range</th></tr></thead>
+    <tbody>
+      <tr><td class="name">Play button, with scrubber</td>
+          <td class="mono">max(40px, min(64px, 100cqw - 8px, 100cqh - 96px))</td><td class="num">40&ndash;64</td></tr>
+      <tr><td class="name">Play button, no scrubber</td>
+          <td class="mono">max(40px, min(64px, 100cqw - 8px, 100cqh - 92px))</td><td class="num">40&ndash;64</td></tr>
+      <tr><td class="name">Transport icons</td>
+          <td class="mono">clamp(24px, 13.8cqh + 3.7px, 40px)</td><td class="num">24&ndash;40</td></tr>
+      <tr><td class="name">Speed label type</td>
+          <td class="mono">clamp(12px, 1.72cqh + 9.5px, 14px)</td><td class="num">12&ndash;14</td></tr>
+      <tr><td class="name">Inline list height</td>
+          <td class="mono">clamp(128px, 65.7cqh - 69.1px, 220px)</td><td class="num">128&ndash;220</td></tr>
+      <tr><td class="name">Card inset, top and sides</td>
+          <td class="mono">8px flat, then max(0px, 50cqh - 20px) under 56</td><td class="num">5&ndash;8</td></tr>
+      <tr><td class="name">Card inset, bottom</td>
+          <td class="mono">clamp(0px, 1.5cqh, 4px)</td><td class="num">0&ndash;4</td></tr>
+      <tr><td class="name">Artwork tile</td>
+          <td class="mono">measured in JS from the text block's height, square, floor 36px</td><td class="num">36&ndash;</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="notes">
+  <h2>Implementation notes</h2>
+  <div class="panel">
+    <h3 style="margin-top:0">Things that will bite you</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Note</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td class="name">The live card overrides its own controls</td>
+            <td><code>.widget.c.live .hero-controls</code> sets its own <code>top</code> to nudge the
+                button half a pixel. That is more specific than a plain <code>.widget.c</code> and
+                later in the file, so any rule repositioning the controls has to carry both
+                selectors or it will move every card except live.</td></tr>
+        <tr><td class="name">The artwork tile is sized in JavaScript</td>
+            <td>It is square and derived from the height of the text block beside it. Three CSS-only
+                attempts failed: the image stretched to 3000px through a circular dependency, and a
+                link with a min-height collapsed to 6px wide inside a size container. It is measured
+                after layout instead.</td></tr>
+        <tr><td class="name">The play button animates its own size</td>
+            <td><code>.hero-play</code> carries <code>transition: 300ms</code>, an all-properties
+                shorthand rather than a transform-only one, so width and height animate after any
+                resize. Measure it after the transition settles or you will read a size the card has
+                already moved on from.</td></tr>
+        <tr><td class="name">Transport buttons only exist once playing</td>
+            <td>Seek, speed and skip are hidden until the card has started, so measuring them on a
+                freshly loaded card returns zero.</td></tr>
+        <tr><td class="name">A size container needs a definite height</td>
+            <td><code>container-type: size</code> with no resolvable height makes every height query
+                fail silently. This is why <code>--player-h</code> and <code>data-fill</code> are set
+                together and never one without the other.</td></tr>
+        <tr><td class="name">There is no floor any more</td>
+            <td>The card used to stop at a minimum height and let the slot clip the overflow. Because
+                the button is centred, that cut it in half. The card is now exactly its slot down to
+                50 and the chrome gives way instead.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <h3>Where the rules live</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>File</th><th>What is in it</th></tr></thead>
+    <tbody>
+      <tr><td class="name"><code>widget-core.css</code></td>
+          <td>Every container query and every clamp. Search for <code>@container</code>.</td></tr>
+      <tr><td class="name"><code>widget-core.js</code></td>
+          <td>The tile measurement, the marquee measurement and the drawn scrollbar, all of which
+              react to size but cannot be expressed in CSS.</td></tr>
+      <tr><td class="name"><code>embed.html</code></td>
+          <td>Sets <code>data-fill</code> so an embedded card fills the publisher's slot, and reports
+              its preferred height back to the host.</td></tr>
+      <tr><td class="name"><code>test-play-visible.py</code></td>
+          <td>Sweeps all five content types across fifteen heights either side of each threshold and
+              asserts the button is never cut, never under 40, and never overlapped.</td></tr>
+      <tr><td class="name"><code>test-height.py</code></td>
+          <td>The inline list threshold, the fill behaviour and the height control itself.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
+<script src="widget-core.js"></script>
+<script>
+(function () {
+  var seg = document.getElementById('themeSeg');
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    document.documentElement.setAttribute('data-theme', b.dataset.theme);
+    seg.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', String(x === b)); });
+  });
+
+  var dh = document.getElementById('dh'), dho = document.getElementById('dho');
+  var dw = document.getElementById('dw'), dwo = document.getElementById('dwo');
+  var shell = document.getElementById('shell');
+  var readout = document.getElementById('readout'), rules = document.getElementById('rules');
+
+  /* Same thresholds as the stylesheet. Kept as data so the readout below can say
+     which one is in effect without guessing from the rendered result. */
+  var RULES = [
+    { t: '@container (min-height: 300px)',  on: function (h) { return h >= 300; } },
+    { t: '@container (max-height: 127px)',  on: function (h) { return h <= 127; } },
+    { t: '@container (max-height: 75px)',   on: function (h) { return h <= 75; } },
+    { t: '@container (max-height: 55px)',   on: function (h) { return h <= 55; } },
+    { t: '@container (max-width: 319px)',   on: function (h, w) { return w <= 319; } },
+    { t: '@container (max-width: 239px)',   on: function (h, w) { return w <= 239; } }
+  ];
+
+  function apply() {
+    var h = Number(dh.value), w = Number(dw.value);
+    dho.textContent = h + ' px'; dwo.textContent = w + ' px';
+    document.documentElement.style.setProperty('--player-h', h + 'px');
+    shell.style.maxWidth = w + 'px';
+    /* Two frames, not one. A single rAF fires before the container query has
+       re-resolved the card, so the readout reported the PREVIOUS size: at 128 it
+       still said a 64px button while the DOM already held 40. The observer below
+       is the real safety net; this just keeps the common case immediate. */
+    requestAnimationFrame(function () { requestAnimationFrame(report); });
+  }
+
+  /* Measured off the live DOM rather than computed from the slider, so this page
+     cannot quietly disagree with the card sitting next to it. */
+  var kind = 'podcast';
+  function showKind(k) {
+    kind = k;
+    shell.querySelectorAll('.kind').forEach(function (el) {
+      el.hidden = el.dataset.kind !== k; });
+    document.querySelectorAll('#kinds button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.kind === k)); });
+    apply();
+  }
+  document.getElementById('kinds').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b) showKind(b.dataset.kind);
+  });
+
+  function report() {
+    var host = shell.querySelector('.kind[data-kind="' + kind + '"]');
+    var card = host && host.querySelector('.widget.c');
+    if (!card) return;
+    var q = function (s) { return card.querySelector(s); };
+    var shown = function (s) {
+      var e = q(s); return !!e && getComputedStyle(e).display !== 'none';
+    };
+    var box = function (s) {
+      var e = q(s); if (!e) return null;
+      var r = e.getBoundingClientRect(); return Math.round(r.height);
+    };
+    var acts = Array.prototype.filter.call(card.querySelectorAll('.topbar .h-btn'),
+      function (e) { return getComputedStyle(e).display !== 'none'; })
+      .map(function (e) { return e.dataset.act; });
+    var cs = getComputedStyle(q('.stage'));
+    var layout = !shown('.topbar') ? 'none'
+      : (Math.round(q('.hero-play').getBoundingClientRect().top - card.getBoundingClientRect().top) < 24
+         ? 'compact row' : 'stacked hero');
+    var rows = [
+      ['Card', Math.round(card.getBoundingClientRect().width) + ' × ' + Math.round(card.getBoundingClientRect().height)],
+      ['Layout', layout],
+      ['Play button', box('.hero-play') + ' px'],
+      ['Artwork tile', box('.thumb-link') + ' px'],
+      ['Card inset', cs.paddingTop],
+      ['Inline list', shown('.list') ? box('.list') + ' px' : 'drawer'],
+      ['Top bar actions', acts.length ? acts.join(', ') : 'hidden'],
+      ['Bottom block', shown('.hero-bottom') ? 'shown' : 'hidden']
+    ];
+    readout.innerHTML = rows.map(function (r) {
+      return '<li><span>' + r[0] + '</span><b>' + r[1] + '</b></li>';
+    }).join('');
+    var h = Number(dh.value), w = Number(dw.value);
+    rules.innerHTML = RULES.map(function (r) {
+      var on = r.on(h, w);
+      return '<li class="' + (on ? 'on' : 'off') + '">' + r.t + '</li>';
+    }).join('');
+  }
+
+  dh.addEventListener('input', apply);
+  dw.addEventListener('input', apply);
+  document.getElementById('jumps').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    dh.value = b.dataset.h; apply();
+  });
+  apply();
+  /* The card is built asynchronously from the iHeart API, so the first honest
+     reading is only available once it exists. */
+  var tries = 0;
+  var wait = setInterval(function () {
+    if (shell.querySelector('.widget.c') || ++tries > 60) { clearInterval(wait); report(); }
+  }, 250);
+  /* The card is the thing that actually changes size, so watch it rather than
+     trying to guess when the browser has finished. This also catches the card
+     being rebuilt, which happens whenever its data reloads. */
+  if (window.ResizeObserver) new ResizeObserver(report).observe(shell);
+  /* The play button carries `transition: 300ms`, an all-properties shorthand, so
+     it animates its own width and height after a resize. The observer above sees
+     the shell settle immediately and reports a button still mid-flight: at 128 it
+     read 63 while the card had already resolved to 40. Transitions bubble, so
+     this catches the end of that and takes a final honest reading. */
+  shell.addEventListener('transitionend', report);
+})();
+</script>
+</body>
+</html>
