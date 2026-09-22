@@ -608,7 +608,7 @@ a.thumb-link:hover { opacity: .92; }
 .widget.hero .sheet, .widget.hero .slider { cursor: auto; }
 .stage { position: relative; height: 224px; width: 100%; overflow: hidden;
          display: flex; flex-direction: column; justify-content: space-between;
-         padding-top: var(--card-pad, 16px); background: var(--stage-plate); }
+         padding-top: var(--card-pad, 8px); background: var(--stage-plate); }
 /* The plate under the artwork is a THEME colour, not something read off the
    picture. It was the artwork's own mean colour for live radio for a while:
    a station's logo is a transparent PNG drawn for a white tile, so a white
@@ -639,7 +639,7 @@ a.thumb-link:hover { opacity: .92; }
    the top bar's own right side had been brought to 16 for the logo, so the left
    was the last 24 on the card. */
 .topbar { position: relative; display: flex; align-items: center; gap: 8px;
-          padding: 0 var(--card-pad, 16px); width: 100%; }
+          padding: 0 var(--card-pad, 8px); width: 100%; }
 /* h-thumb, not thumb. `.thumb` is already the slider's drag handle, which is
    position:absolute, so reusing the name took this image out of the flex row
    and let the two lines of text run underneath it. Second time a class name
@@ -726,7 +726,7 @@ a.thumb-link:hover { opacity: .92; }
 .hero-controls {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 0 var(--card-pad, 16px); box-sizing: border-box;
+  width: 100%; padding: 0 var(--card-pad, 8px); box-sizing: border-box;
 }
 /* Design C's centre row is a three column grid rather than a centred flex row,
    so the play button is centred on the CARD rather than on whatever happens to
@@ -1044,7 +1044,12 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
      rows all start on a subpixel boundary renders soft: straight edges get
      anti-aliased along one axis and not the other, which reads as blur and, on
      a square tile, as not-quite-square. */
-  --card-pad: round(clamp(8px, 6cqh, 16px), 1px);
+  /* --card-pad is no longer interpolated. It used to run 8 at a short card up
+     to 16 at a tall one, which meant the same card had two different insets
+     depending on the slot it was dropped into. It is 8 at every size now, set
+     by the fallback on each rule that reads it, so there is nothing to declare
+     here. The bottom is still its own value and still closes up under
+     compression, which is where the room actually runs out. */
   --card-padb: round(clamp(0px, 1.5cqh, 4px), 1px);
 }
 /* Every part of the chrome interpolates between the two frames that exist:
@@ -1072,21 +1077,25 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
      each bound is twice the room on that side:
        top     H - 2*padTop - 2*topBar, and the top bar is now the 36 tile
        bottom  H - 2*(bottomBlock + padBottom)
-     With padTop at 6cqh the top bound works out to 88cqh - 72, and it carries
-     4 more than that so the button keeps 2px of air rather than sitting flush
-     against the bar. The podcast card's bottom block is a 16 scrubber, a 4 gap
-     and a 24 lockup row, so 100cqh - 96.
+     padTop is a flat 8 now, so the top bound is H - 16 - 72, and it carries 4
+     more than that so the button keeps 2px of air rather than sitting flush
+     against the bar. It used to read 88cqh - 76 because the padding was itself
+     a clamp on height. The podcast card's bottom block is a 16 scrubber, a 4
+     gap and a 24 lockup row, so 100cqh - 96.
 
-     Whichever bound is smaller wins, capped at 64 and floored at 40. */
-  --play: round(max(40px, min(64px, 100cqw - 8px, 88cqh - 76px, 100cqh - 96px)), 1px);
+     Both bounds are now H minus a constant, so which one binds no longer
+     depends on the height: on a card with a scrubber the bottom is always the
+     tighter of the two by 4, and it is the only one written here. */
+  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - 96px)), 1px);
 }
 /* No scrubber on these three, so their bottom block is the 24 lockup row alone
-   and the bound is 40 looser. Using the podcast card's number for all of them
-   shrank the live button while a third of the card sat empty under it. */
+   and that bound is 40 looser, which puts the top bar back in charge. Using the
+   podcast card's number for all of them shrank the live button while a third of
+   the card sat empty under it. */
 .shell[data-fill] .widget.c[data-kind="live"] .hero-play,
 .shell[data-fill] .widget.c[data-kind="artist"] .hero-play,
 .shell[data-fill] .widget.c[data-kind="playlist"] .hero-play {
-  --play: round(max(40px, min(64px, 100cqw - 8px, 88cqh - 76px, 100cqh - 56px)), 1px);
+  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - 92px)), 1px);
 }
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
@@ -1269,7 +1278,7 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .widget.c .list-row { min-height: 24px; }
 .list-row { display: flex; justify-content: space-between; align-items: center;
             gap: var(--sp-4); min-height: 32px;
-            padding: 0 var(--card-pad, 16px); box-sizing: border-box; }
+            padding: 0 var(--card-pad, 8px); box-sizing: border-box; }
 .lr-side { display: flex; align-items: center; gap: var(--sp-4); }
 /* The drawer, frame 2533:85717. It slides up over the player inside the card
    rather than opening a panel beneath it, which is what the frame draws: the

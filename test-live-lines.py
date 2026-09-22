@@ -16,19 +16,28 @@ BAD = []
 
 def check(label, r):
     if label.startswith('track'):
-        return bool(r['station']) and ' \u2022 ' in (r['name'] or '')
+        return bool(r['station']) and r['name'] == 'Test Track \u2022 Test Artist'
     if label.startswith('no track, show'):
         return bool(r['station']) and bool(r['name']) and ' \u2022 ' not in (r['name'] or '') \
                and 'iheart.com' in (r['href'] or '')
     # the old fallback: no station line, name and sub carry the station itself
     return r['station'] is None and bool(r['name']) and bool(r['sub'])
 
+TRACK = json.dumps({'title': 'Test Track', 'artist': 'Test Artist',
+                    'trackId': 1, 'artistId': 2})
+
 async def run(label, no_track, no_show, shot):
   async with async_playwright() as p:
     b=await p.chromium.launch(channel='chrome'); pg=await b.new_page(viewport={'width':1200,'height':1400},device_scale_factor=2)
     errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
+    # Pinned in BOTH directions. Letting the first case hit the network made it
+    # depend on Z100 happening to be mid-song, and it fails the moment the
+    # station goes to a break.
     if no_track:   # 204 is the station saying nothing is on air
         await pg.route('**/live-meta/**', lambda r: asyncio.ensure_future(r.fulfill(status=204, body='')))
+    else:
+        await pg.route('**/live-meta/**', lambda r: asyncio.ensure_future(
+            r.fulfill(status=200, content_type='application/json', body=TRACK)))
     if no_show:
         await pg.route('**/webapi.radioedit.iheart.com/**', lambda r: asyncio.ensure_future(r.abort()))
     await pg.goto('http://localhost:8931/widget.html', wait_until='load'); await pg.wait_for_timeout(10000)

@@ -169,7 +169,9 @@ def control(pg):
     check("defaults to Auto, no flag set",
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
     check("defaults to Auto, card is 300", boxes(pg, "#w-podcast-c")["card"], 300)
-    check("range floor is 100", pg.evaluate("document.getElementById('heightRange').min"), "100")
+    # 50, not 100. Lowered so a slot smaller than the card's own floor can be
+    # looked at; the card still floors and the slot clips below that.
+    check("range floor is 50", pg.evaluate("document.getElementById('heightRange').min"), "50")
     check("range ceiling is 900",
           pg.evaluate("document.getElementById('heightRange').max"), "900")
 
