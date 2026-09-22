@@ -370,6 +370,26 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    track last at 14/18 Regular, every line in grey-100 and 2px apart. Read off
    2527:144307, 2512:111965 and 2548:133528, which now agree line for line.
    With nothing on air it falls back to the station's own name and description. */
+/* "track name • artist name" as one line, used by live radio, artist radio
+   and playlist, and by the two pollers that rewrite it. Four writers, one
+   builder: the live line has been patched in one place and not the other twice
+   in this project, and each time the renderer and the poller disagreed from the
+   first poll onward rather than on first paint.
+
+   The bullet sits outside both anchors and is hidden from assistive tech, since
+   it separates rather than says anything. The marquee wrapper goes around the
+   WHOLE line, because markOverflow measures one .mqi per line and nesting one
+   inside another gave it two candidates and it measured the wrong one. */
+function trackArtistLine(track, artist, trackHref, artistHref) {
+  return '<span class="mqi">' +
+    maybeLink(trackHref, track, trackHref ? 'Open this song on iHeart' : null, true) +
+    (artist
+      ? '<span class="np-sep" aria-hidden="true"> • </span>' +
+        maybeLink(artistHref, artist, artistHref ? 'Open this artist on iHeart' : null, true)
+      : '') +
+    '</span>';
+}
+
 function liveMeta(d) {
   const L = heroLines(d);
   const link = (t) => lineLink(stationUrl(d), t);
@@ -383,10 +403,7 @@ function liveMeta(d) {
      assistive tech, since it separates rather than says anything. */
   return L.station
     ? `<p class="h-station mq">${link(L.station)}</p>
-       <p class="h-name mq"><span class="mqi">${
-         maybeLink(trackUrl(d), L.name, 'Open this song on iHeart', true)}${
-         L.sub ? `<span class="np-sep" aria-hidden="true"> • </span>${
-           maybeLink(artistUrl(d), L.sub, 'Open this artist on iHeart', true)}` : ''}</span></p>`
+       <p class="h-name mq">${trackArtistLine(L.name, L.sub, trackUrl(d), artistUrl(d))}</p>`
     : `<p class="h-name mq">${link(L.name)}</p>
        <p class="h-sub mq">${link(L.sub)}</p>`;
 }
@@ -461,9 +478,12 @@ function streamMeta(d) {
   const t = curTrack(d);
   const ctx = d.title;
   if (d.startedSim && t) {
+    /* Two lines, the same as live radio: the station or playlist name on top
+       and the track and artist together under it. These carried three.
+       No hrefs: a simulated station's tracks come from the catalog and this
+       card is not signed in, so there is no per track page to open. */
     return `<p class="h-station mq">${esc(ctx)}</p>
-            <p class="h-name mq">${esc(t.title)}</p>
-            <p class="h-under mq">${esc(t.artist || '')}</p>`;
+            <p class="h-name mq">${trackArtistLine(t.title, t.artist, null, null)}</p>`;
   }
   /* Artist radio's idle frame is ONE line, "<artist> Radio", and playlist's is
      two, its name and its description. The artist name is carried on the data
@@ -1440,10 +1460,10 @@ ${listTail(d)}
     root.querySelectorAll('.topbar').forEach((tb) => {
       const meta = tb.querySelector('.meta');
       if (!meta) return;
-      /* 34 is the floor, matching the two line cards. Below it a one line card
-         drew a 32px tile that read as a different component from the 34 and 36
-         beside it in the same rail. */
-      const px = Math.max(34, Math.round(meta.getBoundingClientRect().height)) + 'px';
+      /* 36 is the floor, which is also the podcast card's natural two line
+         height, so in practice every card in a rail shows the same tile and
+         only a taller than usual block grows it. */
+      const px = Math.max(36, Math.round(meta.getBoundingClientRect().height)) + 'px';
       if (tb.style.getPropertyValue('--thumb') !== px) tb.style.setProperty('--thumb', px);
     });
   }
@@ -1911,7 +1931,12 @@ ${listTail(d)}
     const set = (sel, text) => { const e = q(sel + ' .mqi') || q(sel); if (e) e.textContent = text; };
     if (d.startedSim && t) {
       if (!q('.h-station')) { render(); return; }    /* idle block has fewer lines */
-      set('.h-station', d.title); set('.h-name', t.title); set('.h-under', t.artist || '');
+      set('.h-station', d.title);
+      /* Rebuilt, not patched: the line is a track, a separator and an artist
+         now, which a textContent cannot express. Same builder the renderer
+         uses, so the two cannot drift. */
+      const nm = q('.h-name');
+      if (nm) nm.innerHTML = trackArtistLine(t.title, t.artist, null, null);
     } else { render(); return; }
     const artEl = q('.art'), want = (t && t.art) || d.art || '';
     if (artEl && want && artEl.getAttribute('src') !== want) artEl.setAttribute('src', want);
@@ -2098,10 +2123,8 @@ ${listTail(d)}
          renderer once before, which is why it is the same call rather than a
          second copy of the layout. */
       const name = q('.h-name');
-      if (name) name.innerHTML = `<span class="mqi">${
-        maybeLink(trackUrl(w.data), L.name, 'Open this song on iHeart', true)}${
-        L.sub ? `<span class="np-sep" aria-hidden="true"> \u2022 </span>${
-          maybeLink(artistUrl(w.data), L.sub, 'Open this artist on iHeart', true)}` : ''}</span>`;
+      if (name) name.innerHTML =
+        trackArtistLine(L.name, L.sub, trackUrl(w.data), artistUrl(w.data));
     }
     /* The new track is a different length, so the marquee has to be
        re-measured rather than left on the previous track's distance. */
