@@ -361,7 +361,11 @@ section.is-live > .band-note { color: #14532d; }
 }
 .rows-thumb {
   position: absolute; left: 0; width: 100%; border-radius: 10px;
-  background: var(--ihr-grey-500);
+  /* gray, not grey. This file carries both spellings and only --ihr-gray-500
+     exists; --ihr-grey-500 resolved to nothing, so the thumb was transparent
+     and the bar looked like a track with no thumb in it, which is exactly what
+     it was. */
+  background: var(--ihr-gray-500);
 }
 /* Firefox has no pseudo elements for this and needs the standard properties,
    but they cannot simply sit alongside: once scrollbar-width is specified,
@@ -1058,7 +1062,31 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    thumbnail from 48 to 40 takes 16 off that, which is worth more than the 16
    the bottom row gave back, because the bottom was never the binding side. */
 .shell[data-fill] .widget.c .hero-play {
-  --play: round(max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px)), 1px);
+  /* 64 until it would CLIP, rather than shrinking on a ratio from the start.
+     It used to interpolate straight between the two frames, 64 at 263 down to
+     40 at 147, which meant a 200 slot got a 51px button while 48px of room sat
+     unused below it.
+
+     Now it is the smaller of the two things that can actually cut it. The
+     button is centred on the card, so each side must clear its own bar and
+     each bound is twice the room on that side:
+       top     H - 2*padTop - 2*topBar, and the top bar is now the 36 tile
+       bottom  H - 2*(bottomBlock + padBottom)
+     With padTop at 6cqh the top bound works out to 88cqh - 72, and it carries
+     4 more than that so the button keeps 2px of air rather than sitting flush
+     against the bar. The podcast card's bottom block is a 16 scrubber, a 4 gap
+     and a 24 lockup row, so 100cqh - 96.
+
+     Whichever bound is smaller wins, capped at 64 and floored at 40. */
+  --play: round(max(40px, min(64px, 100cqw - 8px, 88cqh - 76px, 100cqh - 96px)), 1px);
+}
+/* No scrubber on these three, so their bottom block is the 24 lockup row alone
+   and the bound is 40 looser. Using the podcast card's number for all of them
+   shrank the live button while a third of the card sat empty under it. */
+.shell[data-fill] .widget.c[data-kind="live"] .hero-play,
+.shell[data-fill] .widget.c[data-kind="artist"] .hero-play,
+.shell[data-fill] .widget.c[data-kind="playlist"] .hero-play {
+  --play: round(max(40px, min(64px, 100cqw - 8px, 88cqh - 76px, 100cqh - 56px)), 1px);
 }
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
@@ -1302,10 +1330,18 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 }
 .sheet-head { flex: 0 0 auto; display: flex; align-items: center; gap: 16px;
               padding: 16px; background: var(--ihr-grey-200); }
-/* h5, exactly: 18 / 24 / 700 / 0. */
+/* accomplice's Drawer heading at its MOBILE size, everywhere, which is what
+   this already was: drawer.css.ts sets fontSize 18 with 16 of side padding and
+   only steps to 24 with 24 of padding at breakpoints.large. Measured constant
+   18 / 24 / 700 with 16px padding from 300 through 1200 wide.
+
+   One value did differ. The letter spacing was 0, taken from Figma's H5 type
+   style, where the component itself uses letterSpacing[1], which is -0.05rem
+   at accomplice's 10px rem base and so -0.5px here. The component wins, since
+   the ask was to follow accomplice and iheart.com. */
 .sheet-head h3 { flex: 1 1 auto; min-width: 0; margin: 0;
                  font-size: var(--fs-18); line-height: var(--lh-24);
-                 font-weight: 700; letter-spacing: var(--ls-4); color: var(--ihr-grey-600);
+                 font-weight: 700; letter-spacing: var(--ls-1); color: var(--ihr-grey-600);
                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sheet-close { flex: 0 0 auto; appearance: none; border: 0; background: transparent;
                cursor: pointer; padding: 4px; border-radius: 999px; display: flex; }
