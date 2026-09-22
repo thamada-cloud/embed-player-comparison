@@ -1104,11 +1104,37 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .shell[data-fill] .widget.c[data-kind="playlist"] .hero-play {
   --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - 92px)), 1px);
 }
+/* The transport holds 40 the way the play button holds 64, instead of
+   interpolating from the top of the range. These were a straight line on height,
+   13.8cqh + 3.7, so a 200 slot got 31px icons with a hundred pixels of unused
+   room around them: they shrank while nothing was pressing on them, which is the
+   same complaint the play button had.
+
+   They take the play button's own bound rather than a bound of their own,
+   because they share its row. The row is as tall as its tallest child and has to
+   clear the same top bar and bottom block, and the button is always the taller
+   of the two, so whatever fits it fits these. Floor 24, the compact frame's own
+   size, against the button's floor of 40.
+
+   The width term is theirs alone, because unlike the button they sit in a row
+   BESIDE something. The centre column is the button and each side column is half
+   of what is left, so the wider side has to hold two buttons and a gap:
+   2*(ctl + 8) + 8 <= (100cqw - 16 - play)/2, which with the button at its 64
+   maximum is ctl <= 25cqw - 32. Without it, holding 40 pushed 1x off the left
+   edge of a 280 card, where the old interpolated size still fitted. */
+.shell[data-fill] .widget.c {
+  --ctl: round(max(24px, min(40px, 100cqh - 96px, 25cqw - 32px)), 1px);
+}
+/* No scrubber on these three, so the same 40 looser bound the button gets. */
+.shell[data-fill] .widget.c[data-kind="live"],
+.shell[data-fill] .widget.c[data-kind="artist"],
+.shell[data-fill] .widget.c[data-kind="playlist"] {
+  --ctl: round(max(24px, min(40px, 100cqh - 92px, 25cqw - 32px)), 1px);
+}
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="next"] img {
-  width: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
-  height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
+  width: var(--ctl); height: var(--ctl);
 }
 /* 1x is a text box rather than a glyph, so it needs the same clamp written for
    it or it does not compress. It matched its neighbours at 300 and stood 48
@@ -1116,10 +1142,11 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    this rule removes. The type steps with the box on production's own rule,
    caption-3 at 12 up to caption-1 at 14 when there is room. */
 .shell[data-fill] .hero-controls .h-speed {
-  width: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
-  height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
-  line-height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
-  font-size: round(clamp(12px, 1.72cqh + 9.5px, 14px), 1px);
+  width: var(--ctl); height: var(--ctl); line-height: var(--ctl);
+  /* Tied to the box rather than to the card, so the type steps down when 1x
+     actually gets smaller and not before. Production's own range, caption-3 at
+     12 up to caption-1 at 14. */
+  font-size: round(clamp(12px, var(--ctl) * 0.35, 14px), 1px);
 }
 /* No floor, and a different layout rather than less of the same one.
 

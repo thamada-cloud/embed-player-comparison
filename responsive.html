@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Design C responsive behaviour</title>
-<link rel="stylesheet" href="shared.css?v=20260922135321">
-<link rel="stylesheet" href="widget-core.css?v=20260922135321">
+<link rel="stylesheet" href="shared.css?v=20260922141711">
+<link rel="stylesheet" href="widget-core.css?v=20260922141711">
 <style>
 /* This page loads widget-core.css for the card in the playground, and that
    stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
@@ -310,6 +310,14 @@ tbody tr:hover { background: var(--bg); }
     </tr></tbody>
   </table></div>
   <p class="why">
+    <b>The transport holds its size the same way.</b> 1x, back 15, forward 30 and skip next take the
+    button's own height bound rather than one of their own, because they share its row: the row is as
+    tall as its tallest child, and the button is always the taller of the two. They hold 40 down to
+    136 and floor at 24. They carry one extra bound the button does not, on width, because unlike the
+    button they sit beside something: the centre column is the button and each side column is half of
+    what is left, so the wider side has to hold two of them and a gap.
+  </p>
+  <p class="why">
     <b>Why two formulas.</b> The button is centred on the card, so each side has to clear its own bar
     and each bound is twice the room on that side. A card with a scrubber has a taller bottom block,
     so the bottom binds; live radio, artist radio and playlist have no scrubber, so the top bar binds
@@ -361,10 +369,12 @@ tbody tr:hover { background: var(--bg); }
           <td class="mono">max(40px, min(64px, 100cqw - 8px, 100cqh - 96px))</td><td class="num">40&ndash;64</td></tr>
       <tr><td class="name">Play button, no scrubber</td>
           <td class="mono">max(40px, min(64px, 100cqw - 8px, 100cqh - 92px))</td><td class="num">40&ndash;64</td></tr>
-      <tr><td class="name">Transport icons</td>
-          <td class="mono">clamp(24px, 13.8cqh + 3.7px, 40px)</td><td class="num">24&ndash;40</td></tr>
+      <tr><td class="name">Transport icons, with scrubber</td>
+          <td class="mono">max(24px, min(40px, 100cqh - 96px, 25cqw - 32px))</td><td class="num">24&ndash;40</td></tr>
+      <tr><td class="name">Transport icons, no scrubber</td>
+          <td class="mono">max(24px, min(40px, 100cqh - 92px, 25cqw - 32px))</td><td class="num">24&ndash;40</td></tr>
       <tr><td class="name">Speed label type</td>
-          <td class="mono">clamp(12px, 1.72cqh + 9.5px, 14px)</td><td class="num">12&ndash;14</td></tr>
+          <td class="mono">clamp(12px, var(--ctl) * 0.35, 14px)</td><td class="num">12&ndash;14</td></tr>
       <tr><td class="name">Inline list height</td>
           <td class="mono">clamp(128px, 65.7cqh - 69.1px, 220px)</td><td class="num">128&ndash;220</td></tr>
       <tr><td class="name">Card inset, top and sides</td>
@@ -438,7 +448,7 @@ tbody tr:hover { background: var(--bg); }
 </div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922135321"></script>
+<script src="widget-core.js?v=20260922141711"></script>
 <script>
 (function () {
   var seg = document.getElementById('themeSeg');
