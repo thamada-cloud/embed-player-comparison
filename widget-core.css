@@ -471,6 +471,25 @@ a.line-link:focus-visible, a.thumb-link:focus-visible, a.art-link:focus-visible 
    kept for the artwork links, which are not inside a clip. */
 a.line-link:focus-visible { outline-offset: -1px; }
 a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: var(--radius-widget); }
+/* The LINK is the square, and the image is taken out of the layout inside it.
+
+   Sizing the image directly was circular and blew up to 3000px: stretching it
+   to the flex line made the line's height depend on the image, and the image's
+   own intrinsic height fed straight back into it. Absolutely positioning the
+   image means it contributes nothing, so the line's height comes from the text
+   alone, the link stretches to it, and aspect-ratio gives the width. */
+/* Sized from --thumb, which fitThumb() measures off the text block.
+
+   Pure CSS could not do this reliably. align-self: stretch with aspect-ratio
+   was tried and failed twice: sizing the image directly was circular and gave
+   3000px tiles, and sizing the link gave 32x34 because a min-height resolved
+   its width before the stretch, then 6x34 once the shell became a size
+   container. The height is only definite after the stretch, and the width has
+   to be resolved before it, so one measurement in JS is the honest answer. */
+.topbar a.thumb-link { width: var(--thumb, 48px); height: var(--thumb, 48px);
+                       position: relative; overflow: hidden; }
+/* 32 floor, matching the icon buttons at the other end of the row. */
+.topbar .meta { min-height: 32px; justify-content: center; }
 a.thumb-link:hover { opacity: .92; }
 /* Station logos are transparent PNGs drawn for a white tile. Left on the dark
    header the artwork bleeds into the background and the mark loses its edges,
@@ -617,8 +636,22 @@ a.thumb-link:hover { opacity: .92; }
    and let the two lines of text run underneath it. Second time a class name
    from the other design has leaked in; the h- prefix keeps this card's names
    to itself. */
-.topbar .h-thumb { width: 48px; height: 48px; border-radius: var(--radius-widget); object-fit: cover;
-                   flex: 0 0 auto; background: #fff; }
+/* The artwork is square and as tall as the text beside it, rather than a fixed
+   48. align-self: stretch makes it the height of the flex line, aspect-ratio
+   makes the width follow, and the text block is the tallest thing in the row so
+   it is the text that decides.
+
+   This is what was flooring the top bar. At a fixed 48 the bar could never be
+   shorter than the artwork however little text it held, and on live radio's old
+   three line block the text was taller still, which is why compressing the
+   thumbnail did nothing there. Now the bar is exactly as tall as its content.
+
+   min-height on the LINK rather than the image, because the image is the thing
+   being stretched; without a floor a one line card would draw a very small
+   tile, and 32 matches the icon buttons at the other end of the row. */
+.topbar .h-thumb { border-radius: var(--radius-widget); object-fit: cover;
+                   background: #fff; display: block;
+                   position: absolute; inset: 0; width: 100%; height: 100%; }
 /* Station logos are transparent PNGs drawn for a white tile, exactly as in the
    other widget, and the live frame shows the thumb on white. */
 .widget.hero.live .topbar .h-thumb { object-fit: contain; padding: 3px; }
@@ -1016,10 +1049,6 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    the bottom row gave back, because the bottom was never the binding side. */
 .shell[data-fill] .widget.c .hero-play {
   --play: max(40px, min(64px, 100cqw - 8px, 20.7cqh + 9.6px));
-}
-.shell[data-fill] .widget.c .topbar .h-thumb {
-  width: clamp(40px, 6.9cqh + 29.9px, 48px);
-  height: clamp(40px, 6.9cqh + 29.9px, 48px);
 }
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,

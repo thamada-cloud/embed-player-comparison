@@ -1127,11 +1127,12 @@ ${listTail(d)}
   function afterRender() {
     buildBars();
     markOverflow(root);
+    fitThumb(root);
     wireRowsBar(root);
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
-    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); wireRowsBar(root); });
+    w.ro = new ResizeObserver(() => { buildBars(); markOverflow(root); fitThumb(root); wireRowsBar(root); });
     w.ro.observe(root);
 
     const art = q('.art');
@@ -1425,6 +1426,25 @@ ${listTail(d)}
      that the list scrolled, by cutting a row part way and softening the cut.
      A scrollbar says the same thing without lying about where the list ends,
      and it says it at a glance rather than only once you notice a half row. */
+  /* The artwork is square and as tall as the text beside it.
+
+     Measured off .meta rather than off the row, and that distinction is what
+     keeps it from looping: the row's height is the tallest of the text, the
+     tile and the buttons, so reading the row would feed the tile's own size
+     back in. The text block's height is its own content, so it is a fixed point
+     the tile can be derived from.
+
+     Written only when it changes, because this runs from a ResizeObserver and
+     setting a custom property that affects layout would otherwise re-enter. */
+  function fitThumb(root) {
+    root.querySelectorAll('.topbar').forEach((tb) => {
+      const meta = tb.querySelector('.meta');
+      if (!meta) return;
+      const px = Math.max(32, Math.round(meta.getBoundingClientRect().height)) + 'px';
+      if (tb.style.getPropertyValue('--thumb') !== px) tb.style.setProperty('--thumb', px);
+    });
+  }
+
   function wireRowsBar(root) {
     root.querySelectorAll('.rows').forEach((rows) => {
       const bar = rows.parentElement.querySelector('.rows-bar');
