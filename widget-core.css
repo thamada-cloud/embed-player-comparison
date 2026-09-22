@@ -1114,12 +1114,71 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   line-height: round(clamp(24px, 13.8cqh + 3.7px, 40px), 1px);
   font-size: round(clamp(12px, 1.72cqh + 9.5px, 14px), 1px);
 }
-/* The floor falls out of the same equation rather than being chosen. Setting
-   play to its 40 minimum in 0.88H - 96 gives H = 154.5, so 156 is the shortest
-   slot in which a 40px button still clears the top bar. Below it the card
-   clips, as it did below 234 before, but the two floors the change was given,
-   8px of padding and a 40px button, are exactly what put it at 156. */
-.shell[data-fill] .widget.c .stage { min-height: 136px; }
+/* No floor, and a different layout rather than less of the same one.
+
+   There used to be a floor, most recently 136, and under it the card kept its
+   full height inside a shorter slot and let the slot clip the overflow. That
+   cost the one thing the card cannot afford to lose: the play button is centred
+   on the card, so a 50px slot showing the top 50px of a 136px card showed the
+   top bar and the top third of the button.
+
+   Hiding the top bar under 128 fixed the clipping and cost the metadata, which
+   is the wrong trade. The button is centred on the card, so it competes with
+   the top bar for the same vertical space; measured, they meet at 128. Putting
+   the button INTO that row removes the competition instead of resolving it, and
+   the whole line is then 40 tall including the 36 tile, which fits any card from
+   56 up. So the metadata survives all the way down instead of vanishing at 128.
+
+   Three steps, each threshold measured rather than derived:
+     under 128  the stacked hero becomes one row, play at the left
+     under 76   the bottom block drops, where it stops fitting under that row
+     under 56   the inset gives way, the last place a 40px button can be kept
+   The button never shrinks past 40 and is never cut, at any height down to 50. */
+@container (max-height: 127px) {
+  /* The button leaves the centre of the card and takes the left of the top bar.
+     .hero-controls is already absolute against the stage, so this is a move
+     rather than a reparent, and the row makes space for it with padding. */
+  /* Both selectors, and both carrying the shell. The live card sets its own
+     .widget.c.live .hero-controls top further down the file to nudge the button
+     half a pixel, which is more specific than a plain .widget.c and later in the
+     file besides, so a single rule here moved every card except the one that
+     needed it most. */
+  .shell[data-fill] .widget.c .hero-controls,
+  .shell[data-fill] .widget.c.live .hero-controls {
+    left: var(--card-pad, 8px); top: var(--card-pad, 8px);
+    transform: none; width: auto; padding: 0; justify-content: flex-start;
+  }
+  /* Seek, speed and skip go. There is no room for them beside the button and
+     they are not what a card this short is for. */
+  .widget.c .hero-controls .cc-side { display: none; }
+  /* Info, list and share go with them. They are the far end of the same row the
+     button just moved into, and at this height the row is the whole card: the
+     title and subtitle need the width more than three secondary actions do.
+     Everything they reach is still reachable, since the card links out. */
+  .widget.c .topbar .h-btn { display: none; }
+  .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
+                      min-height: 40px; }
+  /* The stage is a flex column with space-between, and with the row pinned to
+     the top the bottom block is effectively its only free child, which
+     space-between puts at the START. margin-top:auto pins it down regardless of
+     how the column is justified. */
+  .widget.c .hero-bottom { margin-top: auto; }
+}
+
+/* Measured, not derived: at 76 the bottom block still clears the row by 3px and
+   at 70 it is already past the bottom of the card. Below 76 the card is the row
+   and the artwork behind it, which is all a slot that short can honestly hold. */
+@container (max-height: 75px) {
+  .widget.c .hero-bottom { display: none; }
+}
+
+/* The inset is 8 everywhere except here. A 40px button plus 8 above and 8 below
+   needs 56, so below 56 the padding is the only variable left that can keep the
+   button whole and at its stated 40 minimum. It gives exactly as much as it has
+   to and no more: 8 at 56, 5 at 50. */
+@container (max-height: 55px) {
+  .widget.c { --card-pad: round(max(0px, 50cqh - 20px), 1px); }
+}
 
 /* Hidden by default, since design C's list is the drawer until it has the room
    not to be. This has to sit BEFORE the container query below: the two rules

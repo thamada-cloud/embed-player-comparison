@@ -9,7 +9,10 @@ the on-air GraphQL service is allowed or blocked to select the last two cases.
   no track, show on   station line, then who is on air
   no track, no show   station name and description, where it always was
 """
-import asyncio, json, sys
+import asyncio, json, subprocess, sys, time
+
+PORT = 8781
+URL = 'http://localhost:%d/widget.html' % PORT
 from playwright.async_api import async_playwright
 OUT='/tmp/'
 BAD = []
@@ -40,7 +43,7 @@ async def run(label, no_track, no_show, shot):
             r.fulfill(status=200, content_type='application/json', body=TRACK)))
     if no_show:
         await pg.route('**/webapi.radioedit.iheart.com/**', lambda r: asyncio.ensure_future(r.abort()))
-    await pg.goto('http://localhost:8931/widget.html', wait_until='load'); await pg.wait_for_timeout(10000)
+    await pg.goto(URL, wait_until='load'); await pg.wait_for_timeout(10000)
     r=await pg.evaluate("""()=>{const w=document.querySelector('#w-live-c');
       const g=(s)=>{const e=w.querySelector(s); return e?e.textContent.trim():null;};
       return {station:g('.h-station'), name:g('.h-name'), sub:g('.h-sub'),
@@ -55,6 +58,12 @@ async def main():
   await run('track on air (unchanged)',        False, False, 'live-a-track.png')
   await run('no track, show on air',            True, False, 'live-b-show.png')
   await run('no track, no show (old fallback)', True,  True, 'live-c-idle.png')
-asyncio.run(main())
+srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+time.sleep(1)
+try:
+    asyncio.run(main())
+finally:
+    srv.terminate()
 print('\n%d failed' % len(BAD)); [print('  FAIL', x) for x in BAD]
 sys.exit(1 if BAD else 0)
