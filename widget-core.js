@@ -117,21 +117,31 @@ function featuredFrom(tracks) {
   return [...seen.values()].slice(0, 5);
 }
 
-/* The same five, wearing their own faces.
+/* The same five, wearing their own faces and pointing at their own pages.
    featuredFrom can only offer the track's artwork, which is the ALBUM cover, so
    a Featured Artists row showed a record sleeve where the shipping player shows
    the artist. The ids are already on the tracks, and the catalog endpoint takes
    them comma separated, so this is one request for all five rather than one
-   each. An artist with no image keeps the album cover rather than a hole. */
-async function withArtistArt(featured) {
+   each. An artist with no image keeps the album cover rather than a hole.
+
+   The href uses the API's OWN slug rather than slugifying the row's text, and
+   the difference is not cosmetic. A row reads "Taylor Swift & Chris Lake" while
+   its artistId is Taylor Swift's, so a slug built from the visible name would
+   point at an artist who does not exist. The API's slug already carries the id,
+   so it is exact. */
+async function withArtistInfo(featured) {
   const ids = featured.map((f) => f.id).filter(Boolean);
   if (!ids.length) return featured;
   try {
     const d = await jget(`${API}/v3/catalog/artists/${ids.join(',')}`);
-    const byId = new Map((d.artists || []).map((a) => [String(a.id), a.image]));
+    const byId = new Map((d.artists || []).map((a) => [String(a.id), a]));
     return featured.map((f) => {
-      const img = byId.get(String(f.id));
-      return img ? Object.assign({}, f, { art: catalogArt(img) }) : f;
+      const a = byId.get(String(f.id));
+      if (!a) return f;
+      return Object.assign({}, f, {
+        art: a.image ? catalogArt(a.image) : f.art,
+        href: a.slug ? `https://www.iheart.com/artist/${a.slug}/` : null
+      });
     });
   } catch (e) { return featured; }
 }
@@ -182,7 +192,7 @@ async function loadArtist(id) {
     seenTitle.add(k); return true;
   });
   const name = artist.artistName;
-  const featured = await withArtistArt(featuredFrom(tracks));
+  const featured = await withArtistInfo(featuredFrom(tracks));
   return {
     kind: 'artist', artistOnlyId: id,
     /* The frame's one idle line is "<artist> Radio", and the station is named
@@ -197,7 +207,7 @@ async function loadArtist(id) {
        listMarkup is reused rather than a second list component written. They
        are inert: no episode to select and no overflow menu in the frames. */
     rowsInert: true,
-    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art, href: f.href })),
     audio: null, hls: false
   };
 }
@@ -205,7 +215,7 @@ async function loadArtist(id) {
 async function loadPlaylist(owner, id) {
   const pl = await jget(`${API}/v3/collection/user/${owner}/collection/${id}`);
   const tracks = await tracksByIds((pl.tracks || []).map((t) => t.trackId));
-  const featured = await withArtistArt(featuredFrom(tracks));
+  const featured = await withArtistInfo(featuredFrom(tracks));
   return {
     kind: 'playlist', playlistOwner: owner, playlistId: id,
     webUrl: (pl.urls && pl.urls.web) || `https://www.iheart.com/playlist/${pl.slug}-${owner}-${id}/`,
@@ -226,7 +236,7 @@ async function loadPlaylist(owner, id) {
        listMarkup is reused rather than a second list component written. They
        are inert: no episode to select and no overflow menu in the frames. */
     rowsInert: true,
-    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art, href: f.href })),
     audio: null, hls: false
   };
 }
@@ -862,17 +872,22 @@ function makeWidget(rootId, statusId, colourId, variant) {
      Frame 2609:36099: the button is 32 square, vertically centred in the 72px
      row, its right edge 12 in from the row's, which is where the explicit
      badge used to sit. */
-  /* An inert row is not a button. Featured artists have nothing to select and
-     no overflow menu in the frames, and leaving role="button" on something that
-     does nothing is worse than leaving it plain. */
+  /* An inert row is not a button. Featured artists have nothing to SELECT, and
+     leaving role="button" on something that does not change the card is worse
+     than leaving it plain. They are links, though: each one opens that artist on
+     iHeart, so the row is an anchor when it has somewhere to go and stays a
+     plain div when the catalog gave it no slug. */
   function rowMarkup(d, r) {
     if (d.rowsInert) {
+      const inner = `
+          <img class="row-art" src="${esc(r.art || '')}" alt="">
+          <div class="row-text"><p class="row-title">${esc(r.title)}</p></div>`;
       return `
       <div class="row-wrap">
-        <div class="row inert">
-          <img class="row-art" src="${esc(r.art || '')}" alt="">
-          <div class="row-text"><p class="row-title">${esc(r.title)}</p></div>
-        </div>
+        ${r.href
+          ? `<a class="row inert" href="${esc(r.href)}" target="_blank" rel="noopener"
+               aria-label="Open ${esc(r.title)} on iHeart">${inner}</a>`
+          : `<div class="row inert">${inner}</div>`}
       </div>`;
     }
     return `

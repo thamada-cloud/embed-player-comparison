@@ -290,6 +290,13 @@ section.is-live > .band-note { color: #14532d; }
    room reserved for an overflow button. */
 .list .row.inert { cursor: default; padding-right: 16px; }
 .list .row.inert:hover { background: transparent; }
+/* A featured artist row is an anchor now, opening that artist on iHeart, so it
+   takes the pointer and the hover back. Scoped to [href] so a row the catalog
+   gave no slug still reads as inert rather than advertising a link it does not
+   have. Colour and underline are reset because an anchor brings its own. */
+a.row.inert { color: inherit; text-decoration: none; }
+.list a.row.inert[href], a.row.inert[href] { cursor: pointer; }
+.list a.row.inert[href]:hover, a.row.inert[href]:hover { background: rgba(0,0,0,.05); }
 
 /* ---------- the tail of a list, Design D 2666:126249 ----------
    A link out to the rest, then the legal line. */
