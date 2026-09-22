@@ -1929,6 +1929,15 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .row-art { position: relative; flex: 0 0 auto; width: 56px; height: 56px;
            aspect-ratio: 1 / 1; border-radius: var(--rad-6);
            box-shadow: var(--elevation1); }
+/* A face, not a sleeve. Artist radio and playlist list Featured Artists and
+   nothing else, so every row art on those two cards is a person and takes the
+   circle the artist tile in the top bar already takes.
+
+   Keyed on the card's kind rather than on `.row.inert`, which is the other thing
+   that identifies these rows: that class is scoped to the inline list, so it
+   would have left the drawer's copy of the same list square. */
+.widget.c[data-kind="artist"] .row-art,
+.widget.c[data-kind="playlist"] .row-art { border-radius: 50%; }
 .row-scrim {
   position: absolute; inset: 0; z-index: 1; border-radius: var(--rad-6);
   background-color: #000; opacity: 0;
