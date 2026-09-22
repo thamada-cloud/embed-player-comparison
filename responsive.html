@@ -5,29 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Design C responsive behaviour</title>
-<link rel="stylesheet" href="shared.css?v=20260922042744">
-<link rel="stylesheet" href="widget-core.css?v=20260922042744">
+<link rel="stylesheet" href="shared.css?v=20260922050016">
+<link rel="stylesheet" href="widget-core.css?v=20260922050016">
 <style>
-/* min-width:0 because shared.css makes body a flex column, which gives every
-   child min-width:auto and therefore a floor of its own min-content width. The
-   fixed-width demo card then pushed main out to 564 inside a 400px viewport and
-   the whole page scrolled sideways. The boxes that hold wide things scroll for
-   themselves instead. */
 /* This page loads widget-core.css for the card in the playground, and that
    stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
-   main and `section > h2`. Those came along uninvited. Everything below either
-   restates what this page wants or raises specificity enough to win, rather than
-   leaving the look to whichever file happens to load last.
+   main and `section > h2`. All of that came along uninvited, and it loads after
+   shared.css, so it won by source order. The block below either restates what
+   this page wants or raises specificity enough to beat it, rather than leaving
+   the look to whichever file happens to load last.
 
-   `display: block` is the load-bearing one. widget-core.css makes main a grid,
-   which made .wrap a grid item with min-width:auto, so .wrap took a floor of its
-   own min-content: the widest table pushed it to 524 inside a 400px viewport and
-   the whole page scrolled sideways. */
-/* widget-core.css hardcodes these for a light-only page and loads after
-   shared.css, so it won a white header and a dark-grey body colour that the
-   dark theme then rendered on a dark ground. Everything not carrying its own
-   colour inherits from body, which is why whole tables went nearly invisible.
-   These put both back on the themed tokens. */
+   Two of these are load-bearing rather than cosmetic:
+
+   body's colour. widget-core.css hardcodes a light page's background and a dark
+   grey text colour. Anything not carrying its own colour inherits from body, so
+   in the dark theme whole tables rendered dark on dark.
+
+   main's display. widget-core.css makes main a grid, which made .wrap a grid
+   item with min-width:auto and therefore a floor of its own min-content width.
+   The widest table pushed it to 524 inside a 400px viewport and the whole page
+   scrolled sideways. As a block it stays put and the boxes holding wide things
+   scroll for themselves. */
 body { background: var(--bg); color: var(--text); }
 /* .pagelink is defined per page, not in shared.css, so without this the header
    links fell back to the browser's default blue, which is unreadable on the dark
@@ -157,9 +155,13 @@ tbody tr:hover { background: var(--bg); }
     <p class="why">
       <b>The single most important thing to know.</b> Every height rule on this page is inert unless
       the wrapper carries <code>data-fill</code>. A size container needs a definite height to resolve
-      against, so without one the height queries never match and the card simply sits at its default.
-      In the prototype the height control sets this; in an embed, <code>embed.html</code> sets it so the
-      iframe fills whatever the publisher's slot gives it.
+      against, so without one the height queries never match and the card sits at its default height
+      with none of the behaviour below. In the prototype the height control sets this in both modes,
+      Auto included: Auto gives each card its own published default as an explicit height, so Auto
+      and typing that number are the same thing. Auto used to leave the container off entirely,
+      which is why a 300px podcast card showed no inline list until a height was typed in. In an
+      embed, <code>embed.html</code> sets it so the iframe fills whatever the publisher's slot
+      gives it.
     </p>
   </div>
 
@@ -320,7 +322,9 @@ tbody tr:hover { background: var(--bg); }
   <h2>Width</h2>
   <p class="lede">
     Far less happens across width than across height. The card is fluid, the metadata truncates and
-    marquees on its own, and only two things actually switch.
+    marquees on its own, and almost nothing switches. The lockup keeps its words at every width:
+    they were hidden under 239 for a while, and that removed half the attribution, which is the
+    point of the embed on someone else's page.
   </p>
   <div class="scroll"><table>
     <thead><tr><th class="num">Width</th><th>What changes</th><th>Why</th></tr></thead>
@@ -329,10 +333,6 @@ tbody tr:hover { background: var(--bg); }
           <td>The pause overlay's copy and its call to action step down a size.</td>
           <td>The overlay is centred text over the artwork; at this width the larger size wraps badly.
               Off by default in the prototype.</td></tr>
-      <tr><td class="num">239 and under</td>
-          <td>The words <b>Listen on</b> are hidden. The iHeart logotype stays.</td>
-          <td>The lockup is the last thing on its row and the words are the part that can go without
-              losing the attribution.</td></tr>
       <tr><td class="num">Very narrow</td>
           <td>The play button is bound by the card's width as well as its height, through
               <code>100cqw - 8px</code>. At a 50px-wide card it measures 42.</td>
@@ -438,7 +438,7 @@ tbody tr:hover { background: var(--bg); }
 </div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922042744"></script>
+<script src="widget-core.js?v=20260922050016"></script>
 <script>
 (function () {
   var seg = document.getElementById('themeSeg');
@@ -461,8 +461,8 @@ tbody tr:hover { background: var(--bg); }
     { t: '@container (max-height: 127px)',  on: function (h) { return h <= 127; } },
     { t: '@container (max-height: 75px)',   on: function (h) { return h <= 75; } },
     { t: '@container (max-height: 55px)',   on: function (h) { return h <= 55; } },
-    { t: '@container (max-width: 319px)',   on: function (h, w) { return w <= 319; } },
-    { t: '@container (max-width: 239px)',   on: function (h, w) { return w <= 239; } }
+    { t: '@container (max-width: 319px)',   on: function (h, w) { return w <= 319; } }
+    /* The 239 lockup rule is gone: the words stay at every width now. */
   ];
 
   function apply() {

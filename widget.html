@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260922042744">
+<link rel="stylesheet" href="widget-core.css?v=20260922050016">
 </head>
 <body data-bg="grey">
 
@@ -333,14 +333,28 @@
   const H_MIN = 50, H_MAX = 900;
 
   /* The compression rules key off the SHELL, so the shells have to be marked.
-     Design C only: it is the one design that fills the height it is given. */
+     Design C only: it is the one design that fills the height it is given.
+
+     Always marked now, in Auto too. Auto used to unmark them, which left no size
+     container at all, and a card with no size container matches no height query:
+     Auto said 300 and behaved like nothing, so the inline episode list never
+     appeared until a height was typed in. Auto is not "no height", it is each
+     card's OWN default height, so it sets that per shell instead. */
   const markFill = (on) => document.querySelectorAll('section[data-design="c"] .shell')
     .forEach((sh) => { if (on) sh.dataset.fill = ''; else delete sh.dataset.fill; });
+
+  /* Per kind, straight off EMBED_H in widget-core.js so this cannot drift from
+     the heights iHeart actually publishes. widget-core.js loads BELOW this
+     block, so nothing here may call it during this script's own execution. */
+  const autoHeightFor = (sec) => embedHeight({ kind: sec.dataset.kind }) + 'px';
 
   const applyHeight = (px) => {
     document.documentElement.style.setProperty('--player-h', px + 'px');
     main.dataset.h = 'on';
     markFill(true);
+    /* Drop the per-shell Auto heights so the one on the root takes over. */
+    document.querySelectorAll('section[data-design="c"] .shell')
+      .forEach((sh) => sh.style.removeProperty('--player-h'));
     hRange.value = String(px);
     /* Leave the field alone while it is being typed in, or the caret jumps.
        Same reason as the width control's own guard. */
@@ -351,7 +365,13 @@
   const autoHeight = () => {
     document.documentElement.style.removeProperty('--player-h');
     delete main.dataset.h;
-    markFill(false);
+    /* Marked, and each shell given its own card's published default, so Auto
+       renders exactly what typing that number renders. */
+    markFill(true);
+    document.querySelectorAll('section[data-design="c"]').forEach((sec) => {
+      const sh = sec.querySelector('.shell');
+      if (sh) sh.style.setProperty('--player-h', autoHeightFor(sec));
+    });
     hNum.value = '';
     hAuto.setAttribute('aria-pressed', 'true');
   };
@@ -374,10 +394,18 @@
   hNum.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { clampHeight(); hNum.blur(); }
   });
-  autoHeight();
+  /* After widget-core.js, not now. This script block sits above it in the page,
+     so at this point embedHeight does not exist yet and the first Auto pass threw
+     before it could set a single height, leaving every card at 40px. The button's
+     own handler was always fine, since that runs long after load. */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoHeight);
+  } else {
+    autoHeight();
+  }
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922042744"></script>
+<script src="widget-core.js?v=20260922050016"></script>
 </body>
 </html>

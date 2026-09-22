@@ -1258,9 +1258,10 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    all; measured, the two touch at 200 and the lockup then runs 11 past the card.
    The words go and the logotype stays, because the mark is the attribution and
    "Listen on" is the sentence around it. That fits down to about 170. */
-@container (max-width: 239px) {
-  .ihr-lockup span { display: none; }
-}
+/* The lockup keeps its words at every width. They used to be hidden under 239 to
+   buy room on the row, but the attribution is the point of the embed on someone
+   else's page and "Listen on" is half of it. The logotype alone does not say
+   what the button does. */
 
 /* Design C's share sits in the top bar now, as a real flex child at the end of
    the row rather than absolutely placed the way the badge was, so the metadata

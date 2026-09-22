@@ -117,6 +117,25 @@ function featuredFrom(tracks) {
   return [...seen.values()].slice(0, 5);
 }
 
+/* The same five, wearing their own faces.
+   featuredFrom can only offer the track's artwork, which is the ALBUM cover, so
+   a Featured Artists row showed a record sleeve where the shipping player shows
+   the artist. The ids are already on the tracks, and the catalog endpoint takes
+   them comma separated, so this is one request for all five rather than one
+   each. An artist with no image keeps the album cover rather than a hole. */
+async function withArtistArt(featured) {
+  const ids = featured.map((f) => f.id).filter(Boolean);
+  if (!ids.length) return featured;
+  try {
+    const d = await jget(`${API}/v3/catalog/artists/${ids.join(',')}`);
+    const byId = new Map((d.artists || []).map((a) => [String(a.id), a.image]));
+    return featured.map((f) => {
+      const img = byId.get(String(f.id));
+      return img ? Object.assign({}, f, { art: catalogArt(img) }) : f;
+    });
+  } catch (e) { return featured; }
+}
+
 /* A single episode, from the same fetch the show card makes. The frames draw no
    episode list on this one and put an info button where the list button sits,
    so the rows are dropped rather than hidden. */
@@ -163,6 +182,7 @@ async function loadArtist(id) {
     seenTitle.add(k); return true;
   });
   const name = artist.artistName;
+  const featured = await withArtistArt(featuredFrom(tracks));
   return {
     kind: 'artist', artistOnlyId: id,
     /* The frame's one idle line is "<artist> Radio", and the station is named
@@ -177,7 +197,7 @@ async function loadArtist(id) {
        listMarkup is reused rather than a second list component written. They
        are inert: no episode to select and no overflow menu in the frames. */
     rowsInert: true,
-    rows: featuredFrom(tracks).map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
     audio: null, hls: false
   };
 }
@@ -185,6 +205,7 @@ async function loadArtist(id) {
 async function loadPlaylist(owner, id) {
   const pl = await jget(`${API}/v3/collection/user/${owner}/collection/${id}`);
   const tracks = await tracksByIds((pl.tracks || []).map((t) => t.trackId));
+  const featured = await withArtistArt(featuredFrom(tracks));
   return {
     kind: 'playlist', playlistOwner: owner, playlistId: id,
     webUrl: (pl.urls && pl.urls.web) || `https://www.iheart.com/playlist/${pl.slug}-${owner}-${id}/`,
@@ -205,7 +226,7 @@ async function loadPlaylist(owner, id) {
        listMarkup is reused rather than a second list component written. They
        are inert: no episode to select and no overflow menu in the frames. */
     rowsInert: true,
-    rows: featuredFrom(tracks).map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
+    rows: featured.map((f) => ({ id: 'a' + f.id, title: f.name, sub: '', art: f.art })),
     audio: null, hls: false
   };
 }

@@ -29,15 +29,24 @@ def set_height(pg, h):
       const main = document.querySelector('main');
       if (h === null) { document.documentElement.style.removeProperty('--player-h');
                         delete main.dataset.h;
-                        document.querySelectorAll('section[data-design="c"] .shell')
-                          .forEach((s) => { delete s.dataset.fill; });
+                        /* Auto keeps the container and gives each card its own
+                           published default, so this mirrors the button rather
+                           than unmarking the shells the way it used to. */
+                        document.querySelectorAll('section[data-design="c"]').forEach((sec) => {
+                          const s = sec.querySelector('.shell'); if (!s) return;
+                          s.dataset.fill = '';
+                          s.style.setProperty('--player-h', embedHeight({ kind: sec.dataset.kind }) + 'px');
+                        });
                         return; }
       document.documentElement.style.setProperty('--player-h', h + 'px');
       main.dataset.h = 'on';
       /* The compression rules key off the shell now, not the page, so the same
-         marker the height control sets has to be set here too. */
+         marker the height control sets has to be set here too. And the per-shell
+         height Auto leaves behind has to be cleared, exactly as applyHeight does:
+         an inline --player-h on the shell beats the one on the root, so without
+         this every card stayed at its Auto default however this was called. */
       document.querySelectorAll('section[data-design="c"] .shell')
-        .forEach((s) => { s.dataset.fill = ''; });
+        .forEach((s) => { s.dataset.fill = ''; s.style.removeProperty('--player-h'); });
     }""", h)
     pg.wait_for_timeout(120)
 
@@ -67,8 +76,14 @@ def fill(pg):
     # content type through its oEmbed endpoint, 300 for a show, rather than to
     # the 263 its Figma frame is drawn at. See EMBED_H in widget-core.js.
     check("auto, podcast card is iHeart's published 300", b["card"], 300)
-    check("auto, podcast stage is iHeart's published 300", b["stage"], 300)
-    check("auto, list icon is shown", b["icon"], 32)
+    # The stage is no longer the whole card in Auto. Auto now sets the card's own
+    # published default as a real height, so the 300 threshold matches and the
+    # inline list takes its 128 minimum out of the card, leaving 172 of stage.
+    # Auto used to leave the shell without a size container, so no height query
+    # matched and the list stayed a drawer however tall the card was.
+    check("auto, podcast stage is the card less the inline list", b["stage"], 172)
+    check("auto, inline list is shown at its 128 minimum", b["list"], 128)
+    check("auto, list icon is gone, same as typing 300", b["icon"], "none")
 
     for h in (234, 260, 299):
         set_height(pg, h)
@@ -104,9 +119,12 @@ def fill(pg):
     set_height(pg, 300)
     pg.evaluate("document.documentElement.style.setProperty('--player-w','220px')")
     pg.wait_for_timeout(150)
-    check("width query still fires at 220 wide, lockup words hidden",
+    # The lockup words stay at EVERY width now. They used to be hidden under 239,
+    # which removed half the attribution, and the attribution is the point of the
+    # embed on someone else's page. This asserts the opposite of what it used to.
+    check("at 220 wide the lockup keeps its words",
           pg.evaluate("""() => { const w = document.querySelector('#w-podcast-c .ihr-lockup span');
-                                 return w ? getComputedStyle(w).display : 'no-span'; }"""), "none")
+                                 return w ? getComputedStyle(w).display : 'no-span'; }"""), "block")
     pg.evaluate("document.documentElement.style.setProperty('--player-w','411px')")
     set_height(pg, None)
 
@@ -166,9 +184,24 @@ def control(pg):
     pg.wait_for_timeout(200)
 
     check("control exists", pg.evaluate("!!document.getElementById('heightRange')"), True)
-    check("defaults to Auto, no flag set",
+    check("defaults to Auto, main carries no explicit height",
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
     check("defaults to Auto, card is 300", boxes(pg, "#w-podcast-c")["card"], 300)
+    # Auto is a size container too now, carrying each card's own published
+    # default on its shell. It used to unmark the shells, which left no size
+    # container at all: Auto said 300 and behaved like nothing, so the inline
+    # list never appeared until a height was typed in.
+    check("Auto still marks the shells, so height queries apply",
+          pg.evaluate("() => document.querySelector('section[data-design=c] .shell').hasAttribute('data-fill')"),
+          True)
+    check("Auto gives the podcast shell its own 300",
+          pg.evaluate("() => document.querySelector('section[data-design=c][data-kind=podcast] .shell')"
+                      ".style.getPropertyValue('--player-h')"), "300px")
+    check("Auto gives the live shell its own 200",
+          pg.evaluate("() => document.querySelector('section[data-design=c][data-kind=live] .shell')"
+                      ".style.getPropertyValue('--player-h')"), "200px")
+    check("Auto shows the inline list, same as typing 300",
+          boxes(pg, "#w-podcast-c")["list"], 128)
     # 50, not 100. Lowered so a slot smaller than the card's own floor can be
     # looked at; the card still floors and the slot clips below that.
     check("range floor is 50", pg.evaluate("document.getElementById('heightRange').min"), "50")
@@ -183,11 +216,17 @@ def control(pg):
           pg.evaluate("document.getElementById('heightNum').value"), "600")
 
     pg.click("#heightAuto"); pg.wait_for_timeout(250)
-    check("Auto clears the flag",
+    check("Auto clears the explicit-height flag",
           pg.evaluate("document.querySelector('main').dataset.h || 'unset'"), "unset")
     check("Auto restores the 300 default", boxes(pg, "#w-podcast-c")["card"], 300)
-    check("Auto clears the custom property",
+    check("Auto clears the ROOT custom property",
           pg.evaluate("document.documentElement.style.getPropertyValue('--player-h')"), "")
+    # and puts the per-card default on the shell instead, which is what makes
+    # Auto and typing 300 render the same thing.
+    check("Auto puts 300 back on the podcast shell",
+          pg.evaluate("() => document.querySelector('section[data-design=c][data-kind=podcast] .shell')"
+                      ".style.getPropertyValue('--player-h')"), "300px")
+    check("Auto shows the inline list again", boxes(pg, "#w-podcast-c")["list"], 128)
 
     pg.evaluate("""() => { const n = document.getElementById('heightNum');
       n.value = '9999'; n.dispatchEvent(new Event('change', {bubbles: true})); }""")
