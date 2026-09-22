@@ -1187,8 +1187,43 @@ ${listTail(d)}
       </div>`;
   }
 
+  /* Where each list was scrolled to, so a render can put it back.
+     render() rebuilds the card with innerHTML, and a rebuilt list starts at the
+     top, so choosing an episode threw away your place in it. On a show with
+     hundreds of episodes that means scrolling back from the top every time you
+     play something.
+
+     Keyed by WHICH list rather than by index, because a card can hold two copies
+     of the same rows, the inline one and the drawer's, and they scroll
+     independently. */
+  const scrollKey = (el) => (el.closest('.sheet') ? 'sheet' : 'list');
+  function captureScroll() {
+    const at = new Map();
+    root.querySelectorAll('.rows').forEach((el) => {
+      if (el.scrollTop > 0) at.set(scrollKey(el), el.scrollTop);
+    });
+    return at;
+  }
+  function restoreScroll(at) {
+    if (!at || !at.size) return;
+    const put = () => root.querySelectorAll('.rows').forEach((el) => {
+      const y = at.get(scrollKey(el));
+      /* Assigning scrollTop fires a scroll event, which is what moves the drawn
+         scrollbar's thumb with it, so the bar needs no separate nudge. */
+      if (y) el.scrollTop = y;
+    });
+    put();
+    /* And again next frame. scrollTop is clamped to the scroll height AT THE
+       MOMENT it is assigned, and immediately after innerHTML the list has not
+       finished laying out, so a restore of 240 landed at 144, the maximum that
+       existed right then. The second pass runs once the rows have their real
+       height and gets the rest of the way back. */
+    requestAnimationFrame(put);
+  }
+
   function render() {
     const d = w.data; if (!d) return;
+    w.scrollAt = captureScroll();
     const isLive = d.kind === 'live';
     if (variant === 'c') { root.innerHTML = cMarkup(d, isLive); return afterRender(); }
     if (variant === 'hero') { root.innerHTML = heroMarkup(d, isLive); return afterRender(); }
@@ -1257,6 +1292,9 @@ ${listTail(d)}
     markOverflow(root);
     fitThumb(root);
     wireRowsBar(root);
+    /* After wireRowsBar, so the bar it just drew reflects the restored position
+       rather than the top of the list. */
+    restoreScroll(w.scrollAt);
     setBuffering(w.buffering);
     setPlayingClass();
     if (w.ro) w.ro.disconnect();
