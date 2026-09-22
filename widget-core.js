@@ -1440,7 +1440,10 @@ ${listTail(d)}
     root.querySelectorAll('.topbar').forEach((tb) => {
       const meta = tb.querySelector('.meta');
       if (!meta) return;
-      const px = Math.max(32, Math.round(meta.getBoundingClientRect().height)) + 'px';
+      /* 34 is the floor, matching the two line cards. Below it a one line card
+         drew a 32px tile that read as a different component from the 34 and 36
+         beside it in the same rail. */
+      const px = Math.max(34, Math.round(meta.getBoundingClientRect().height)) + 'px';
       if (tb.style.getPropertyValue('--thumb') !== px) tb.style.setProperty('--thumb', px);
     });
   }

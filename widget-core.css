@@ -488,8 +488,9 @@ a.thumb-link { flex: 0 0 auto; display: block; line-height: 0; border-radius: va
    to be resolved before it, so one measurement in JS is the honest answer. */
 .topbar a.thumb-link { width: var(--thumb, 48px); height: var(--thumb, 48px);
                        position: relative; overflow: hidden; }
-/* 32 floor, matching the icon buttons at the other end of the row. */
-.topbar .meta { min-height: 32px; justify-content: center; }
+/* 34 floor, the height a two line block comes to, so a one line card's tile
+   matches the others in the rail rather than sitting 2px smaller. */
+.topbar .meta { min-height: 34px; justify-content: center; }
 a.thumb-link:hover { opacity: .92; }
 /* Station logos are transparent PNGs drawn for a white tile. Left on the dark
    header the artwork bleeds into the background and the mark loses its edges,
