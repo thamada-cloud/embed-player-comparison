@@ -182,9 +182,12 @@ async function loadPlaylist(owner, id) {
     title: pl.name, subtitle: pl.description || pl.author || '',
     infoTitle: pl.name, infoBody: pl.description || '',
     slug: pl.slug || 'playlist',
-    /* A collection carries no artwork of its own, so the card wears its first
-       track's, which is also what the backdrop paints. */
-    art: (tracks[0] && tracks[0].art) || null,
+    /* A collection DOES carry artwork of its own, at urls.image, which is what
+       iheart.com puts on the playlist. This used to fall straight to the first
+       track's art on the belief that there was none, so the tile showed a song
+       rather than the playlist. The backdrop is unaffected: stageArt() paints
+       the track that is playing and only reaches for this when there is none. */
+    art: (pl.urls && pl.urls.image) || (tracks[0] && tracks[0].art) || null,
     tracks, trackIndex: 0,
     listTitle: 'Featured Artists',
     /* The featured artists ARE the list, so they are shaped as rows and
@@ -248,10 +251,49 @@ async function nowPlaying(id) {
 }
 const NO_META = new Set();
 
+/* Who is on air right now, which is a different question from what is playing.
+   currentTrackMeta answers the second and says nothing about the first, so a
+   station between songs had nothing to show but its own name and description.
+
+   This is the same source iheart.com uses for the On-Air Now block on a live
+   profile: sites.find(type: STREAM).onAirSchedule.current, from the webapi
+   GraphQL service. See packages/api/src/webapi/query/sites/live-profile.ts in
+   iheartradio/web, whose scheduleFields fragment this is a subset of. It
+   answers unauthenticated and sends access-control-allow-origin: *, so it is
+   usable from here directly.
+
+   `current` is null off schedule, which is an answer rather than a failure and
+   simply leaves the card on its existing lines. */
+const ON_AIR_URL = 'https://webapi.radioedit.iheart.com/graphql';
+const ON_AIR_QUERY = `query LiveOnAir($streamId: String!, $timeZone: String) {
+  sites { find(type: STREAM, value: $streamId) {
+    onAirSchedule(timeZone: $timeZone) {
+      current { name coreShowId startMs stopMs destination { href } } } } }
+}`;
+
+async function onAirNow(id) {
+  try {
+    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'America/New_York';
+    const r = await fetch(ON_AIR_URL, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: ON_AIR_QUERY, variables: { streamId: String(id), timeZone: tz } })
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const cur = j && j.data && j.data.sites && j.data.sites.find
+      && j.data.sites.find.onAirSchedule && j.data.sites.find.onAirSchedule.current;
+    if (!cur || !cur.name) return null;
+    return { name: cur.name,
+             href: (cur.destination && cur.destination.href) || null,
+             stopMs: Number(cur.stopMs) || 0 };
+  } catch (e) { return null; }
+}
+
 async function loadStation(id) {
-  const [d, np] = await Promise.all([
+  const [d, np, show] = await Promise.all([
     jget(`${API}/v2/content/liveStations/${id}`),
-    nowPlaying(id)
+    nowPlaying(id),
+    onAirNow(id)
   ]);
   const h = d.hits[0];
   const st = h.streams || {};
@@ -270,6 +312,11 @@ async function loadStation(id) {
     trackArt: (np && np.art) || null,
     artistId: (np && np.artistId) || null,
     trackId: (np && np.trackId) || null,
+    /* Who is on air, used only when there is no track to show. Null off
+       schedule, and then the card reads as it always did. */
+    show: (show && show.name) || null,
+    showHref: (show && show.href) || null,
+    showStopMs: (show && show.stopMs) || 0,
     title: h.name,
     subtitle: [h.name, h.description].filter(Boolean).join(' \u2022  '),
     infoTitle: h.name, infoBody: h.description || '',
@@ -412,6 +459,14 @@ function liveMeta(d) {
      Each half keeps its own link, so the song and the artist still go to
      different places. The bullet is not inside either anchor and is hidden from
      assistive tech, since it separates rather than says anything. */
+  if (L.on === 'show') {
+    /* The show carries its own destination, its page on the station's site, so
+       this line does not reuse the station link the way the idle lines do. */
+    return `<p class="h-station mq">${link(L.station)}</p>
+            <p class="h-name mq"><span class="mqi">${
+              maybeLink(d.showHref, L.name, d.showHref ? 'Open this show on iHeart' : null, true)
+            }</span></p>`;
+  }
   return L.station
     ? `<p class="h-station mq">${link(L.station)}</p>
        <p class="h-name mq">${trackArtistLine(L.name, L.sub, trackUrl(d), artistUrl(d))}</p>`
@@ -504,10 +559,17 @@ function streamMeta(d) {
          (d.kind === 'playlist' && d.subtitle ? `<p class="h-sub mq">${esc(d.subtitle)}</p>` : '');
 }
 
+/* Three states for a live station, not two.
+   A track on air reads station then track and artist. With no track but a show
+   on air it reads station then the show, the same shape, because "Shelley Rome"
+   answers what you are listening to and the station's own description does not.
+   With neither it falls back to the station name and description, which is
+   where it always was. */
 function heroLines(d) {
   if (d.kind !== 'live') return { name: d.subtitle, sub: d.title, station: null };
-  if (d.track && d.artist) return { name: d.track, sub: d.artist, station: d.subtitle };
-  return { name: d.title, sub: d.desc || d.subtitle, station: null };
+  if (d.track && d.artist) return { name: d.track, sub: d.artist, station: d.subtitle, on: 'track' };
+  if (d.show) return { name: d.show, sub: null, station: d.subtitle, on: 'show' };
+  return { name: d.title, sub: d.desc || d.subtitle, station: null, on: 'idle' };
 }
 
 /* Measured, never assumed. A line gets the marquee only when its text really
@@ -2065,6 +2127,21 @@ ${listTail(d)}
     /* The station can be swapped out while this request is in flight, and
        writing A's track onto B is how a widget ends up lying quietly. */
     if (!w.data || w.data.stationId !== id) return;
+    /* The on-air show only changes when its slot ends, so this asks again at
+       that boundary rather than on the 5 second track cadence. Off schedule
+       stopMs is 0 and the first poll settles it. */
+    if (!w.data.showStopMs || Date.now() >= w.data.showStopMs) {
+      const show = await onAirNow(id);
+      if (!w.data || w.data.stationId !== id) return;
+      const was = w.data.show;
+      w.data.show = (show && show.name) || null;
+      w.data.showHref = (show && show.href) || null;
+      /* Back off for a minute when the answer is empty, so an off-schedule
+         station is not asked every five seconds. */
+      w.data.showStopMs = (show && show.stopMs) || (Date.now() + 60000);
+      /* Only visible while there is no track, so nothing to redraw otherwise. */
+      if (was !== w.data.show && !(w.data.track && w.data.artist)) { render(); return; }
+    }
     /* No answer means keep the answer already on screen, which is what the
        production player does: setCurrentTrackMeta spreads the response over the
        existing meta and preserves a Track type that is already set, so a 204
