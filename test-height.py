@@ -81,8 +81,8 @@ def fill(pg):
     # inline list takes its 128 minimum out of the card, leaving 172 of stage.
     # Auto used to leave the shell without a size container, so no height query
     # matched and the list stayed a drawer however tall the card was.
-    check("auto, podcast stage is the card less the inline list", b["stage"], 172)
-    check("auto, inline list is shown at its 128 minimum", b["list"], 128)
+    check("auto, podcast stage is the card less the inline list", b["stage"], 164)
+    check("auto, inline list is 136, one row plus the peek", b["list"], 136)
     check("auto, list icon is gone, same as typing 300", b["icon"], "none")
 
     for h in (234, 260, 299):
@@ -133,8 +133,12 @@ def inline(pg):
     set_height(pg, 440)
     b = boxes(pg, "#w-podcast-c")
     check("at 440, card is exactly 440 not 454", b["card"], 440)
-    check("at 440, stage is 220", b["stage"], 220)
-    check("at 440, inline list is 220", b["list"], 220)
+    check("at 440, stage is 232", b["stage"], 232)
+    # 136 and 208, not 128..220. The list snaps to whole rows plus a constant
+    # 16px peek now, so it takes two values instead of gliding. Gliding made
+    # the peek an accident of where the clamp landed: 8px at a 300 card and
+    # 2px at 400, which read as no peek at all.
+    check("at 440, inline list is 208, two rows plus the peek", b["list"], 208)
     check("at 440, list icon is gone", b["icon"], "none")
 
     # One pixel under the threshold, nothing has changed.
@@ -149,16 +153,18 @@ def inline(pg):
     set_height(pg, 300)
     b = boxes(pg, "#w-podcast-c")
     check("at 300, card is exactly 300", b["card"], 300)
-    check("at 300, list is its 128 minimum", b["list"], 128)
+    check("at 300, list is 136, one row plus the peek", b["list"], 136)
     check("at 300, stage clears its 136 floor", b["stage"] >= 136, True)
     check("at 300, list icon is gone", b["icon"], "none")
 
-    for h, stage in ((600, 380), (900, 680)):
+    # 392 and 692, the card less the 208 list. They were 380 and 680 against the
+    # old 220.
+    for h, stage in ((600, 392), (900, 692)):
         set_height(pg, h)
         b = boxes(pg, "#w-podcast-c")
         check("at %d, card is %d" % (h, h), b["card"], h)
         check("at %d, stage is %d" % (h, stage), b["stage"], stage)
-        check("at %d, list holds 220" % h, b["list"], 220)
+        check("at %d, list holds 208" % h, b["list"], 208)
         check("at %d, list icon is gone" % h, b["icon"], "none")
 
     for h in (440, 900):
@@ -201,7 +207,7 @@ def control(pg):
           pg.evaluate("() => document.querySelector('section[data-design=c][data-kind=live] .shell')"
                       ".style.getPropertyValue('--player-h')"), "200px")
     check("Auto shows the inline list, same as typing 300",
-          boxes(pg, "#w-podcast-c")["list"], 128)
+          boxes(pg, "#w-podcast-c")["list"], 136)
     # 50, not 100. Lowered so a slot smaller than the card's own floor can be
     # looked at; the card still floors and the slot clips below that.
     check("range floor is 50", pg.evaluate("document.getElementById('heightRange').min"), "50")
@@ -226,7 +232,7 @@ def control(pg):
     check("Auto puts 300 back on the podcast shell",
           pg.evaluate("() => document.querySelector('section[data-design=c][data-kind=podcast] .shell')"
                       ".style.getPropertyValue('--player-h')"), "300px")
-    check("Auto shows the inline list again", boxes(pg, "#w-podcast-c")["list"], 128)
+    check("Auto shows the inline list again", boxes(pg, "#w-podcast-c")["list"], 136)
 
     pg.evaluate("""() => { const n = document.getElementById('heightNum');
       n.value = '9999'; n.dispatchEvent(new Event('change', {bubbles: true})); }""")

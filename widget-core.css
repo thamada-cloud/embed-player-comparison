@@ -1272,9 +1272,24 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    close button too. It is .sheet-close, not .h-btn, which is what keeps the
    two apart. */
 @container (min-height: 300px) {
-  /* Named once and used twice, by the list itself and by the tile below, so the
-     two cannot drift apart. */
-  .widget.c { --list-h: round(clamp(128px, 65.7cqh - 69.1px, 220px), 1px); }
+  /* Whole rows, plus a constant sliver of the next one.
+
+     The height used to glide continuously while a row is a fixed 72, so how much
+     of the next row showed was an accident of where the clamp happened to land:
+     8px at 300, 47px at 360, 2px at 400. Where it landed near a whole number of
+     rows the list simply looked like it ended.
+
+     round(down, ..., 72px) snaps the row area to whole rows, and the 64 is what
+     is not rows: a 32 header, 16 of padding and the 16px peek itself. So the
+     peek is 16 at every height rather than whatever is left over.
+
+     The cost is that the list steps instead of gliding, since it can only take
+     whole rows, and the stage absorbs the difference. That is the right way
+     round: a list of fixed height rows has no use for a part of a row, and the
+     player area does. */
+  .widget.c {
+    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
+  }
   .widget.c .list { display: flex; flex: 0 0 var(--list-h); }
   .widget.c .stage { min-height: 0; }
   .widget.c .h-btn[data-act="list"] { display: none; }
@@ -2564,6 +2579,26 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    applied by design.
    The close button is unaffected: it resolves against the body's padding box,
    which the padding change does not move. */
+/* The actions go when the row is too narrow to hold them AND readable text.
+   They cost a flat 64px at every width, which at a 240px card is a quarter of it
+   and leaves the title 16 characters; without them it gets 28.
+
+   This is the same rule the card already applies below 128 tall, on the axis
+   that also runs out. 319 is reused rather than a new number: it is already the
+   width breakpoint below. */
+@container (max-width: 319px) {
+  /* Info and share go. The LIST button stays, because below 300 tall it is the
+     only way to reach the episode list at all, and hiding it there stranded the
+     content: a 280x240 card had no inline list and no button to open the drawer.
+     Above 300 the list is inline and this button is already hidden by the rule
+     further down, so tall cards still hand back the full width.
+
+     Info and share are a different case. They open a description and a share
+     sheet, and the card's tile and title are links, so nothing becomes
+     unreachable when they go. */
+  .widget.c .topbar .h-btn:not([data-act="list"]) { display: none; }
+}
+
 @container (max-width: 319px) {
   .pv-body { padding: 8px 16px; }
   .pv-copy { font-size: var(--fs-14); line-height: var(--lh-18); }

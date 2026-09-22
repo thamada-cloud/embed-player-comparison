@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Design C responsive behaviour</title>
-<link rel="stylesheet" href="shared.css?v=20260922160117">
-<link rel="stylesheet" href="widget-core.css?v=20260922160117">
+<link rel="stylesheet" href="shared.css?v=20260922173632">
+<link rel="stylesheet" href="widget-core.css?v=20260922173632">
 <style>
 /* This page loads widget-core.css for the card in the playground, and that
    stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
@@ -338,15 +338,25 @@ tbody tr:hover { background: var(--bg); }
     <thead><tr><th class="num">Width</th><th>What changes</th><th>Why</th></tr></thead>
     <tbody>
       <tr><td class="num">319 and under</td>
-          <td>The pause overlay's copy and its call to action step down a size.</td>
-          <td>The overlay is centred text over the artwork; at this width the larger size wraps badly.
-              Off by default in the prototype.</td></tr>
+          <td>Info and share leave the top bar. The <b>list</b> button stays. The pause overlay's copy
+              and its call to action also step down a size.</td>
+          <td>The two icons cost a flat 64px at every width, which on a 240px card leaves the title 16
+              characters where it could have 23. Same rule the card already applies below 128 tall, on
+              the axis that also runs out. The list button is the exception because below 300 tall it
+              is the only route to the episode list, and hiding it stranded the content.</td></tr>
       <tr><td class="num">Very narrow</td>
           <td>The play button is bound by the card's width as well as its height, through
               <code>100cqw - 8px</code>. At a 50px-wide card it measures 42.</td>
           <td>A narrow card can run out of room across before it runs out down.</td></tr>
     </tbody>
   </table></div>
+  <p class="why">
+    <b>Why the list steps rather than glides.</b> A row is a fixed 72, so a list height that glided
+    showed whatever happened to be left over of the next row: 8px at a 300 card, 47px at 360, 2px at
+    400. Where it landed near a whole number of rows the list looked like it simply ended. Snapping
+    the row area to whole rows with <code>round(down, &hellip;, 72px)</code> makes the peek a constant
+    16 at every height. The 64 is what is not rows: a 32 header, 16 of padding, and the peek itself.
+  </p>
   <p class="why">
     <b>Not a breakpoint, but width-driven.</b> Every metadata line is measured after layout and gets a
     marquee only when its text really is wider than its box, which depends on the card's current
@@ -376,7 +386,8 @@ tbody tr:hover { background: var(--bg); }
       <tr><td class="name">Speed label type</td>
           <td class="mono">clamp(12px, var(--ctl) * 0.35, 14px)</td><td class="num">12&ndash;14</td></tr>
       <tr><td class="name">Inline list height</td>
-          <td class="mono">clamp(128px, 65.7cqh - 69.1px, 220px)</td><td class="num">128&ndash;220</td></tr>
+          <td class="mono">64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px)</td>
+          <td class="num">136 or 208</td></tr>
       <tr><td class="name">Card inset, top and sides</td>
           <td class="mono">8px flat, then max(0px, 50cqh - 20px) under 56</td><td class="num">5&ndash;8</td></tr>
       <tr><td class="name">Card inset, bottom</td>
@@ -462,7 +473,7 @@ tbody tr:hover { background: var(--bg); }
 </div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922160117"></script>
+<script src="widget-core.js?v=20260922173632"></script>
 <script>
 (function () {
   var seg = document.getElementById('themeSeg');
