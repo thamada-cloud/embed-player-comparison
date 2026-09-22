@@ -374,8 +374,12 @@ section.is-live > .band-note { color: #14532d; }
 /* ---------- search ---------- */
 /* The two page level search boxes, side by side above everything and spanning
    every column in the multi column layouts. */
-.searchrow { display: grid; gap: 16px; grid-template-columns: 1fr; }
-@media (min-width: 720px) { .searchrow { grid-template-columns: 1fr 1fr; } }
+/* Five boxes now, one per content type. auto-fit rather than a fixed count, so
+   they wrap to whatever the page can give them instead of needing a breakpoint
+   per column count. 280 is the narrowest a placeholder naming two examples
+   stays readable at. */
+.searchrow { display: grid; gap: 16px;
+             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .searchrow .search { margin-bottom: 0; max-width: none; }
 .search { position: relative; margin-bottom: 12px; max-width: 460px; }
 .search input {

@@ -95,6 +95,22 @@
       <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
       <div class="results" hidden></div>
     </div>
+    <!-- The episode box searches PODCASTS. You pick a show and the card plays
+         its most recent episode; there is no useful search for one episode
+         across the catalogue, and the show is the thing a person has a name
+         for. -->
+    <div class="search" data-for="episode">
+      <input type="search" placeholder="Search podcasts for an episode, try Crime Junkie" aria-label="Search podcasts for an episode">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="artist">
+      <input type="search" placeholder="Search artists, try Taylor Swift or Drake" aria-label="Search artists">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="playlist">
+      <input type="search" placeholder="Search playlists, try 80s Hits or Top Hits" aria-label="Search playlists">
+      <div class="results" hidden></div>
+    </div>
   </div>
   <!-- The shipping player is split into a band and two sections, one per content
        type, so it has the same shape as a design block and can take a column of

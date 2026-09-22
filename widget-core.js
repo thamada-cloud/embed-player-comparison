@@ -15,6 +15,17 @@ const searchStations = (q) => jget(`${API}/v3/search/all?keywords=${encodeURICom
   `&maxRows=8&bundle=false&station=true&artist=false&track=false&playlist=false&podcast=false`)
   .then((d) => (d.results && d.results.stations) || []);
 
+const searchArtists = (q) => jget(`${API}/v3/search/all?keywords=${encodeURIComponent(q)}` +
+  `&maxRows=8&bundle=false&station=false&artist=true&track=false&playlist=false&podcast=false`)
+  .then((d) => (d.results && d.results.artists) || []);
+
+/* A playlist is addressed by TWO ids, the owner and the collection, so the
+   result's userId is carried through the picker alongside its id. Everything
+   else here needs one. */
+const searchPlaylists = (q) => jget(`${API}/v3/search/all?keywords=${encodeURIComponent(q)}` +
+  `&maxRows=8&bundle=false&station=false&artist=false&track=false&playlist=true&podcast=false`)
+  .then((d) => (d.results && d.results.playlists) || []);
+
 /* The episode LIST omits mediaUrl; the single-episode endpoint includes it.
    That one detail is the difference between a searchable widget and a
    decorative one. */
@@ -2698,9 +2709,57 @@ ${listTail(d)}
 /* ---------------------------------------------------------------------------
    Search
    ------------------------------------------------------------------------ */
+/* What each search box searches, how it labels a result and what it loads.
+
+   This was an isPodcast boolean, which was honest while there were two kinds
+   and became a lie at five. The strip() on the podcast description is why the
+   table carries a `sub` per kind rather than one branch: the API returns HTML
+   there and plain text everywhere else.
+
+   `episode` searches PODCASTS, because you pick a show and the card plays its
+   most recent episode; there is no useful search for a single episode across
+   the catalogue and the show is the thing a person has a name for.
+
+   `playlist` is the one addressed by two ids, so its picker carries the owner
+   through on the button as well. */
+const SEARCH = {
+  podcast: {
+    find: searchPodcasts,
+    sub: (r) => (r.description || '').replace(/<[^>]*>/g, ''),
+    load: (b) => loadPodcast(b.dataset.id)
+  },
+  episode: {
+    find: searchPodcasts,
+    sub: (r) => (r.description || '').replace(/<[^>]*>/g, ''),
+    load: (b) => loadEpisode(b.dataset.id)
+  },
+  live: {
+    find: searchStations,
+    sub: (r) => [r.callLetters, r.description].filter(Boolean).join(' \u2022 '),
+    art: (r) => `https://i.iheart.com/v3/re/assets/images/${r.id}.png`,
+    load: (b) => loadStation(b.dataset.id)
+  },
+  artist: {
+    find: searchArtists,
+    sub: () => 'Artist radio',
+    art: (r) => r.image || '',
+    load: (b) => loadArtist(b.dataset.id)
+  },
+  playlist: {
+    find: searchPlaylists,
+    sub: (r) => r.description || r.author || '',
+    extra: (r) => ` data-owner="${esc(r.userId)}"`,
+    load: (b) => loadPlaylist(b.dataset.owner, b.dataset.id)
+  }
+};
+
 function wireSearch(box, widget) {
   const input = box.querySelector('input'), list = box.querySelector('.results');
-  const isPodcast = box.dataset.for.startsWith('podcast');
+  /* The box names the card it belongs to, like "podcast-c"; the kind is the
+     part before the design suffix. */
+  const kind = box.dataset.for.split('-')[0];
+  const cfg = SEARCH[kind];
+  if (!cfg) return;
   let timer, seq = 0;
 
   const close = () => { list.hidden = true; list.innerHTML = ''; };
@@ -2715,15 +2774,15 @@ function wireSearch(box, widget) {
       list.hidden = false;
       list.innerHTML = '<div class="empty">Searching</div>';
       try {
-        const rows = isPodcast ? await searchPodcasts(q) : await searchStations(q);
+        const rows = await cfg.find(q);
         if (mine !== seq) return;                       /* a newer query won */
         if (!rows.length) { list.innerHTML = '<div class="empty">Nothing found.</div>'; return; }
         list.innerHTML = rows.map((r) => {
-          const id = r.id, title = r.title || r.name;
-          const sub = isPodcast ? (r.description || '').replace(/<[^>]*>/g, '').slice(0, 70)
-                                : [r.callLetters, r.description].filter(Boolean).join(' • ').slice(0, 70);
-          const art = isPodcast ? '' : `https://i.iheart.com/v3/re/assets/images/${id}.png`;
-          return `<button data-id="${id}"><img src="${art}" alt="" onerror="this.style.visibility='hidden'">` +
+          const title = r.title || r.name;
+          const sub = (cfg.sub(r) || '').slice(0, 70);
+          const art = cfg.art ? cfg.art(r) : '';
+          return `<button data-id="${esc(r.id)}"${cfg.extra ? cfg.extra(r) : ''}>` +
+                 `<img src="${esc(art)}" alt="" onerror="this.style.visibility='hidden'">` +
                  `<span style="min-width:0"><b>${esc(title)}</b><span>${esc(sub)}</span></span></button>`;
         }).join('');
         list.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
@@ -2733,11 +2792,6 @@ function wireSearch(box, widget) {
              nothing, so picking a show in either column loads it into every
              card of that kind, and the boxes are all set to what was chosen so
              it is obvious that they moved together. */
-          const kind = isPodcast ? 'podcast' : 'live';
-          /* The boxes are page level now and not tied to one card, so the
-             widget passed in can be undefined; the peers list is what actually
-             gets loaded and the fallback only matters if the page has no cards
-             of this kind at all. */
           const peers = (WIDGETS[kind] && WIDGETS[kind].length) ? WIDGETS[kind]
             : (widget ? [{ widget, statusId: 's-' + box.dataset.for }] : []);
           const says = (msg, err) => peers.forEach((t) => {
@@ -2746,18 +2800,19 @@ function wireSearch(box, widget) {
           });
           says('Loading');
           try {
-            const data = isPodcast ? await loadPodcast(b.dataset.id) : await loadStation(b.dataset.id);
-            if (!data.audio) throw new Error('no playable stream for this one');
+            const data = await cfg.load(b);
+            /* Artist radio and playlist have no audio here on purpose, so only
+               the kinds that are supposed to play are checked for it. */
+            if (!data.audio && !caps(data).stopNext) throw new Error('no playable stream for this one');
             /* A copy each, because a widget writes its own playback state onto
                the object it is handed. The same reason the initial load does. */
             peers.forEach((t) => t.widget.load(Object.assign({}, data)));
             const chosen = data.title || input.value;
             document.querySelectorAll('.search').forEach((other) => {
-              const sameKind = other.dataset.for.startsWith(isPodcast ? 'podcast' : 'live');
-              if (sameKind) other.querySelector('input').value = chosen;
+              if (other.dataset.for.split('-')[0] === kind) other.querySelector('input').value = chosen;
             });
-            /* The shipping player at the top follows the last thing chosen of
-               its kind, so the comparison stays like for like after a search. */
+            /* The shipping player follows the last thing chosen of its kind, so
+               the comparison stays like for like after a search. */
             showEmbed(kind, data);
           } catch (err) {
             says('Could not load that. ' + err.message, true);
@@ -3007,7 +3062,9 @@ const embedUrl = {
      the show data is already loaded here and carries the episode ids. Searching
      a different podcast moves the show frame and this one together. */
   episode: (d) => `https://www.iheart.com/podcast/podcast-${d.showId}/episode/episode-${d.currentEpisodeId}/?embed=true`,
-  live: (d) => `https://www.iheart.com/live/station-${d.stationId}/?embed=true`
+  live: (d) => `https://www.iheart.com/live/station-${d.stationId}/?embed=true`,
+  artist: (d) => `https://www.iheart.com/artist/${d.slug}/?embed=true`,
+  playlist: (d) => (d.webUrl || '').replace(/\/?$/, '/') + '?embed=true'
 };
 
 /* Artist radio and playlist have no search box on this page and nothing loads
