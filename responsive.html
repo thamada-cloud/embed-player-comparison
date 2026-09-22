@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Design C responsive behaviour</title>
-<link rel="stylesheet" href="shared.css?v=20260922153416">
-<link rel="stylesheet" href="widget-core.css?v=20260922153416">
+<link rel="stylesheet" href="shared.css?v=20260922160117">
+<link rel="stylesheet" href="widget-core.css?v=20260922160117">
 <style>
 /* This page loads widget-core.css for the card in the playground, and that
    stylesheet also dresses the PROTOTYPE page's own chrome: it sets body, header,
@@ -381,8 +381,10 @@ tbody tr:hover { background: var(--bg); }
           <td class="mono">8px flat, then max(0px, 50cqh - 20px) under 56</td><td class="num">5&ndash;8</td></tr>
       <tr><td class="name">Card inset, bottom</td>
           <td class="mono">clamp(0px, 1.5cqh, 4px)</td><td class="num">0&ndash;4</td></tr>
-      <tr><td class="name">Artwork tile</td>
+      <tr><td class="name">Artwork tile, no inline list</td>
           <td class="mono">max(36px, min(80px, 9.5cqh + 23px, 100cqw - 216px))</td><td class="num">36&ndash;80</td></tr>
+      <tr><td class="name">Artwork tile, with inline list</td>
+          <td class="mono">the same, less 0.095 &times; the list's height</td><td class="num">36&ndash;80</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -405,6 +407,12 @@ tbody tr:hover { background: var(--bg); }
                 under the frame, which draws it at 48. Sizing it from the card has none of the
                 circularity that defeated the earlier CSS attempts, so it is a plain clamp now and the
                 JavaScript is gone. It passes through 48 at 263, the height its frame is drawn at.</td></tr>
+        <tr><td class="name">cqh is the card, not the player area</td>
+            <td>Above 300 the inline list takes a slice of the card, so the stage the tile and the
+                button sit in is shorter than the card by that much. A rule written on
+                <code>100cqh</code> alone overstates the room they have. The tile subtracts the list
+                for exactly this reason: without it, an episode card with a larger player area than a
+                podcast card was getting a smaller tile.</td></tr>
         <tr><td class="name">The tile and the play button are coupled</td>
             <td>A taller tile makes the top bar taller, which eats into the band the play button is
                 centred in. They do not actually collide at any size, but checking that needs real
@@ -454,7 +462,7 @@ tbody tr:hover { background: var(--bg); }
 </div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260922153416"></script>
+<script src="widget-core.js?v=20260922160117"></script>
 <script>
 (function () {
   var seg = document.getElementById('themeSeg');

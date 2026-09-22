@@ -1272,11 +1272,34 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    close button too. It is .sheet-close, not .h-btn, which is what keeps the
    two apart. */
 @container (min-height: 300px) {
-  .widget.c .list { display: flex;
-                    flex: 0 0 round(clamp(128px, 65.7cqh - 69.1px, 220px), 1px); }
+  /* Named once and used twice, by the list itself and by the tile below, so the
+     two cannot drift apart. */
+  .widget.c { --list-h: round(clamp(128px, 65.7cqh - 69.1px, 220px), 1px); }
+  .widget.c .list { display: flex; flex: 0 0 var(--list-h); }
   .widget.c .stage { min-height: 0; }
   .widget.c .h-btn[data-act="list"] { display: none; }
   .widget.c .sheet:not(.info-sheet) { display: none; }
+
+  /* The tile is sized from the STAGE once a list is on the card, not from the
+     card. cqh is the card, and the card is not what the tile sits in: the list
+     takes a slice of it, so the card height overstates the room the tile has.
+
+     The effect was backwards rather than merely inexact. At their defaults the
+     episode card's player area is LARGER than the podcast card's, 200 against
+     172, because the podcast card spends 128 of its 300 on the list, and yet the
+     podcast tile came out bigger, 52 against 42. Subtracting the list puts both
+     on the same rule: same player area, same tile.
+
+     Same slope as the base rule, applied to what is left after the list. */
+  /* Only the three kinds that actually carry a list. Unscoped, this docked the
+     list's height off the episode and live cards too, which have no list, and
+     gave them a tile sized for a player area smaller than the one they have. */
+  .shell[data-fill] .widget.c[data-kind="podcast"],
+  .shell[data-fill] .widget.c[data-kind="artist"],
+  .shell[data-fill] .widget.c[data-kind="playlist"] {
+    --thumb: round(max(36px, min(80px, 9.5cqh + 23px - 0.095 * var(--list-h),
+                                 100cqw - 216px)), 1px);
+  }
 }
 /* Live C ends in a waveform running to the edge, like every other card here,
    so it takes no bottom padding. Its own frame parked three icons at the bottom
