@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260923221652">
+<link rel="stylesheet" href="widget-core.css?v=20260923233343">
 </head>
 <body data-bg="grey">
 
@@ -103,9 +103,12 @@
   -->
 
   <!-- Where the inline list takes over from the drawer. 300 is what the card has
-       shipped with. Reveal is a different shape altogether, the shipping
-       player's: the player holds its size while the list is uncovered, and only
-       grows once the list is full.
+       shipped with. Reveal copies the shipping player's shape, the player
+       holding its size while the list is uncovered and growing only once the
+       list is full. Figma is the design file's own answer, frame 2700:561775
+       resolved as the auto-layout it actually is, where the player and the list
+       are both flex 1 0 0 and share every new pixel evenly between their own
+       bounds.
 
        170 and 240 were here too, as lower thresholds to compare against 300.
        They were removed: both hand the player so little room that the compact
@@ -116,6 +119,7 @@
     <span class="seg">
       <button type="button" id="listat300" data-listat="300" aria-pressed="true">300</button>
       <button type="button" data-listat="reveal" aria-pressed="false">Reveal</button>
+      <button type="button" data-listat="figma" aria-pressed="false">Figma</button>
     </span>
   </div>
 
@@ -491,6 +495,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923221652"></script>
+<script src="widget-core.js?v=20260923233343"></script>
 </body>
 </html>

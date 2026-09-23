@@ -1331,21 +1331,21 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    <main> at all, so a guard hung off one matched nothing there and an embedded
    card lost its inline list entirely.
 
-   The 300 block is written as "not reveal" rather than as "is 300", so it also
-   covers the attribute being absent. embed.html and host-home.html run no script
-   to set it, and guarding it on the value alone left them matching neither mode
-   and showing no inline list at any height. */
+   The 300 block is written as "not reveal and not figma" rather than as "is
+   300", so it also covers the attribute being absent. embed.html and
+   host-home.html run no script to set it, and guarding it on the value alone
+   left them matching no mode at all and showing no inline list at any height. */
 @container (min-height: 300px) {
-  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c {
+  :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c {
     --list-display: flex; --listbtn-display: none; --listsheet-display: none;
     --stage-min: 0;
   }
   /* --list-h only on the kinds that actually carry a list. Unscoped it docked
      the list's height off the episode and live cards too, which have none, and
      gave them a tile sized for a player area smaller than the one they have. */
-  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
-  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
-  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+  :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
     --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
   }
 }
@@ -1382,6 +1382,97 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
   :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
     --list-h: clamp(0px, 100cqh - 160px, 208px);
+  }
+}
+
+/* "Figma", frame 2700:561775, widget_160+, 420 by 300.
+
+   The other three modes are ours. This one is the design file's own answer, and
+   unlike the older frames it is not a drawing at one size: the frame carries
+   real auto-layout constraints, so resolving them IS the responsive spec.
+
+     player_container   flex 1 0 0, min-height 160, padding 8
+     List               flex 1 0 0, max-height 208, min-height 1
+     top_bar            flex 1 0 0, max-height 80, min-height 36
+     middle_bar         shrink 0, a 64 play button with 2 above and below, 68
+     bottom_bar         flex 1 0 0, max-height 64
+     art                aspect 1/1, height 100% of top_bar
+
+   Two children of the card, both flex 1 0 0, so every pixel the card gains is
+   split evenly between them until one hits a bound. That is the whole model,
+   and it resolves in three bands:
+
+     161 to 319    an even split would leave the player under its 160 floor, so
+                   the player freezes at 160 and the list takes the remainder
+     320 to 416    both are within bounds, so they grow together, half each
+     above 416     the list is frozen at its 208 maximum and the player takes
+                   the remainder
+
+   The arithmetic is the frame's own: at 300 it gives 160 and 140, which is the
+   420 by 300 geometry as drawn, and the player's parts sum to 8 + 38 + 68 + 38
+   + 8 = 160 exactly.
+
+   min(100cqh - 160px, 50cqh, 208px) is those three bands written once. The
+   first term is the floor band, the second the even split, the third the cap,
+   and the smallest is always the one in force. Checked against the frame at
+   200 -> 40, 320 -> 160, 368 -> 184, 440 -> 208.
+
+   Where this differs from Reveal, which is the mode it is closest to: Reveal
+   pours every new pixel into the list until it fills and only then grows the
+   player, so between 321 and 415 it runs ahead of the design by up to 24px at
+   368, where the frame wants 184 and 184 and Reveal renders 160 and 208. */
+@container (min-height: 161px) {
+  :root[data-listat="figma"]:not([data-list="drawer"]) .widget.c {
+    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
+    --stage-min: 0;
+  }
+  :root[data-listat="figma"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root[data-listat="figma"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root[data-listat="figma"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+    --list-h: min(100cqh - 160px, 50cqh, 208px);
+  }
+
+  /* The frame's List is min-height 1 and clips its own padding, so it can be a
+     single pixel tall. A border-box element cannot: 12px of top padding makes
+     12 its shortest possible render, which is why Reveal starts at 173 rather
+     than 161. Collapsing the padding alongside the sliver is what lets this
+     mode start where the frame does. It is back to a full 12 by card 172, so
+     nothing above that band is touched. */
+  :root[data-listat="figma"]:not([data-list="drawer"]) .widget.c .list {
+    padding-top: min(12px, 100cqh - 160px);
+  }
+
+  /* The artwork, which is where the frame differs from us most.
+
+     Ours sizes the tile from the CARD with a clamp whose upper anchor we chose
+     rather than took from a frame, so it only reaches 80 at a 900 card. The
+     frame ties the tile to top_bar, which is flex 1 0 0 inside the player and
+     capped at 80, so the tile is (player - 8 - 68 - 8) / 2 and locks at 80 once
+     the player reaches 244.
+
+     Substituting each band's player height gives the three terms below.
+     Constant 38 while the player is frozen at 160, 25cqh - 42 while the player
+     is 50cqh, and 50cqh - 146 once the player is 100cqh - 208. The largest is
+     always the one in force, and they meet exactly at the band edges: 38 at
+     320, 62 at 416, 80 at 452.
+
+     The width term is not the frame's. At 420, the width the frame is drawn at,
+     it never binds. It is kept because the frame has nothing to say about
+     narrow cards and without it an 80px tile on a 280px card leaves the title
+     almost nothing. Every height behaviour below 420 wide is the frame's.
+
+     Scoped to the three kinds that carry a list, because the three terms are
+     each a band of the WITH-LIST player height. The episode and live cards have
+     no list, so their player is the whole card and none of the three describes
+     them. The frame has nothing to say about those two, so they keep the rule
+     every other mode gives them and the toggle stays a clean comparison on the
+     cards the frame is actually about. */
+  :root[data-listat="figma"]:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="podcast"],
+  :root[data-listat="figma"]:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="artist"],
+  :root[data-listat="figma"]:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="playlist"] {
+    --thumb: round(max(36px, min(80px,
+                                 max(38px, 25cqh - 42px, 50cqh - 146px),
+                                 100cqw - 216px)), 1px);
   }
 }
 
