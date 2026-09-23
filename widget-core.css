@@ -1261,47 +1261,6 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c .hero-bottom { margin-top: auto; }
 }
 
-/* The same compact row, for a card that is tall enough overall but whose PLAYER
-   is not, because an inline list has taken a slice of it.
-
-   The block above asks whether the CARD is under 128. That is the right question
-   only when the card is all player. Move the list threshold down to 170 or 240
-   and a 240px card hands the player 104, which cannot hold a 36 top bar, a 40
-   button and a 28 bottom row: the button ran straight through the subtitle.
-
-   263 is where the stage crosses 128 with the 136px one-row list this range
-   always gets, so `card <= 263 and the list is inline` is exactly `stage < 128`.
-   The condition cannot be written as arithmetic in a container query, which is
-   why it is two spelled-out blocks rather than one. They are generated from the
-   same source as the block above; change that and change these.
-
-   Not needed at the shipped 300 threshold: the list only appears there when the
-   card is 300 or more, which leaves a 164px stage. */
-@container (min-height: 170px) and (max-height: 263px) {
-  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls,
-  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c.live .hero-controls {
-    left: var(--card-pad, 8px); top: var(--card-pad, 8px);
-    transform: none; width: auto; padding: 0; justify-content: flex-start;
-  }
-  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls .cc-side { display: none; }
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .topbar .h-btn { display: none; }
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
-                      min-height: 40px; }
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .hero-bottom { margin-top: auto; }
-}
-@container (min-height: 240px) and (max-height: 263px) {
-  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls,
-  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c.live .hero-controls {
-    left: var(--card-pad, 8px); top: var(--card-pad, 8px);
-    transform: none; width: auto; padding: 0; justify-content: flex-start;
-  }
-  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls .cc-side { display: none; }
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .topbar .h-btn { display: none; }
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
-                      min-height: 40px; }
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .hero-bottom { margin-top: auto; }
-}
-
 /* Measured, not derived: at 76 the bottom block still clears the row by 3px and
    at 70 it is already past the bottom of the card. Below 76 the card is the row
    and the artwork behind it, which is all a slot that short can honestly hold. */
@@ -1354,11 +1313,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    two apart. */
 /* WHERE the inline list appears, and what it does when it gets there.
 
-   The threshold is a comparison question rather than a settled one, so the page
-   can put it at 170, 240 or 300 and the switch in the header chooses. A container
-   query cannot take a variable threshold, so there are three of them; what they
-   each do is only to SET custom properties, and the rules those properties drive
-   live once, below. Changing the behaviour means editing one rule, not three.
+   300 is the threshold. 170 and 240 were here too for a while, as lower ones to
+   compare it against, and they are gone: at either of them the player is left so
+   short that the compact row has to take it over, so what they were really being
+   compared on was a different card rather than a different threshold. What is
+   left is 300 and Reveal, and each block below only SETS custom properties, with
+   the rules those properties drive living once, further down. Changing the
+   behaviour means editing one rule, not two.
 
    Whole rows, plus a constant sliver of the next one. The list height used to
    glide continuously while a row is a fixed 72, so how much of the next row
@@ -1370,49 +1331,21 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    <main> at all, so a guard hung off one matched nothing there and an embedded
    card lost its inline list entirely.
 
-   The 300 block is written as "not 170 and not 240" rather than as "is 300", so
-   it also covers the attribute being absent. embed.html and host-home.html run
-   no script to set it, and guarding it on the value alone left them matching
-   none of the three and showing no inline list at any height. */
-@container (min-height: 170px) {
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c {
-    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
-    --stage-min: 0;
-  }
-  /* --list-h only on the kinds that actually carry a list. Unscoped it docked
-     the list's height off the episode and live cards too, which have none, and
-     gave them a tile sized for a player area smaller than the one they have. */
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
-  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
-    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
-  }
-}
-@container (min-height: 240px) {
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c {
-    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
-    --stage-min: 0;
-  }
-  /* --list-h only on the kinds that actually carry a list. Unscoped it docked
-     the list's height off the episode and live cards too, which have none, and
-     gave them a tile sized for a player area smaller than the one they have. */
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
-  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
-    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
-  }
-}
+   The 300 block is written as "not reveal" rather than as "is 300", so it also
+   covers the attribute being absent. embed.html and host-home.html run no script
+   to set it, and guarding it on the value alone left them matching neither mode
+   and showing no inline list at any height. */
 @container (min-height: 300px) {
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c {
+  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c {
     --list-display: flex; --listbtn-display: none; --listsheet-display: none;
     --stage-min: 0;
   }
   /* --list-h only on the kinds that actually carry a list. Unscoped it docked
      the list's height off the episode and live cards too, which have none, and
      gave them a tile sized for a player area smaller than the one they have. */
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root:not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
     --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
   }
 }

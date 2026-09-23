@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260923212237">
+<link rel="stylesheet" href="widget-core.css?v=20260923215709">
 </head>
 <body data-bg="grey">
 
@@ -103,17 +103,18 @@
   -->
 
   <!-- Where the inline list takes over from the drawer. 300 is what the card has
-       shipped with; 170 and 240 are here to be compared against it, since the
-       threshold is a judgement about how much player a publisher is willing to
-       trade for a list. Reveal is a different shape altogether, the shipping
+       shipped with. Reveal is a different shape altogether, the shipping
        player's: the player holds its size while the list is uncovered, and only
-       grows once the list is full. -->
+       grows once the list is full.
+
+       170 and 240 were here too, as lower thresholds to compare against 300.
+       They were removed: both hand the player so little room that the compact
+       row has to take over to keep it legible, which is not a list threshold
+       decision any more, it is a different card. -->
   <div class="colctl">
-    <label for="listat170">List</label>
+    <label for="listat300">List</label>
     <span class="seg">
-      <button type="button" id="listat170" data-listat="170" aria-pressed="false">170</button>
-      <button type="button" data-listat="240" aria-pressed="false">240</button>
-      <button type="button" data-listat="300" aria-pressed="true">300</button>
+      <button type="button" id="listat300" data-listat="300" aria-pressed="true">300</button>
       <button type="button" data-listat="reveal" aria-pressed="false">Reveal</button>
     </span>
   </div>
@@ -398,7 +399,7 @@
 
   /* On :root for the same reason the List flag is: the CSS guard has to work on
      embed.html too, which has no <main>. */
-  const aseg = (document.getElementById('listat170') || {}).parentElement;
+  const aseg = (document.getElementById('listat300') || {}).parentElement;
   if (aseg) aseg.addEventListener('click', (e) => {
     const bt = e.target.closest('button[data-listat]'); if (!bt) return;
     [...aseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
@@ -490,6 +491,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923212237"></script>
+<script src="widget-core.js?v=20260923215709"></script>
 </body>
 </html>

@@ -1,16 +1,18 @@
 """The List-at switch: where the inline list takes over from the drawer.
 
-170, 240 and 300, so the three can be compared. 300 is what the card has shipped
-with; the other two trade player area for a list sooner.
+300, which is what the card has shipped with, is the only stepped threshold left.
+Asserted at heights either side of it: the list is inline at or above 300 and a
+drawer below, the list button mirrors that, and the tile follows the player area
+rather than the card.
 
-Asserted for each setting, at heights either side of it: the list is inline at or
-above the threshold and a drawer below, the list button mirrors that, and the
-tile follows the player area rather than the card.
+170 and 240 used to be here too, as lower thresholds to compare against 300, and
+were removed. Both hand the player so little room that the compact row has to
+take over, so they compared a different card rather than a different threshold.
+The compact-row duplicates they needed went with them; the only compact rule left
+is the one on CARD height, which is where it started.
 
-The lower two thresholds needed more than a query. A 240px card with a 136px list
-hands the player 104, which cannot hold a 36 top bar, a 40 button and a 28 bottom
-row, and the button ran straight through the subtitle. The card switches to its
-compact row there now, which it previously only did on CARD height.
+Reveal, the other setting the switch still offers, has its own test in
+test-list-reveal.py because its list height is continuous rather than stepped.
 """
 import asyncio, subprocess, sys, time
 
@@ -30,7 +32,7 @@ async def main():
       const h=(s)=>{const e=w.querySelector(s); return on(s)?Math.round(e.getBoundingClientRect().height):0;};
       return {inline:on('.list'), listH:h('.list'), btn:on('.h-btn[data-act=\\"list\\"]'),
               stage:h('.stage'), tile:h('.thumb-link')};}"""
-    for at in ('170','240','300'):
+    for at in ('300',):
       await pg.click(f'button[data-listat="{at}"]'); await pg.wait_for_timeout(500)
       print(f'  --- List at {at}')
       for hh in (160,170,200,240,260,300,320):
