@@ -544,20 +544,32 @@ function liveMeta(d) {
    and apps/listen's Next control shows it beside the button the same way. */
 const SKIP_LIMIT_N = 6;
 
+/* `info` replaces a `topAction` that read as an enum but was only ever a
+   boolean: the list button has always been gated by `list` on its own, so
+   topAction's 'list' value selected nothing and only 'info' did any work. A card
+   can want both, which is what the playlist does, and an enum cannot say that. */
 const CAPS = {
-  podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  topAction: 'list', rowsLive: true },
-  episode:  { seek: true,  speed: true,  scrub: true,  list: false, topAction: 'info' },
+  podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  rowsLive: true },
+  episode:  { seek: true,  speed: true,  scrub: true,  list: false, info: true },
   /* Live radio carries the info button in the same corner the episode card
      does, which frame 2666:125218 draws. It had none at all. */
-  live:     { seek: false, speed: false, scrub: false, list: false, topAction: 'info' },
-  /* topAction: 'list' on both, which the frames do not draw. Without it the
-     Featured Artists list is reachable only by making the slot tall enough,
-     so at any ordinary height the card holds a list nobody can open. A list
-     with no way to open it is worse than a button the frame is missing. */
-  artist:   { seek: false, speed: false, scrub: false, list: true,  topAction: 'list', rowsLive: true, stopNext: true, roundThumb: true },
-  playlist: { seek: false, speed: false, scrub: false, list: true,  topAction: 'list', rowsLive: true, stopNext: true }
+  live:     { seek: false, speed: false, scrub: false, list: false, info: true },
+  /* `list` on both, which the frames do not draw. Without it the Featured
+     Artists list is reachable only by making the slot tall enough, so at any
+     ordinary height the card holds a list nobody can open. A list with no way to
+     open it is worse than a button the frame is missing. */
+  artist:   { seek: false, speed: false, scrub: false, list: true,  rowsLive: true, stopNext: true, roundThumb: true },
+  /* Info AND list. The playlist carries a name and a description of its own,
+     which is exactly what the episode card's info drawer shows, and it had no
+     way to reach them: the drawer was being rendered on every card already, so
+     only the button was missing. */
+  playlist: { seek: false, speed: false, scrub: false, list: true,  info: true, rowsLive: true, stopNext: true }
 };
 const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
+
+/* What the info button says it is about, so a screen reader hears the thing
+   rather than "This Episode" on a playlist. */
+const INFO_LABEL = { episode: 'This Episode', live: 'This Station', playlist: 'This Playlist' };
 
 /* Share drawer headings, from the Design D frames: 2666:130642 live,
    2670:137239 podcast show, 2670:137412 podcast episode, 2666:131704 artist
@@ -1122,9 +1134,9 @@ ${listTail(d)}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
-            ${c.topAction === 'info' ? `
+            ${c.info ? `
               <button class="h-btn tb-info" data-act="info" aria-haspopup="dialog" aria-expanded="false"
-                      aria-label="About ${esc(d.kind === 'live' ? 'This Station' : 'This Episode')}">
+                      aria-label="About ${esc(INFO_LABEL[d.kind] || 'This Episode')}">
                 <img src="assets/h-info.svg" alt=""></button>` : ''}
             ${c.list ? `
               <button class="h-btn tb-list" data-act="list" aria-pressed="false"
