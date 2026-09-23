@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260923041739">
+<link rel="stylesheet" href="widget-core.css?v=20260923141025">
 </head>
 <body data-bg="grey">
 
@@ -66,9 +66,17 @@
     </span>
   </div>
   -->
-  <!-- The pause overlay. Off by default, because it covers the card the moment
-       you pause and the cards are what this page exists to look at. It is still
-       worth being able to see, so it is a switch rather than a deletion. -->
+  <!-- Pause overlay, Background and List are hidden for now, the same way
+       designs A and B are: commented out rather than deleted, so uncommenting a
+       block brings the switch straight back. The behaviour they choose between
+       is unaffected. Each one's default is still applied below, and the script
+       skips any switch whose markup is not here, so the page behaves exactly as
+       it did with all three left alone:
+
+         Pause overlay  off
+         Background     follows what is playing
+         List           inline once the card is tall enough
+
   <div class="colctl">
     <label for="veiltog">Pause overlay</label>
     <span class="seg">
@@ -76,11 +84,7 @@
       <button type="button" data-veil="off" aria-pressed="true">Off</button>
     </span>
   </div>
-  <!-- The backdrop follows what is PLAYING by default: the track on a station,
-       the chosen episode on a show. Switched to "Fixed" it stays on the thing
-       the card is for, the station logo, the show's cover, the playlist art,
-       and never changes while you listen. Worth being able to compare, since
-       one reads as a now-playing screen and the other as a poster. -->
+
   <div class="colctl">
     <label for="bgtog">Background</label>
     <span class="seg">
@@ -89,10 +93,6 @@
     </span>
   </div>
 
-  <!-- Above 300 the episode and featured artist lists sit inline under the
-       player. Switched to "Drawer" they never do, and the list icon opens them
-       at every height instead, which is what a publisher gets who wants the
-       card to stay a player. -->
   <div class="colctl">
     <label for="listtog">List</label>
     <span class="seg">
@@ -100,6 +100,7 @@
       <button type="button" data-list="drawer" aria-pressed="false">Drawer only</button>
     </span>
   </div>
+  -->
 
   <div class="colctl">
     <label for="cols1">Columns</label>
@@ -341,8 +342,14 @@
   /* The pause overlay switch. Anchored on its own button, not on '.colctl .seg',
      which returned the wrong row once there were several of these and silently
      wired the columns toggle to the waveform one. */
-  const vseg = document.getElementById('veiltog').parentElement;
-  vseg.addEventListener('click', (e) => {
+  /* Each of these three is wired only if its markup is present. They are
+     commented out of the header for now, and a getElementById on a missing one
+     returns null, so reading .parentElement off it would throw and take the rest
+     of this script, the width and height controls included, down with it.
+     The DEFAULTS are applied either way, which is what keeps the page behaving
+     as it did when the switches were visible. */
+  const vseg = (document.getElementById('veiltog') || {}).parentElement;
+  if (vseg) vseg.addEventListener('click', (e) => {
     const bt = e.target.closest('button[data-veil]'); if (!bt) return;
     [...vseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
     main.dataset.veil = bt.dataset.veil;
@@ -352,8 +359,8 @@
   /* Both of these are the same shape as the pause overlay switch above: the
      choice lands on <main> and the card reads it where it is used, so flipping
      one takes effect without a reload. */
-  const bseg = document.getElementById('bgtog').parentElement;
-  bseg.addEventListener('click', (e) => {
+  const bseg = (document.getElementById('bgtog') || {}).parentElement;
+  if (bseg) bseg.addEventListener('click', (e) => {
     const bt = e.target.closest('button[data-bg]'); if (!bt) return;
     [...bseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
     main.dataset.bg = bt.dataset.bg;
@@ -363,8 +370,8 @@
   });
   main.dataset.bg = 'live';
 
-  const lseg = document.getElementById('listtog').parentElement;
-  lseg.addEventListener('click', (e) => {
+  const lseg = (document.getElementById('listtog') || {}).parentElement;
+  if (lseg) lseg.addEventListener('click', (e) => {
     const bt = e.target.closest('button[data-list]'); if (!bt) return;
     [...lseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
     /* On the document element, not on <main>: the CSS guard has to work on
@@ -455,6 +462,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923041739"></script>
+<script src="widget-core.js?v=20260923141025"></script>
 </body>
 </html>

@@ -9,6 +9,11 @@ drawer below. "Drawer only" holds the pre-300 behaviour at every height.
 
 Both flip back to their defaults at the end, so this also proves they are
 reversible rather than one-way.
+
+The switches themselves are commented out of the page header for now, so this
+drives the FLAGS they set rather than clicking the buttons. The behaviour is
+what matters and it is all still there; only the controls are hidden. Written
+this way it keeps passing whether they are visible or not.
 """
 import asyncio, base64, subprocess, sys, time
 from playwright.async_api import async_playwright
@@ -28,20 +33,31 @@ async def main():
 
     print('=== Background toggle ===')
     A="""(k)=>{const w=document.querySelector('#w-'+k+'-c');
-      return {back:w.querySelector('.art').src, tile:w.querySelector('.h-thumb').src};}"""
+      const row=w.querySelector('.row.on .row-art')||w.querySelector('.rows .row .row-art');
+      return {back:w.querySelector('.art').src, tile:w.querySelector('.h-thumb').src,
+              playing: row?(row.src||row.getAttribute('src')):null};}"""
     for mode in ('live','fixed','live'):
-      await pg.click(f'button[data-bg="{mode}"]'); await pg.wait_for_timeout(1200)
+      await pg.evaluate("""(m)=>{document.querySelector('main').dataset.bg = m;
+        if (typeof repaintAll === 'function') repaintAll();}""", mode)
+      await pg.wait_for_timeout(1200)
       for k in ('podcast','live','playlist'):
         r=await pg.evaluate(A,k)
         same = r['back']==r['tile']
         print(f"  bg={mode:<6} {k:<9} backdrop {'== tile' if same else 'differs from tile'}  {dec(r['back'])}")
         if mode=='fixed' and not same: bad.append((k,'fixed but backdrop is not the card art'))
-        if mode=='live' and k=='podcast' and same: bad.append((k,'live but backdrop equals the tile'))
+        # Against the RULE, not against a coincidence. This used to assert that
+        # in "follows play" the podcast backdrop DIFFERS from its tile, which
+        # only holds while the current episode happens to ship its own artwork.
+        # A newly published episode reused the show's image and the assertion
+        # broke, reporting a bug in code that was behaving correctly.
+        if mode=='live' and k=='podcast' and r['playing'] and r['back']!=r['playing']:
+          bad.append((k,'follows play, but the backdrop is not the current episode art'))
       print()
 
     print('=== List toggle ===')
     for mode in ('auto','drawer','auto'):
-      await pg.click(f'button[data-list="{mode}"]'); await pg.wait_for_timeout(700)
+      await pg.evaluate("(m)=>{document.documentElement.dataset.list = m;}", mode)
+      await pg.wait_for_timeout(700)
       for h in (300,440):
         await pg.evaluate("(h)=>{const s=document.getElementById('heightRange');s.value=String(h);s.dispatchEvent(new Event('input',{bubbles:true}));}",h)
         await pg.wait_for_timeout(450)
