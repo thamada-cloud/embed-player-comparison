@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260923194011">
+<link rel="stylesheet" href="widget-core.css?v=20260923204737">
 </head>
 <body data-bg="grey">
 
@@ -101,6 +101,19 @@
     </span>
   </div>
   -->
+
+  <!-- Where the inline list takes over from the drawer. 300 is what the card
+       has shipped with; 170 and 240 are here to be compared against it, since
+       the threshold is a judgement about how much player a publisher is willing
+       to trade for a list. -->
+  <div class="colctl">
+    <label for="listat170">List at</label>
+    <span class="seg">
+      <button type="button" id="listat170" data-listat="170" aria-pressed="false">170</button>
+      <button type="button" data-listat="240" aria-pressed="false">240</button>
+      <button type="button" data-listat="300" aria-pressed="true">300</button>
+    </span>
+  </div>
 
   <div class="colctl">
     <label for="cols1">Columns</label>
@@ -380,6 +393,18 @@
   });
   document.documentElement.dataset.list = 'auto';
 
+  /* On :root for the same reason the List flag is: the CSS guard has to work on
+     embed.html too, which has no <main>. */
+  const aseg = (document.getElementById('listat170') || {}).parentElement;
+  if (aseg) aseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-listat]'); if (!bt) return;
+    [...aseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    document.documentElement.dataset.listat = bt.dataset.listat;
+  });
+  /* The CSS treats an absent attribute as 300, so this is only here to make the
+     switch's pressed state and the flag agree from the start. */
+  document.documentElement.dataset.listat = '300';
+
   const hRange = document.getElementById('heightRange');
   const hNum = document.getElementById('heightNum');
   const hAuto = document.getElementById('heightAuto');
@@ -462,6 +487,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923194011"></script>
+<script src="widget-core.js?v=20260923204737"></script>
 </body>
 </html>

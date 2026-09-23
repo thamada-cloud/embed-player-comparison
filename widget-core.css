@@ -1028,6 +1028,17 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    flexes to fill whatever is left. */
 .shell[data-fill] > div { height: 100%; }
 .shell[data-fill] .widget.c { min-height: 100%; }
+/* NOT a size container, though it should morally be one.
+
+   Everything inside the stage wants to measure the player area rather than the
+   whole card, and `container-type: size` here is the obvious way to say that.
+   It does not work: the stage takes its height from the flex algorithm, and with
+   size containment the container query evaluates it as though it were empty, so
+   at a measured 164px stage every max-height query for 127 and 75 matched at
+   once and the card collapsed into its compact row at full size.
+
+   So the rules inside keep measuring the CARD and subtract --list-h explicitly,
+   which is what --play, --ctl and --thumb all do. */
 .shell[data-fill] .widget.c .stage {
   height: auto; flex: 1 1 auto;
 }
@@ -1114,8 +1125,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 
      Both bounds are now H minus a constant, so which one binds no longer
      depends on the height: on a card with a scrubber the bottom is always the
-     tighter of the two by 4, and it is the only one written here. */
-  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - 96px)), 1px);
+     tighter of the two by 4, and it is the only one written here.
+
+     H is the STAGE, which is why --list-h comes off first. cqh measures the
+     CARD, and the button sits in the stage; with an inline list taking a slice
+     the two are not the same. At the shipped 300 threshold the stage never got
+     short enough for that to show. */
+  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - var(--list-h, 0px) - 96px)), 1px);
 }
 /* No scrubber on these three, so their bottom block is the 24 lockup row alone
    and that bound is 40 looser, which puts the top bar back in charge. Using the
@@ -1124,7 +1140,7 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .shell[data-fill] .widget.c[data-kind="live"] .hero-play,
 .shell[data-fill] .widget.c[data-kind="artist"] .hero-play,
 .shell[data-fill] .widget.c[data-kind="playlist"] .hero-play {
-  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - 92px)), 1px);
+  --play: round(max(40px, min(64px, 100cqw - 8px, 100cqh - var(--list-h, 0px) - 92px)), 1px);
 }
 /* The transport holds 40 the way the play button holds 64, instead of
    interpolating from the top of the range. These were a straight line on height,
@@ -1145,7 +1161,7 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    maximum is ctl <= 25cqw - 32. Without it, holding 40 pushed 1x off the left
    edge of a 280 card, where the old interpolated size still fitted. */
 .shell[data-fill] .widget.c {
-  --ctl: round(max(24px, min(40px, 100cqh - 96px, 25cqw - 32px)), 1px);
+  --ctl: round(max(24px, min(40px, 100cqh - var(--list-h, 0px) - 96px, 25cqw - 32px)), 1px);
   /* The tile, sized from the CARD rather than from the text beside it.
 
      It was 36 at every height and every width, because fitThumb() measured the
@@ -1161,14 +1177,17 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 
      The width term is not decoration. The row also carries the title, a gap and
      two action buttons, so an 80px tile on a 280px card would leave the title
-     almost nothing; this caps the tile by what is actually left over. */
-  --thumb: round(max(36px, min(80px, 9.5cqh + 23px, 100cqw - 216px)), 1px);
+     almost nothing; this caps the tile by what is actually left over.
+
+     The rule itself lives with the list thresholds further down, because it has
+     to subtract whatever the inline list is taking. It was duplicated here for a
+     while, and this copy was dead: the later one won on source order. */
 }
 /* No scrubber on these three, so the same 40 looser bound the button gets. */
 .shell[data-fill] .widget.c[data-kind="live"],
 .shell[data-fill] .widget.c[data-kind="artist"],
 .shell[data-fill] .widget.c[data-kind="playlist"] {
-  --ctl: round(max(24px, min(40px, 100cqh - 92px, 25cqw - 32px)), 1px);
+  --ctl: round(max(24px, min(40px, 100cqh - var(--list-h, 0px) - 92px, 25cqw - 32px)), 1px);
 }
 .shell[data-fill] .hero-controls .h-btn[data-act="back"] img,
 .shell[data-fill] .hero-controls .h-btn[data-act="fwd"] img,
@@ -1228,7 +1247,11 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
      button just moved into, and at this height the row is the whole card: the
      title and subtitle need the width more than three secondary actions do.
      Everything they reach is still reachable, since the card links out. */
-  .widget.c .topbar .h-btn { display: none; }
+  /* [data-act] is load-bearing, not decoration. The list button's display is
+     driven by --listbtn-display now, and `.widget.c .h-btn[data-act="list"]`
+     ties this rule's specificity and sits later in the file, so without the
+     extra attribute here it won and put the button back in the compact row. */
+  .widget.c .topbar .h-btn[data-act] { display: none; }
   .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
                       min-height: 40px; }
   /* The stage is a flex column with space-between, and with the row pinned to
@@ -1236,6 +1259,47 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
      space-between puts at the START. margin-top:auto pins it down regardless of
      how the column is justified. */
   .widget.c .hero-bottom { margin-top: auto; }
+}
+
+/* The same compact row, for a card that is tall enough overall but whose PLAYER
+   is not, because an inline list has taken a slice of it.
+
+   The block above asks whether the CARD is under 128. That is the right question
+   only when the card is all player. Move the list threshold down to 170 or 240
+   and a 240px card hands the player 104, which cannot hold a 36 top bar, a 40
+   button and a 28 bottom row: the button ran straight through the subtitle.
+
+   263 is where the stage crosses 128 with the 136px one-row list this range
+   always gets, so `card <= 263 and the list is inline` is exactly `stage < 128`.
+   The condition cannot be written as arithmetic in a container query, which is
+   why it is two spelled-out blocks rather than one. They are generated from the
+   same source as the block above; change that and change these.
+
+   Not needed at the shipped 300 threshold: the list only appears there when the
+   card is 300 or more, which leaves a 164px stage. */
+@container (min-height: 170px) and (max-height: 263px) {
+  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls,
+  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c.live .hero-controls {
+    left: var(--card-pad, 8px); top: var(--card-pad, 8px);
+    transform: none; width: auto; padding: 0; justify-content: flex-start;
+  }
+  :root[data-listat="170"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls .cc-side { display: none; }
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .topbar .h-btn { display: none; }
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
+                      min-height: 40px; }
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c .hero-bottom { margin-top: auto; }
+}
+@container (min-height: 240px) and (max-height: 263px) {
+  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls,
+  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c.live .hero-controls {
+    left: var(--card-pad, 8px); top: var(--card-pad, 8px);
+    transform: none; width: auto; padding: 0; justify-content: flex-start;
+  }
+  :root[data-listat="240"]:not([data-list="drawer"]) .shell[data-fill] .widget.c .hero-controls .cc-side { display: none; }
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .topbar .h-btn { display: none; }
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
+                      min-height: 40px; }
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c .hero-bottom { margin-top: auto; }
 }
 
 /* Measured, not derived: at 76 the bottom block still clears the row by 3px and
@@ -1253,10 +1317,9 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c { --card-pad: round(max(0px, 50cqh - 20px), 1px); }
 }
 
-/* Hidden by default, since design C's list is the drawer until it has the room
-   not to be. This has to sit BEFORE the container query below: the two rules
-   have identical specificity, so source order is what decides. */
-.widget.c .list { display: none; }
+/* The list's default-hidden rule is gone: display is driven by --list-display
+   now, whose fallback IS none, so the default lives in one place instead of
+   depending on which of two equally specific rules came last in the file. */
 
 /* 300, down from 440.
 
@@ -1289,61 +1352,97 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    as opening it; a selector written as [data-act="list"] alone would hide the
    close button too. It is .sheet-close, not .h-btn, which is what keeps the
    two apart. */
-@container (min-height: 300px) {
-  /* Whole rows, plus a constant sliver of the next one.
+/* WHERE the inline list appears, and what it does when it gets there.
 
-     The height used to glide continuously while a row is a fixed 72, so how much
-     of the next row showed was an accident of where the clamp happened to land:
-     8px at 300, 47px at 360, 2px at 400. Where it landed near a whole number of
-     rows the list simply looked like it ended.
+   The threshold is a comparison question rather than a settled one, so the page
+   can put it at 170, 240 or 300 and the switch in the header chooses. A container
+   query cannot take a variable threshold, so there are three of them; what they
+   each do is only to SET custom properties, and the rules those properties drive
+   live once, below. Changing the behaviour means editing one rule, not three.
 
-     round(down, ..., 72px) snaps the row area to whole rows, and the 64 is what
-     is not rows: a 32 header, 16 of padding and the 16px peek itself. So the
-     peek is 16 at every height rather than whatever is left over.
+   Whole rows, plus a constant sliver of the next one. The list height used to
+   glide continuously while a row is a fixed 72, so how much of the next row
+   showed was an accident of where the clamp landed: 8px at 300, 47px at 360, 2px
+   at 400. round(down, ..., 72px) snaps the row area to whole rows, and the 64 is
+   what is not rows: a 32 header, 16 of padding and the 16px peek itself.
 
-     The cost is that the list steps instead of gliding, since it can only take
-     whole rows, and the stage absorbs the difference. That is the right way
-     round: a list of fixed height rows has no use for a part of a row, and the
-     player area does. */
-  .widget.c {
+   The guard is on :root, not on <main>. embed.html and host-home.html have no
+   <main> at all, so a guard hung off one matched nothing there and an embedded
+   card lost its inline list entirely.
+
+   The 300 block is written as "not 170 and not 240" rather than as "is 300", so
+   it also covers the attribute being absent. embed.html and host-home.html run
+   no script to set it, and guarding it on the value alone left them matching
+   none of the three and showing no inline list at any height. */
+@container (min-height: 170px) {
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c {
+    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
+    --stage-min: 0;
+  }
+  /* --list-h only on the kinds that actually carry a list. Unscoped it docked
+     the list's height off the episode and live cards too, which have none, and
+     gave them a tile sized for a player area smaller than the one they have. */
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root[data-listat="170"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
     --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
   }
-  /* All four gated on the page's List switch. A container query only decides
-     WHEN a rule applies; the selector still matches the whole document, so an
-     ancestor outside the container is a perfectly good guard. Set to "drawer"
-     the card never puts the list inline, keeps the list button at every height
-     and leaves the sheet working, which is the pre-300 behaviour held at all
-     sizes.
-
-     The guard is on :root and not on <main>. embed.html and host-home.html have
-     no <main> at all, so a guard hung off one matched nothing there and an
-     embedded card lost its inline list entirely. :root is always present, so a
-     page with no switch simply has no [data-list] and takes the default. */
-  :root:not([data-list="drawer"]) .widget.c .list { display: flex; flex: 0 0 var(--list-h); }
-  :root:not([data-list="drawer"]) .widget.c .stage { min-height: 0; }
-  :root:not([data-list="drawer"]) .widget.c .h-btn[data-act="list"] { display: none; }
-  :root:not([data-list="drawer"]) .widget.c .sheet:not(.info-sheet) { display: none; }
-
-  /* The tile is sized from the STAGE once a list is on the card, not from the
-     card. cqh is the card, and the card is not what the tile sits in: the list
-     takes a slice of it, so the card height overstates the room the tile has.
-
-     The effect was backwards rather than merely inexact. At their defaults the
-     episode card's player area is LARGER than the podcast card's, 200 against
-     172, because the podcast card spends 128 of its 300 on the list, and yet the
-     podcast tile came out bigger, 52 against 42. Subtracting the list puts both
-     on the same rule: same player area, same tile.
-
-     Same slope as the base rule, applied to what is left after the list. */
-  /* Only the three kinds that actually carry a list. Unscoped, this docked the
-     list's height off the episode and live cards too, which have no list, and
-     gave them a tile sized for a player area smaller than the one they have. */
-  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="podcast"],
-  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="artist"],
-  :root:not([data-list="drawer"]) .shell[data-fill] .widget.c[data-kind="playlist"] {
-    --thumb: round(max(36px, min(80px, 9.5cqh + 23px - 0.095 * var(--list-h),
-                                 100cqw - 216px)), 1px);
+}
+@container (min-height: 240px) {
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c {
+    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
+    --stage-min: 0;
   }
+  /* --list-h only on the kinds that actually carry a list. Unscoped it docked
+     the list's height off the episode and live cards too, which have none, and
+     gave them a tile sized for a player area smaller than the one they have. */
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root[data-listat="240"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
+  }
+}
+@container (min-height: 300px) {
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c {
+    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
+    --stage-min: 0;
+  }
+  /* --list-h only on the kinds that actually carry a list. Unscoped it docked
+     the list's height off the episode and live cards too, which have none, and
+     gave them a tile sized for a player area smaller than the one they have. */
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
+  }
+}
+
+/* What those properties drive, written once.
+
+   Each falls back to the pre-threshold state, so a card below its threshold, or
+   a page with no switch at all before the script runs, reads as it always did:
+   no inline list, a list button, a working drawer. */
+.widget.c .list { display: var(--list-display, none); flex: 0 0 var(--list-h); }
+.widget.c .stage { min-height: var(--stage-min, auto); }
+.widget.c .h-btn[data-act="list"] { display: var(--listbtn-display, flex); }
+.widget.c .sheet:not(.info-sheet) { display: var(--listsheet-display, flex); }
+
+/* The tile is sized from the STAGE once a list is on the card, not from the
+   card. cqh is the card, and the card is not what the tile sits in: the list
+   takes a slice of it, so the card height overstates the room the tile has.
+
+   The effect was backwards rather than merely inexact. At their defaults the
+   episode card's player area is LARGER than the podcast card's, 200 against 172,
+   because the podcast card spends part of its 300 on the list, and yet the
+   podcast tile came out bigger. Subtracting the list puts both on one rule: same
+   player area, same tile.
+
+   var(--list-h, 0px) rather than three per-threshold copies: a card with no
+   inline list simply has no --list-h, subtracts nothing, and takes the base
+   formula. That also retires the per-kind scoping this rule used to need. */
+.shell[data-fill] .widget.c {
+  --thumb: round(max(36px, min(80px, 9.5cqh + 23px - 0.095 * var(--list-h, 0px),
+                               100cqw - 216px)), 1px);
 }
 /* Live C ends in a waveform running to the edge, like every other card here,
    so it takes no bottom padding. Its own frame parked three icons at the bottom
