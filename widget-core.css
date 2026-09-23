@@ -774,6 +774,24 @@ a.thumb-link:hover { opacity: .92; }
    It was also briefly folded into the selector group above, which quietly took
    back and forward down to 28 too and left them 36px buttons beside a 48px 1x. */
 .widget.c .hero-controls .h-btn[data-act="next"] img { width: 40px; height: 40px; }
+/* The skip allowance, drawn OVER the glyph rather than inside it.
+
+   It used to be part of the artwork: the supplied asset had a superscript 6 in
+   its path, so the number was a picture and could never tick down. Production
+   does not do that either. apps/listen's Next control renders a plain
+   SkipForward and lays the count over it as its own caption-3 Text, which is
+   exactly why theirs counts.
+
+   caption-3 is 12 / 600 / 16, tied to --ctl so it steps down with the button it
+   sits on instead of overflowing a 24px glyph at the bottom of the range. */
+.widget.c .h-btn.skip { position: relative; }
+.skip-n {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  z-index: 1; pointer-events: none;
+  color: var(--true-white); font-weight: 600; letter-spacing: var(--ls-0);
+  font-size: round(clamp(9px, var(--ctl, 40px) * 0.3, 12px), 1px);
+  line-height: round(clamp(12px, var(--ctl, 40px) * 0.4, 16px), 1px);
+}
 
 /* 1x sized to the buttons it now sits beside.
 
@@ -2143,6 +2161,15 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .toast-head {
   display: grid; grid-template-columns: 1fr auto;
   column-gap: var(--sp-8); align-items: start;
+}
+/* Accomplice's Notification title, subtitle-2 at its xsmall breakpoint:
+   16 / 600 / 24 with letterSpacing[0], which is -0.02rem at its 10px rem base
+   and so -0.2px here. */
+.toast-text { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.toast-title {
+  color: var(--ihr-grey-600); margin: 0;
+  font-size: var(--fs-16); line-height: var(--lh-24); font-weight: 600;
+  letter-spacing: var(--ls-0);
 }
 .toast-copy {
   color: var(--ihr-grey-600);

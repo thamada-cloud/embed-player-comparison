@@ -480,6 +480,15 @@ const mqs = (t) => `<span class="mqi">${esc(t)}</span>`;
    it separates rather than says anything. The marquee wrapper goes around the
    WHOLE line, because markOverflow measures one .mqi per line and nesting one
    inside another gave it two candidates and it measured the wrong one. */
+/* How many skips are left on this card, or null where the idea does not apply.
+   Only the simulated stations have an allowance: a podcast has no skip button
+   and live radio has no next. Undefined before the first play means the full
+   allowance, so the button reads 6 from the start rather than blank. */
+function skipsLeft(d) {
+  if (!d || !caps(d).stopNext) return null;
+  return d.skipsLeft === undefined ? SKIP_LIMIT_N : d.skipsLeft;
+}
+
 function trackArtistLine(track, artist, trackHref, artistHref) {
   return '<span class="mqi">' +
     maybeLink(trackHref, track, trackHref ? 'Open this song on iHeart' : null, true) +
@@ -530,6 +539,11 @@ function liveMeta(d) {
      artist   stop and skip next, NO scrubber, a Featured Artists list
      playlist the same as artist, with two idle lines instead of one
    --------------------------------------------------------------------------*/
+/* iHeart gives a free listener six skips an hour on a station. The number is
+   the product's, not a guess: it is what the shipping player counts down from,
+   and apps/listen's Next control shows it beside the button the same way. */
+const SKIP_LIMIT_N = 6;
+
 const CAPS = {
   podcast:  { seek: true,  speed: true,  scrub: true,  list: true,  topAction: 'list', rowsLive: true },
   episode:  { seek: true,  speed: true,  scrub: true,  list: false, topAction: 'info' },
@@ -1134,8 +1148,11 @@ ${listTail(d)}
               ${c.seek ? `
                 <button class="h-btn" data-act="fwd" aria-label="Forward 30 Seconds"><img src="assets/fwd30.svg" alt=""></button>` : ''}
               ${c.stopNext ? `
-                <button class="h-btn skip" data-act="next" aria-label="Next Track">
-                  <img src="assets/h-next.svg" alt=""></button>` : ''}
+                <button class="h-btn skip" data-act="next"
+                        aria-label="Next Track${skipsLeft(d) !== null ? ', ' + skipsLeft(d) + ' skips left' : ''}">
+                  <img src="assets/h-next.svg" alt="">
+                  ${skipsLeft(d) === null ? ''
+                    : `<span class="skip-n" aria-hidden="true">${skipsLeft(d)}</span>`}</button>` : ''}
             </span>
           </div>
           <div class="hero-bottom">
@@ -2021,7 +2038,7 @@ ${listTail(d)}
   /* The badge on skip next. The frames draw a 6 there and the RFD has a
      "Free User - Skip Limit" section, so it is a real product rule rather than
      decoration. Nothing enforces it here; the card is not signed in. */
-  const SKIP_LIMIT = 6;
+  const SKIP_LIMIT = SKIP_LIMIT_N;
 
   const VEIL_DELAY = variant === 'c' ? 0 : 5000;
 
@@ -2093,15 +2110,27 @@ ${listTail(d)}
     paintStream();
   }
   function skipTrack() {
-    if (!w.data || !caps(w.data).stopNext) return;
-    if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
-    if (w.skipsLeft <= 0) { authToast(); return; }
-    w.skipsLeft -= 1;
-    /* No badge to update any more. The supplied asset draws the count as part
-       of the glyph, so the 6 is artwork rather than state and cannot tick down.
-       The allowance is still enforced below, it simply is not shown counting.
-       Putting a live number back means overlaying it on the icon again. */
+    const d = w.data;
+    if (!d || !caps(d).stopNext) return;
+    if (d.skipsLeft === undefined) d.skipsLeft = SKIP_LIMIT;
+    /* Spent. The button stays live rather than going disabled, because pressing
+       it is how you find out why nothing happened, which is what production
+       does: it shows the toast and does not advance. */
+    if (d.skipsLeft <= 0) { skipToast(); return; }
+    d.skipsLeft -= 1;
+    paintSkips();
     nextTrack();
+  }
+
+  /* The count is its own layer over the glyph, so it can be written in place
+     rather than re-rendering the card under the listener. */
+  function paintSkips() {
+    const d = w.data; if (!d) return;
+    const n = skipsLeft(d);
+    if (n === null) return;
+    const el = q('.skip-n'); if (el) el.textContent = String(n);
+    const btn = q('.h-btn.skip');
+    if (btn) btn.setAttribute('aria-label', 'Next Track, ' + n + ' skips left');
   }
   /* Writes the three metadata lines and the backdrop in place. A re-render
      would rebuild the card under the listener every time a track changed, which
@@ -2143,7 +2172,7 @@ ${listTail(d)}
            metadata block shows a track, and a PAUSED card is still on a track,
            so it has to outlive playingSim. */
         w.data.startedSim = true;
-        if (w.skipsLeft === undefined) w.skipsLeft = SKIP_LIMIT;
+        if (w.data.skipsLeft === undefined) w.data.skipsLeft = SKIP_LIMIT;
         w.simTimer = setInterval(simTick, 1000);
       } else {
         /* Pause, not stop. These drew a stop square and reset to zero, on the
@@ -2764,7 +2793,27 @@ ${listTail(d)}
   const LOGIN_URL = 'https://account.iheart.com/login';
   const SIGNUP_URL = 'https://www.iheart.com/signup/';
 
+  /* Production's own copy, from apps/listen/app/playback/controls/next.tsx in
+     iheartradio/web: the US variant, title "You've reached your skip limit" over
+     "Want to listen on demand with unlimited skips?" and an upgrade CTA. The
+     international variant says "for now" and offers no upsell, since those
+     markets cannot buy the US plan; this prototype shows the US one. */
+  const SKIP_TITLE = "You've reached your skip limit";
+  const SKIP_COPY = 'Want to listen on demand with unlimited skips?';
+  const UPGRADE_URL = 'https://www.iheart.com/upgrade/';
+
+  function skipToast() {
+    showToast({ title: SKIP_TITLE, copy: SKIP_COPY,
+                actions: [{ label: 'Upgrade', href: UPGRADE_URL }] });
+  }
+
   function authToast() {
+    showToast({ copy: AUTH_COPY,
+                actions: [{ label: 'Log in', href: LOGIN_URL },
+                          { label: 'Sign up', href: SIGNUP_URL }] });
+  }
+
+  function showToast(opt) {
     /* The WIDGET, not overlayHost(). overlayHost() hands back .stage on the
        artwork cards, which is the picture and nothing else, so the toast was
        being centred inside the player while the episode list sat untouched
@@ -2785,13 +2834,17 @@ ${listTail(d)}
         '<img class="toast-icon" src="assets/info-filled.svg" alt="">' +
         '<div class="toast-body">' +
           '<div class="toast-head">' +
-            '<p class="toast-copy">' + esc(AUTH_COPY) + '</p>' +
+            '<div class="toast-text">' +
+              (opt.title ? '<p class="toast-title">' + esc(opt.title) + '</p>' : '') +
+              '<p class="toast-copy">' + esc(opt.copy) + '</p>' +
+            '</div>' +
             '<button class="toast-close" type="button" aria-label="Close">' +
               '<img src="assets/sheet-close.svg" alt=""></button>' +
           '</div>' +
           '<div class="toast-actions">' +
-            '<a class="toast-action" href="' + LOGIN_URL + '" target="_blank" rel="noopener">Log in</a>' +
-            '<a class="toast-action" href="' + SIGNUP_URL + '" target="_blank" rel="noopener">Sign up</a>' +
+            opt.actions.map((a) =>
+              '<a class="toast-action" href="' + esc(a.href) + '" target="_blank" rel="noopener">' +
+              esc(a.label) + '</a>').join('') +
           '</div>' +
         '</div>' +
       '</div>';
