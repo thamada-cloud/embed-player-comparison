@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260923204737">
+<link rel="stylesheet" href="widget-core.css?v=20260923212237">
 </head>
 <body data-bg="grey">
 
@@ -102,16 +102,19 @@
   </div>
   -->
 
-  <!-- Where the inline list takes over from the drawer. 300 is what the card
-       has shipped with; 170 and 240 are here to be compared against it, since
-       the threshold is a judgement about how much player a publisher is willing
-       to trade for a list. -->
+  <!-- Where the inline list takes over from the drawer. 300 is what the card has
+       shipped with; 170 and 240 are here to be compared against it, since the
+       threshold is a judgement about how much player a publisher is willing to
+       trade for a list. Reveal is a different shape altogether, the shipping
+       player's: the player holds its size while the list is uncovered, and only
+       grows once the list is full. -->
   <div class="colctl">
-    <label for="listat170">List at</label>
+    <label for="listat170">List</label>
     <span class="seg">
       <button type="button" id="listat170" data-listat="170" aria-pressed="false">170</button>
       <button type="button" data-listat="240" aria-pressed="false">240</button>
       <button type="button" data-listat="300" aria-pressed="true">300</button>
+      <button type="button" data-listat="reveal" aria-pressed="false">Reveal</button>
     </span>
   </div>
 
@@ -487,6 +490,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923204737"></script>
+<script src="widget-core.js?v=20260923212237"></script>
 </body>
 </html>

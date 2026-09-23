@@ -1403,17 +1403,52 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   }
 }
 @container (min-height: 300px) {
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c {
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c {
     --list-display: flex; --listbtn-display: none; --listsheet-display: none;
     --stage-min: 0;
   }
   /* --list-h only on the kinds that actually carry a list. Unscoped it docked
      the list's height off the episode and live cards too, which have none, and
      gave them a tile sized for a player area smaller than the one they have. */
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
-  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root:not([data-listat="170"]):not([data-listat="240"]):not([data-listat="reveal"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
     --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
+  }
+}
+
+/* "Reveal", the shipping player's shape rather than ours.
+
+   Ours decides a list height from the card and lets the stage take the rest, so
+   the list arrives whole at its threshold. The shipping embed has no height
+   logic at all: it draws one tall layout and the slot clips it, so as the slot
+   grows the list is uncovered a row at a time and the player never moves.
+
+   This reproduces that deliberately. The player holds 160 and the list takes
+   everything above it, up to the same 208 maximum the stepped modes use; past
+   that the list is full and the player grows instead. So:
+
+     card <= 172   no list, all player
+     173 to 368    player fixed at 160, list revealing 13 -> 208
+     above 368     list full at 208, player takes the rest
+
+   173 rather than 161, because .list carries 12px of top padding and every box
+   here is border-box, so the list cannot render shorter than that padding. From
+   161 to 172 it therefore sat at 12 while the clamp asked for less, and the
+   player was squeezed to 149 instead of holding its 160. Starting the reveal
+   where the list first clears its own padding keeps the player's hold exact.
+
+   No round(down, ...) here, which is the point: the reveal is partial rows by
+   design, where the stepped modes snap to whole ones and keep a constant peek. */
+@container (min-height: 173px) {
+  :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c {
+    --list-display: flex; --listbtn-display: none; --listsheet-display: none;
+    --stage-min: 0;
+  }
+  :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c[data-kind="podcast"],
+  :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c[data-kind="artist"],
+  :root[data-listat="reveal"]:not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
+    --list-h: clamp(0px, 100cqh - 160px, 208px);
   }
 }
 

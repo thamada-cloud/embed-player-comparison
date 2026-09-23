@@ -8,7 +8,7 @@
      embed slot on a host page and judged at the size that slot gives it.
      The card itself is the same code the prototype page runs, loaded from the
      same two files, so the two can never drift apart. -->
-<link rel="stylesheet" href="widget-core.css?v=20260923204737">
+<link rel="stylesheet" href="widget-core.css?v=20260923212237">
 <style>
   /* An embed fills the frame it is given. No page gutters, no max width, no
      chrome: whatever the host sized the iframe to is the whole budget. */
@@ -57,7 +57,7 @@ document.title = 'Audio widget, design ' + design.toUpperCase() + ', ' + mode;
 document.body.dataset.wave = (q.get('wave') || '').toLowerCase() === 'on' ? 'on' : 'off';
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260923204737"></script>
+<script src="widget-core.js?v=20260923212237"></script>
 <script>
 /* An embed cannot resize the box it is given, so it reports what it needs and
    leaves the decision to the host. This is the same shape as the usual embed
