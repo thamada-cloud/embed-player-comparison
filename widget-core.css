@@ -2203,7 +2203,14 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
      close      Button size icon, kind tertiary, color gray, nudged up 0.3rem
      actions    8 column gap, justified to the end, 8 of padding above
 
-   The region: the global one is fixed to the viewport, 500px wide from
+   SIZE. Accomplice's Notification steps its type up at shmedium, 560, and the
+   skip-limit caller steps its CTA up at medium, 769. Neither step is here. The
+   toast is pinned to the smaller of each pair at every card width, which is
+   what the card was asked for, and it is also the size that suits the surface,
+   since the toast sits inside a player that is usually far narrower than the
+   page around it. Every value below is accomplice's small one, unchanged.
+
+   The region. The global one is fixed to the viewport, 500px wide from
    shmedium up. An embed has no viewport worth speaking of, so this one is
    absolute inside the card that raised it, which is also the only honest place
    for it: the toast belongs to that player, not to the page hosting it. */
@@ -2238,13 +2245,18 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   font-size: var(--fs-16); line-height: var(--lh-24); font-weight: 600;
   letter-spacing: var(--ls-0);
 }
+/* Accomplice's Notification copy, body-4 at its xsmall breakpoint: 14 / 400
+   with letterSpacing[1], -0.05rem there and so -0.5px here. The 24 line height
+   is not body-4's own 18. Notification hard-sets lineHeight 2.4rem inline on
+   this span at EVERY breakpoint, so 24 is what the component actually renders.
+
+   It used to step to body-3, 16, at 560. It does not any more: the toast is
+   pinned to accomplice's small size at every card width. */
 .toast-copy {
   color: var(--ihr-grey-600);
   font-size: var(--fs-14); line-height: 24px; font-weight: 400;
   letter-spacing: var(--ls-1); margin: 0;
 }
-/* body-3 from shmedium up, which is the breakpoint the component switches on. */
-@container (min-width: 560px) { .toast-copy { font-size: var(--fs-16); } }
 .toast-close {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   padding: var(--sp-4); aspect-ratio: 1 / 1; border-radius: var(--rad-999);
@@ -2257,9 +2269,14 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   display: flex; column-gap: var(--sp-8); justify-content: flex-end;
   padding-top: var(--sp-8);
 }
-/* The CTA asks for size small on mobile and large from medium up. These cards
-   are narrow, so small, and the wide size follows the same container query the
-   copy does. Tertiary and gray, with gray600 text, per getAuthCTAToastProps. */
+/* Button size small, which is where the CTA now stays at every card width.
+   The skip-limit caller asks for { medium: 'large', xsmall: 'small' }, so its
+   large size arrives at medium, 769, not at shmedium. Either way the toast is
+   pinned to small now, so the step is gone rather than corrected.
+
+   Accomplice's small: height space[32], padding space[8] space[16], button-2,
+   which is 14 / 600 / 16 with letterSpacing[0], -0.2px here. Tertiary and gray
+   with gray600 text, per getAuthCTAToastProps. */
 .toast-action {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   color: var(--ihr-grey-600); text-decoration: none;
@@ -2268,10 +2285,6 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   display: inline-flex; align-items: center; justify-content: center;
   font-family: inherit; font-size: var(--fs-14); line-height: var(--lh-16);
   font-weight: 600; letter-spacing: var(--ls-0);
-}
-@container (min-width: 560px) {
-  .toast-action { height: var(--sp-48); padding: var(--sp-12) var(--sp-24);
-                  font-size: var(--fs-16); line-height: var(--lh-24); }
 }
 .toast-action:hover, .toast-action:active { background-color: var(--ihr-gray-300); }
 .toast-close:focus-visible, .toast-action:focus-visible {
