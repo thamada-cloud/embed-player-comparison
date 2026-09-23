@@ -2812,11 +2812,22 @@ ${listTail(d)}
      markets cannot buy the US plan; this prototype shows the US one. */
   const SKIP_TITLE = "You've reached your skip limit";
   const SKIP_COPY = 'Want to listen on demand with unlimited skips?';
-  const UPGRADE_URL = 'https://www.iheart.com/upgrade/';
+  /* The action's words are the component's, not ours: accomplice's
+     UpgradeCTANotification builds it as "Listen with {iheart} All Access" with
+     iheart interpolated as "iHeartRadio". It said "Upgrade" here, which is not a
+     label iHeart uses anywhere.
+
+     account.iheart.com/subscribe is what production actually opens, from
+     makeSubscribeUrl in apps/listen; it serves "Manage Your Subscription".
+     www.iheart.com/upgrade/ was a guess and a wrong one: it answers 200 but
+     resolves to a radio station page, 107.5 The River in Nashville, so the CTA
+     was sending people to a station. */
+  const SKIP_CTA = 'Listen with iHeartRadio All Access';
+  const SUBSCRIBE_URL = 'https://account.iheart.com/subscribe';
 
   function skipToast() {
     showToast({ title: SKIP_TITLE, copy: SKIP_COPY,
-                actions: [{ label: 'Upgrade', href: UPGRADE_URL }] });
+                actions: [{ label: SKIP_CTA, href: SUBSCRIBE_URL }] });
   }
 
   function authToast() {
