@@ -1616,6 +1616,57 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    it is 14px of logotype on an 18px line. Design C only: the other designs
    still put controls here. */
 .widget.c .list-row { min-height: 24px; }
+
+/* ---------- player_container spacing, frame 2700:561776 ----------
+   Design C only. The card carries `widget hero c`, so several of these are
+   overriding a value the hero card set for its own frames, not a value chosen
+   for this one.
+
+   The frame puts a flat 8 of padding on player_container and nothing on its
+   three children. Ours pushes the horizontal 8 onto each child instead, which
+   lands in the same place, so only the values that actually differ are here.
+
+     bottom_bar gap          2, was 4
+     Slider inset            8, was 16, the hero card's own value
+     player_container bottom 8, was up to 4
+     middle_bar padding      2 top and bottom, was 0
+     right_buttons gap       4, was 8
+
+   c-rows is ours, not the frame's. It exists because the live card has no
+   scrubber, so it wraps the two rows the frame keeps directly in bottom_bar.
+   It therefore carries the frame's bottom_bar gap, and hero-bottom carries it
+   too for the cards where c-rows is not there. */
+.widget.c .hero-bottom, .widget.c .c-rows { gap: 2px; }
+
+/* The hero card insets its scrubber 16, which put the time labels 8 further in
+   than the artwork above them and the lockup below. The frame runs the slider
+   the full width of the padded container, so it aligns with both. --card-pad,
+   not a flat 8, so it closes up with everything else on a 50px card. */
+.widget.c .slider { padding: 0 var(--card-pad, 8px); }
+
+/* The frame's bottom padding is 8, the same as the other three sides. The hero
+   card's --card-padb tops out at 4 and closes to 0 under compression, and the
+   compression is worth keeping, so this reaches the frame's 8 at exactly the
+   160 the frame is specified from and gives the room back below that. 5cqh is
+   what puts 8 at 160. */
+.shell[data-fill] .widget.c .hero-bottom { padding-bottom: round(clamp(0px, 5cqh, 8px), 1px); }
+
+/* middle_bar is 2 above and below playback_controls, which is what makes the
+   frame's middle block 68 rather than 64 and is already the number the Figma
+   list mode's artwork rule is derived from. The compact row zeroes this along
+   with the rest of the padding when it takes the controls out of the column. */
+.widget.c .hero-controls { padding: 2px var(--card-pad, 8px); }
+
+/* The frame's two control groups are not symmetrical. left_buttons is gap 8 and
+   right_buttons is gap 4, so the right group is copied here as its own value.
+
+   right_buttons also carries 4 of padding where left_buttons carries none, and
+   that one is NOT copied. It is the only value in the frame that would move a
+   control off-centre against its opposite number, 12 from the play button on
+   the right against 8 on the left, and it reads as a drafting slip rather than
+   an intent. Say the word and it goes in. */
+.widget.c .hero-controls .cc-side + .hero-play ~ .cc-side,
+.widget.c .hero-controls .cc-side:last-child { gap: var(--sp-4); }
 .list-row { display: flex; justify-content: space-between; align-items: center;
             gap: var(--sp-4); min-height: 32px;
             padding: 0 var(--card-pad, 8px); box-sizing: border-box; }
