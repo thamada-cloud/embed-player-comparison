@@ -1524,7 +1524,7 @@ ${listTail(d)}
         setTimeout(() => { labelEl.textContent = was; }, 5000);
       };
       sheetEl.addEventListener('click', (e) => {
-        const code = e.target.closest('.share-copy');
+        const code = e.target.closest('[data-share="code"]');
         if (code) {
           if (navigator.clipboard) navigator.clipboard.writeText(code.dataset.code || '');
           flash(code.querySelector('.lbl'));
@@ -1535,20 +1535,6 @@ ${listTail(d)}
           if (navigator.clipboard) navigator.clipboard.writeText(sheetEl.dataset.url || '');
           flash(link.querySelector('.lbl'));
           return;
-        }
-        const more = e.target.closest('[data-share="more"]');
-        if (more) {
-          const url = sheetEl.dataset.url || '';
-          /* navigator.share needs a user gesture and a secure context, and it
-             rejects when the person dismisses the sheet, which is not an error
-             worth reporting. Anything it cannot do falls back to the clipboard,
-             so the button always does something. */
-          if (navigator.share) {
-            navigator.share({ url, title: (w.data && w.data.title) || '' }).catch(() => {});
-          } else {
-            if (navigator.clipboard) navigator.clipboard.writeText(url);
-            flash(more.querySelector('.lbl'));
-          }
         }
       });
     }
@@ -1909,18 +1895,15 @@ ${listTail(d)}
       '" frameborder="0"></iframe>';
     const set = (sel, fn) => { const el = sheet.querySelector(sel); if (el) fn(el); };
     sheet.dataset.url = f.url;
-    set('.share-name', (el) => { el.textContent = f.title || ''; });
-    /* Both lines. Setting only the first is what printed the show name twice
-       when the base case changed under it. */
-    set('.share-desc', (el) => { el.textContent = f.sub || ''; });
-    set('.share-art', (el) => { el.src = f.art || ''; });
+    /* The artwork, title and description this used to retarget are gone with
+       the frame's body, which is four buttons and nothing else. What is left to
+       retarget is everything that carries the URL. */
     set('[data-share="facebook"]', (el) => {
       el.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(f.url); });
     set('[data-share="x"]', (el) => {
       el.href = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(f.url) +
                 '&text=' + encodeURIComponent(f.title || ''); });
-    set('.share-embed input', (el) => { el.value = embedCode; });
-    set('.share-copy', (el) => { el.dataset.code = embedCode; });
+    set('[data-share="code"]', (el) => { el.dataset.code = embedCode; });
   }
 
   /* Choosing an episode from the list.
@@ -2455,10 +2438,15 @@ ${listTail(d)}
      opens from this icon. Title, sections and the embed snippet all come from
      apps/listen/app/components/social-share.
 
-     The three targets are drawn with neutral glyphs rather than the platforms'
-     own marks. Those are trademarks and this is a public repo; the row's
-     structure, sizes and labels are what the prototype is testing, and a
-     circle with the platform's name under it carries both. */
+     Facebook and X are drawn with a neutral glyph rather than the platforms'
+     own marks, which is the one place this drawer departs from frame
+     2709:580630. Those marks are trademarks and this is a public repo; the
+     row's structure, sizes and labels are what the prototype is testing, and a
+     circle with the platform's name under it carries both.
+
+     The "More" target and its glyph are gone. The frame draws five button
+     groups and hides the fifth, so four is what it specifies: Copy link,
+     Facebook, X, Copy code. */
   const GLYPH_COPY =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="2"/>' +
@@ -2468,11 +2456,13 @@ ${listTail(d)}
     '<path d="M14 4h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="M20 4 10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
     '<path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-  const GLYPH_MORE =
+  /* The frame's fourth target is accomplice's `embed` icon, 2709:580731, a pair
+     of angle brackets. A code symbol rather than a mark, so unlike the two
+     platform logos there is nothing here to reproduce a trademark of. */
+  const GLYPH_EMBED =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-    '<circle cx="5" cy="12" r="2" fill="currentColor"/>' +
-    '<circle cx="12" cy="12" r="2" fill="currentColor"/>' +
-    '<circle cx="19" cy="12" r="2" fill="currentColor"/></svg>';
+    '<path d="m8 7-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="m16 7 5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const GLYPH_X =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -2671,15 +2661,25 @@ ${listTail(d)}
       </div>`;
   }
 
+  /* Frame 2709:580630, 350 by 166. A 64 header over a 16-padded body holding one
+     row of four targets, and nothing else.
+
+     What it replaced carried the item's artwork, its name and description, a
+     "Share on" section over three targets, and an "Embed widget" section with a
+     read-only input beside a filled Copy button. None of that is in this frame.
+     The embed code survives as the fourth target. */
   function shareMarkup(d) {
     if (!d) return '';
-    const isLive = d.kind === 'live';
     /* Read off the Design D share drawer frames rather than derived. Both
        podcast kinds say "Share Podcast", which is the frames' answer and not a
        slip: 2670:137239 on the show and 2670:137412 on the episode both say it.
        The heading names the KIND, and the drawer body names the item, which is
-       why picking Share Episode from a row overflow retargets the body and
-       leaves this alone. */
+       why picking Share Episode from a row overflow retargets the URL every
+       target carries and leaves this alone.
+
+       .share-live is gone with the artwork it existed for. It did one thing,
+       fitting a station logo inside a 56px tile with `object-fit: contain`, and
+       there is no tile in this drawer any more. */
     const title = SHARE_TITLE[d.kind] || 'Share';
     const pageUrl = shareFields(d, null).url;
     const embedCode = '<iframe allow="autoplay" width="100%" height="' + embedHeight(d) + '" src="' +
@@ -2687,7 +2687,7 @@ ${listTail(d)}
       '" frameborder="0"></iframe>';
     return `
       <div class="share-scrim" data-act="share" aria-hidden="true"></div>
-      <div class="share-sheet${isLive ? ' share-live' : ''}" role="dialog"
+      <div class="share-sheet" role="dialog"
            aria-label="${esc(title)}" aria-hidden="true" data-url="${esc(pageUrl)}">
        <div class="share-panel">
         <div class="share-head">
@@ -2696,15 +2696,7 @@ ${listTail(d)}
             <img src="assets/sheet-close.svg" alt=""></button>
         </div>
         <div class="share-body">
-          <div class="share-head-row">
-            <img class="share-art${shareMeta(d).round ? ' round' : ''}" src="${esc(d.art || '')}" alt="">
-            <div class="share-names">
-              <p class="share-name">${esc(shareFields(d, null).title || '')}</p>
-              ${shareFields(d, null).sub
-                ? `<p class="share-desc">${esc(shareFields(d, null).sub)}</p>` : ''}
-            </div>
-          </div>
-          <div class="share-section"><p>Share on</p><div class="share-targets">
+          <div class="share-targets">
             <button class="share-target" type="button" data-share="copy">
               <span class="ring">${GLYPH_COPY}</span><span class="lbl">Copy link</span></button>
             <a class="share-target" data-share="facebook" target="_blank" rel="noopener"
@@ -2713,19 +2705,15 @@ ${listTail(d)}
             <a class="share-target" data-share="x" target="_blank" rel="noopener"
                href="https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(d.title || '')}">
               <span class="ring">${GLYPH_OUT}</span><span class="lbl">X</span></a>
-            <!-- The frames draw four targets and this one was missing. It hands
-                 off to the platform's own share sheet where there is one, and
-                 falls back to copying the link where there is not, which is the
-                 only thing a web page can honestly offer in its place. -->
-            <button class="share-target" type="button" data-share="more">
-              <span class="ring">${GLYPH_MORE}</span><span class="lbl">More</span></button>
-          </div></div>
-          <div class="share-section" style="width:100%"><p>Embed widget</p>
-            <div class="share-embed">
-              <input name="embed-code" readonly disabled value="${esc(embedCode)}">
-              <button class="share-copy" type="button" data-code="${esc(embedCode)}">
-                ${GLYPH_COPY}<span class="lbl">Copy code</span></button>
-            </div>
+            <!-- The embed snippet is this button now rather than a labelled
+                 section with a read-only input beside a filled Copy button. The
+                 frame makes it the fourth target in the same row as the other
+                 three, so the code is carried on the button and goes straight to
+                 the clipboard. Nothing is lost: the input was disabled and
+                 readonly, so copying was always the only thing it was for. -->
+            <button class="share-target" type="button" data-share="code"
+                    data-code="${esc(embedCode)}">
+              <span class="ring">${GLYPH_EMBED}</span><span class="lbl">Copy code</span></button>
           </div>
         </div>
        </div>

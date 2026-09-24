@@ -2577,8 +2577,17 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .widget.drawer-prep .sheet-panel { transition: none; }
 .widget.drawer-prep .share-scrim { visibility: visible; transition: none; }
 .share-panel {
-  /* Full height, for the reason .sheet-panel is. */
-  pointer-events: auto; width: 100%; height: 100%; max-height: 100%;
+  /* Content height, not full height, which is the other two drawers' shape but
+     not this one's. Frame 2709:580630 is 350 by 166 and that 166 is its whole
+     content: a 64 header over an 86 body. The old drawer needed the height
+     because it carried artwork, a name, two labelled sections and an input; the
+     frame's body is four buttons. Left full height it would have been a white
+     field with a row of icons stranded at the top.
+
+     .share-sheet is already justify-content: flex-end, so the panel lands on the
+     bottom edge with no anchoring of its own. max-height keeps it inside a card
+     shorter than it is, and the body scrolls in that case. */
+  pointer-events: auto; width: 100%; height: auto; max-height: 100%;
   background-color: var(--true-white); color: var(--ihr-gray-500);
   border-radius: var(--rad-6) var(--rad-6) 0 0;
   display: flex; flex-direction: column; justify-content: flex-start;
@@ -2611,14 +2620,30 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 @media (prefers-reduced-motion: reduce) {
   .share-scrim, .share-sheet, .share-panel { transition: none; }
 }
+/* 64, not the 56 this was.
+
+   The 56 came from accomplice's Drawer headingStyles, which is a plain height
+   5.6rem bar. Frame 2709:580630 uses the newer header instead, 16 of padding
+   around a 32 row, so 64, and that is already what the episode and info drawers
+   on this card do. The share drawer was the odd one out.
+
+   Two values follow the component rather than the frame, both the same calls
+   already made on .sheet-head. The frame top-aligns the title against the close
+   button, which sits it 4px above centre; centred is what every other drawer
+   header does and what accomplice does. And the tracking is -0.5, the value the
+   component carries, where the frame's H5 type style says 0. */
 .share-head {
-  display: flex; align-items: center; justify-content: space-between;
-  height: 56px; flex: none; width: 100%; overflow: hidden; margin: 0;
-  padding: 0 var(--sp-16); box-sizing: border-box;
+  display: flex; align-items: center; gap: var(--sp-16);
+  flex: none; width: 100%; overflow: hidden; margin: 0;
+  padding: var(--sp-16); box-sizing: border-box;
   background-color: var(--ihr-gray-200); color: var(--ihr-grey-600);
-  font-weight: 700; font-size: var(--fs-18); letter-spacing: var(--ls-1);
 }
-.share-head h2 { margin: 0; font: inherit; }
+.share-head h2 {
+  flex: 1 1 auto; min-width: 0; margin: 0;
+  font-size: var(--fs-18); line-height: var(--lh-24); font-weight: 700;
+  letter-spacing: var(--ls-1);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .share-close {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   flex: 0 0 auto; padding: var(--sp-4); aspect-ratio: 1 / 1;
@@ -2629,88 +2654,39 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .share-close:hover, .share-close:active { background-color: var(--ihr-gray-300); }
 .share-close:focus-visible { outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: -2px; }
 
+/* The frame's Drawer Body, 16 of padding and one row. The gap is kept for the
+   column that now has a single child, so a second section costs nothing later.
+   The artwork, the name and description, and the two "Share on" and "Embed
+   widget" section labels are all gone: the frame draws none of them. */
 .share-body {
   overflow: auto; padding: var(--sp-16); display: flex; flex-direction: column;
-  gap: var(--sp-16); font-size: var(--fs-16); line-height: var(--lh-24);
-  letter-spacing: var(--ls-1);
+  gap: var(--sp-16);
 }
-.share-head-row { display: flex; flex-direction: row; gap: var(--sp-12); }
-.share-art {
-  min-width: 56px; width: 56px; height: 56px; border-radius: var(--rad-6);
-  box-shadow: var(--elevation1); object-fit: cover; background: var(--true-white);
-}
-.share-live .share-art { object-fit: contain; padding: 3px; }
-/* Artist radio alone, which frame 2666:131704 draws as a circle where the other
-   four are rounded squares, the same split the cards' own thumbnails make. */
-.share-art.round { border-radius: 50%; }
-.share-names {
-  display: flex; flex-direction: column; align-items: flex-start;
-  justify-content: center; min-width: 0; text-align: left;
-}
-.share-name {
-  margin: 0; color: var(--ihr-grey-600);
-  font-size: var(--fs-14); line-height: var(--lh-18); font-weight: 600;
-  letter-spacing: var(--ls-0);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
-}
-.share-desc {
-  margin: 0; color: var(--ihr-grey-450);
-  font-size: var(--fs-12); line-height: var(--lh-16); font-weight: 400;
-  letter-spacing: var(--ls-4);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
-}
-.share-section {
-  display: flex; flex-direction: column; align-items: flex-start;
-  justify-content: center; gap: var(--sp-8);
-}
-.share-section > p {
-  margin: 0; color: var(--ihr-grey-600);
-  font-size: var(--fs-13); line-height: var(--lh-16); font-weight: 600;
-  letter-spacing: var(--ls-0);
-}
+/* Icons Buttons, 2709:580663. */
 .share-targets { display: flex; flex-direction: row; gap: var(--sp-8); }
+/* Button Group, 2709:580664. A 48 circle over a 10px label, 8 between them. */
 .share-target {
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: var(--sp-8);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: var(--sp-8);
   font-family: inherit; color: var(--ihr-grey-600);
   font-size: var(--fs-10); line-height: var(--lh-14); font-weight: 400;
   letter-spacing: var(--ls-4); padding: 0; text-decoration: none;
+  flex: 0 0 auto; white-space: nowrap;
 }
+/* Button Icon, white with elevation1, 4 of padding around a 40 glyph. */
 .share-target span.ring {
-  width: 48px; height: 48px; padding: var(--sp-4);
+  width: 48px; height: 48px; padding: var(--sp-4); box-sizing: border-box;
   border-radius: var(--rad-999); background-color: var(--true-white);
   box-shadow: var(--elevation1);
   display: flex; align-items: center; justify-content: center;
 }
-.share-target svg { width: 32px; height: 32px; display: block; }
-.share-target[data-share="copy"] svg { width: 40px; height: 40px; }
+/* 40, all four. It used to be 32 with Copy link alone at 40, which made that
+   one target read as a size larger than its neighbours. The frame draws every
+   Button Icon at 40. */
+.share-target svg { width: 40px; height: 40px; display: block; }
 .share-target:hover span.ring { background-color: var(--ihr-grey-150); }
 .share-target:focus-visible span.ring { outline: var(--border-2) solid var(--ihr-blue-600); outline-offset: 2px; }
-
-.share-embed { display: flex; flex-direction: row; align-items: center;
-               gap: var(--sp-4); justify-content: center; width: 100%; }
-/* Input kind "flushed": a bottom rule only. */
-.share-embed input {
-  flex: 1 1 0; min-width: 0; font-family: inherit;
-  font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-1);
-  color: var(--ihr-grey-450); background: transparent;
-  border: 0; border-bottom: 1px solid var(--ihr-gray-350);
-  padding: var(--sp-4) 0; text-overflow: ellipsis;
-}
-/* Button kind primary, color defaultInverted, size small: gray600 on light. */
-.share-copy {
-  appearance: none; border: 0; cursor: pointer; flex: 0 0 auto;
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
-  height: var(--sp-32); padding: var(--sp-8) var(--sp-16);
-  border-radius: var(--rad-999);
-  background-color: var(--ihr-grey-600); color: var(--true-white);
-  font-family: inherit; font-size: var(--fs-14); line-height: var(--lh-16);
-  font-weight: 600; letter-spacing: var(--ls-0); white-space: nowrap;
-}
-.share-copy svg { width: 16px; height: 16px; display: block; }
-@media (pointer: fine) { .share-copy:hover { background-color: var(--ihr-gray-300); } }
-.share-copy:active { background-color: var(--ihr-gray-300); transform: scale(.95); }
-.share-copy:focus-visible { outline: var(--border-2) solid var(--ihr-blue-400); outline-offset: 2px; }
 
 /* ---------- accomplice Menu, the playback speed list ----------
    From components/menu/menu.css.ts, and the item set from
