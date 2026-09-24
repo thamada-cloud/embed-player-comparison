@@ -2727,6 +2727,14 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   font-size: var(--fs-14); line-height: var(--lh-18); letter-spacing: var(--ls-1);
   text-align: left; user-select: none; overflow: hidden;
 }
+/* The leading glyph, accomplice's ShareMenuItem: <Share size={18} /> before the
+   text, at the row's own colour. A row without one is not indented to match;
+   production mixes the two in the same menu and lets the text start where it
+   starts. */
+.ihr-menu .mi-icon { flex: 0 0 auto; display: flex; align-items: center; }
+.ihr-menu .mi-icon svg { width: 18px; height: 18px; display: block; }
+.ihr-menu .mi-label { min-width: 0; overflow: hidden; text-overflow: ellipsis;
+                      white-space: nowrap; }
 .ihr-menu button:hover, .ihr-menu button:focus-visible,
 .ihr-menu button[aria-checked="true"] { background-color: var(--ihr-grey-250); }
 .ihr-menu button:active { background-color: var(--ihr-grey-200); }

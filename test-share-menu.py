@@ -3,14 +3,24 @@
 Item sets are production's, from apps/listen:
 
   podcast   Share Podcast        always          podcast-hero.tsx
-            Share Episode        while playing
+            Share Episode        always
             Share from {time}    while playing
   episode   Share Episode        always          episode-hero.tsx, which renders
             Share from {time}    while playing     SocialShareEpisode and then
             Share Podcast        always            a Share Podcast item
 
-Both gate the episode-level items on playing, which is the only honest place for
-"Share from {time}" since there is no position to name until something plays.
+Only "Share from {time}" waits for playback, since there is no position to name
+until something is playing. That is one step away from production, which also
+gates Share Episode on the podcast hero, and the reason is that iheart.com's
+show page has no episode selected until you start one. This card always has one:
+its top bar shows an episode title before you press anything and the list marks
+which row it is. Gating it made the podcast player's menu a single item while
+the episode player's had two, for no reason a viewer could see.
+
+Every row carries accomplice's Share glyph at 18, which is what ShareMenuItem
+draws when it is passed `icon`, and every caller passes it. The row overflow is
+asserted mixed, share with a glyph and View Episode Info without, because
+go-to-episode-link.tsx renders a plain MenuItem.
 
 The drawer heading follows the pick, and "Share from {time}" is the exception
 that proves it: it hands over the EPISODE url with ?position= on it and is still
@@ -32,7 +42,12 @@ PORT = 8803
 URL = 'http://localhost:%d/widget.html' % PORT
 FAILED = 0
 
-ITEMS = "(k)=>[...document.querySelectorAll('#w-'+k+'-c .ihr-menu button')].map(b=>b.textContent)"
+ITEMS = ("(k)=>[...document.querySelectorAll('#w-'+k+'-c .ihr-menu button')]"
+         ".map(b=>b.querySelector('.mi-label').textContent)")
+GLYPHS = ("(k)=>[...document.querySelectorAll('#w-'+k+'-c .ihr-menu button')].map(b=>{"
+          "const s=b.querySelector('.mi-icon svg'); if(!s) return 'none';"
+          "const r=s.getBoundingClientRect();"
+          "return Math.round(r.width)+'x'+Math.round(r.height);})")
 TITLE = "(k)=>{const h=document.querySelector('#w-'+k+'-c .share-head h2'); return h?h.textContent:null;}"
 SHEETURL = "(k)=>document.querySelector('#w-'+k+'-c .share-sheet').dataset.url"
 OPEN = "(k)=>document.querySelector('#w-'+k+'-c .widget').classList.contains('share-open')"
@@ -56,7 +71,7 @@ async def main():
 
         print('  --- item sets')
         for kind, idle, playing in (
-            ('podcast', ['Share Podcast'],
+            ('podcast', ['Share Podcast', 'Share Episode'],
              ['Share Podcast', 'Share Episode', 'SHAREFROM']),
             ('episode', ['Share Episode', 'Share Podcast'],
              ['Share Episode', 'SHAREFROM', 'Share Podcast']),
@@ -70,6 +85,8 @@ async def main():
             got = await pg.evaluate(ITEMS, kind)
             shaped = [('SHAREFROM' if re.fullmatch(r'Share from \d+:\d\d', x) else x) for x in got]
             ck(f'{kind} while playing', shaped, playing)
+            ck(f'{kind} every row carries the Share glyph at 18',
+               await pg.evaluate(GLYPHS, kind), ['18x18'] * len(playing))
             await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)
             await pg.click(f'#w-{kind}-c .hero-play'); await pg.wait_for_timeout(700)
 
@@ -100,6 +117,29 @@ async def main():
            url.split('?position=')[1], str(int(m) * 60 + int(sec)))
         await pg.click('#w-podcast-c .share-close'); await pg.wait_for_timeout(900)
         await pg.click('#w-podcast-c .hero-play'); await pg.wait_for_timeout(600)
+
+        print('  --- the episode row overflow, which production draws mixed')
+        await pg.evaluate("()=>{const s=document.getElementById('heightRange');"
+                          "s.value='600';s.dispatchEvent(new Event('input',{bubbles:true}));}")
+        await pg.wait_for_timeout(700)
+        await pg.click('#w-podcast-c .list .row-more'); await pg.wait_for_timeout(700)
+        ck('row overflow items', await pg.evaluate(ITEMS, 'podcast'),
+           ['View Episode Info', 'Share Episode'])
+        ck('share has a glyph, info does not',
+           await pg.evaluate(GLYPHS, 'podcast'), ['none', '18x18'])
+        await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)
+
+        print('  --- the speed menu is untouched by the glyph column')
+        await pg.click('#w-podcast-c .hero-play'); await pg.wait_for_timeout(2200)
+        await pg.click('#w-podcast-c .h-btn[data-act="speed"]'); await pg.wait_for_timeout(700)
+        ck('speed items carry no glyph', set(await pg.evaluate(GLYPHS, 'podcast')), {'none'})
+        ck('speed items still read back', await pg.evaluate(ITEMS, 'podcast'),
+           lambda v: len(v) == 5 and v[1] == '1x')
+        await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)
+        await pg.click('#w-podcast-c .hero-play'); await pg.wait_for_timeout(600)
+        await pg.evaluate("()=>{const s=document.getElementById('heightRange');"
+                          "s.value='420';s.dispatchEvent(new Event('input',{bubbles:true}));}")
+        await pg.wait_for_timeout(600)
 
         print('  --- the kinds with nothing to choose between')
         for kind, title in (('live', 'Share Station'), ('artist', 'Share Artist Radio'),

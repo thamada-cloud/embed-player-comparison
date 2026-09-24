@@ -1825,9 +1825,12 @@ ${listTail(d)}
       className: 'row-menu',
       alignRight: true,
       /* Follow Podcast was the first item and has been removed. */
+      /* Mixed, the way production renders it. ShareMenuItem is passed `icon` in
+         every caller and draws a Share at 18 before its label; the info item is
+         a plain MenuItem in go-to-episode-link.tsx and carries none. */
       items: [
         { value: 'epinfo', label: 'View Episode Info' },
-        { value: 'share',  label: 'Share Episode' }
+        { value: 'share',  label: 'Share Episode', icon: GLYPH_SHARE }
       ],
       onPick: (value) => {
         if (value === 'share') { retargetShare(r); shareDialog(true); return; }
@@ -1934,15 +1937,23 @@ ${listTail(d)}
   const hasShareMenu = (d) => !!d && (d.kind === 'podcast' || d.kind === 'episode');
 
   function shareItems(d, at) {
-    const playing = !!w.playing;
-    const from = { value: 'position', label: 'Share from ' + shareClock(at) };
+    const item = (value, label) => ({ value, label, icon: GLYPH_SHARE });
+    /* "Share from {time}" is the only one that has to wait for playback, since
+       there is no position to name until something is playing. The other two do
+       not, which is where this parts company with production.
+
+       Production's podcast hero gates Share Episode on playing too, because on
+       iheart.com a show page has no episode selected until you start one. This
+       card always has one: its top bar is showing an episode title before you
+       press anything, and the list below it marks which row that is. Offering
+       the show but not the episode it is visibly displaying made the podcast
+       player's menu a single item while the episode player's had two, which is
+       the asymmetry this removes. */
+    const from = w.playing ? [item('position', 'Share from ' + shareClock(at))] : [];
     if (d.kind === 'podcast') {
-      return [{ value: 'podcast', label: 'Share Podcast' }].concat(
-        playing ? [{ value: 'episode', label: 'Share Episode' }, from] : []);
+      return [item('podcast', 'Share Podcast'), item('episode', 'Share Episode')].concat(from);
     }
-    return [{ value: 'episode', label: 'Share Episode' }]
-      .concat(playing ? [from] : [])
-      .concat([{ value: 'podcast', label: 'Share Podcast' }]);
+    return [item('episode', 'Share Episode')].concat(from, [item('podcast', 'Share Podcast')]);
   }
 
   function shareMenu(btn) {
@@ -2558,6 +2569,15 @@ ${listTail(d)}
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="m8 7-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="m16 7 5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /* accomplice's Share icon, the same two paths assets/h-share.svg carries, at
+     currentColor rather than the asset's fixed grey-200. The asset is drawn for
+     the top bar, which sits on artwork and needs a light glyph; a menu row is
+     dark text on white, so the light one was invisible there. Inline rather
+     than a second file because the menu can then take the row's own colour. */
+  const GLYPH_SHARE =
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path d="M12.272 3.13268C12.1091 2.95439 11.8211 2.95602 11.6602 3.13614L8.95432 6.16735C8.65022 6.50803 8.69009 7.02189 9.04358 7.31508C9.39687 7.60828 9.92987 7.56978 10.234 7.2291L11.1875 6.161V13.917C11.1875 14.3511 11.5513 14.7031 12 14.7031C12.4487 14.7031 12.8125 14.3511 12.8125 13.917V6.18601L13.7724 7.23627C14.0806 7.5735 14.614 7.60599 14.964 7.30883C15.3137 7.01168 15.3474 6.49741 15.0391 6.16018L12.272 3.13268Z" fill="currentColor"/>' +
+    '<path d="M5.5 9.92427C5.5 9.11345 6.18317 8.46797 7.01154 8.46797H8.75C9.1987 8.46797 9.5625 8.8199 9.5625 9.25402C9.5625 9.68815 9.1987 10.0401 8.75 10.0401H7.125V19.3029H16.875V10.0401H15.25C14.8013 10.0401 14.4375 9.68815 14.4375 9.25402C14.4375 8.8199 14.8013 8.46797 15.25 8.46797H16.9889C17.817 8.46797 18.5 9.11374 18.5 9.92427V19.4191C18.5 20.2295 17.8168 20.875 16.9889 20.875H7.01154C6.18356 20.875 5.5 20.2298 5.5 19.4191V9.92427Z" fill="currentColor"/></svg>';
   const GLYPH_X =
     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -2615,11 +2635,14 @@ ${listTail(d)}
     menu.className = 'ihr-menu' + (opts.className ? ' ' + opts.className : '');
     menu.setAttribute('role', 'menu');
     menu.setAttribute('aria-label', opts.label);
+    /* it.icon is an SVG string from the GLYPH_ table above, never anything that
+       came off the wire, so it goes in unescaped where the label does not. */
     menu.innerHTML = opts.items.map((it) =>
       '<button type="button" role="' + (it.checked === undefined ? 'menuitem' : 'menuitemradio') + '"' +
       ' data-value="' + esc(String(it.value)) + '"' +
       (it.checked === undefined ? '' : ' aria-checked="' + (it.checked ? 'true' : 'false') + '"') +
-      '>' + esc(it.label) + '</button>'
+      '>' + (it.icon ? '<span class="mi-icon">' + it.icon + '</span>' : '') +
+      '<span class="mi-label">' + esc(it.label) + '</span></button>'
     ).join('');
 
     menu.addEventListener('click', (e) => {
