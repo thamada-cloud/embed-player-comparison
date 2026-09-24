@@ -14,6 +14,13 @@ pass without proving anything:
 
   If the click misses, nothing re-renders and the scroll position survives for
   the wrong reason. So it also asserts the episode actually changed.
+
+  A row can also be the episode that is ALREADY loaded, in which case clicking
+  it correctly resumes rather than re-rendering, and the test would read that as
+  a missed click. The two cases below scroll to the same place in the same list,
+  so whichever episode the first one selects is sitting under the second one's
+  cursor. Each case therefore skips past a row that is already current and takes
+  the next fully visible one.
 """
 import asyncio, subprocess, sys, time
 from playwright.async_api import async_playwright
@@ -25,9 +32,14 @@ bad = []
 VISIBLE = """(sel) => {
   const r = document.querySelector(sel);
   const box = r.getBoundingClientRect();
+  const cur = (document.querySelector('#w-podcast-c .h-ep') || {}).textContent;
   const rows = [...r.querySelectorAll('.row[data-act="row"]')];
-  const i = rows.findIndex(x => { const b = x.getBoundingClientRect();
-    return b.top >= box.top - 1 && b.bottom <= box.bottom + 1; });
+  const fits = (x) => { const b = x.getBoundingClientRect();
+    return b.top >= box.top - 1 && b.bottom <= box.bottom + 1; };
+  /* Fully visible AND not the episode already loaded, since clicking that one
+     resumes instead of re-rendering and proves nothing. */
+  const same = (x) => cur && x.textContent.indexOf(cur.trim()) >= 0;
+  const i = rows.findIndex(x => fits(x) && !same(x));
   return {index: i, top: Math.round(r.scrollTop), max: r.scrollHeight - r.clientHeight};
 }"""
 TITLE = "() => { const e = document.querySelector('#w-podcast-c .h-ep'); return e ? e.textContent.trim() : null; }"

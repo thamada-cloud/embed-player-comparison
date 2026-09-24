@@ -1005,10 +1005,19 @@ function makeWidget(rootId, statusId, colourId, variant) {
           </div>`;
   }
 
+  /* No heading on the episode list, which is the one case where the list is
+     what the card is already about. The frame draws one and it was here; it is
+     removed by request. "Featured Artists" stays on artist radio and playlist,
+     where the list is a different thing from the thing playing and the label is
+     doing work.
+
+     The DRAWER keeps its title. That is the Drawer component's own header bar,
+     not this heading, and a drawer with a close button and no title is a
+     different header in the frames rather than this one with a line deleted. */
   function listMarkup(d) {
     return `
         <div class="list">
-          <h3>${esc(d.listTitle)}</h3>
+          ${d.kind === 'podcast' ? '' : `<h3>${esc(d.listTitle)}</h3>`}
           <div class="rows">
             ${d.rows.map((r) => `
 ${rowMarkup(d, r)}`).join('')}

@@ -1336,8 +1336,17 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    Whole rows, plus a constant sliver of the next one. The list height used to
    glide continuously while a row is a fixed 72, so how much of the next row
    showed was an accident of where the clamp landed: 8px at 300, 47px at 360, 2px
-   at 400. round(down, ..., 72px) snaps the row area to whole rows, and the 64 is
-   what is not rows: a 32 header, 16 of padding and the 16px peek itself.
+   at 400. round(down, ..., 72px) snaps the row AREA to whole rows and adds back
+   whatever is not rows.
+
+   That was a hardcoded 64 and is --list-fix now, because the episode list has
+   no heading any more and the two lists no longer carry the same overhead. 64
+   is 12 of top padding, a 32 header, the 4 gap under it and the 16px peek; the
+   episode list's 28 is the same sum with the header and its gap taken out. It
+   is written once on .list, so a list that gains or loses furniture changes one
+   number rather than three. Stepping follows: the episode list needs 36 less
+   for the same rows, so it reaches two rows at a 367 card where the others
+   still wait until 422.
 
    The guard is on :root, not on <main>. embed.html and host-home.html have no
    <main> at all, so a guard hung off one matched nothing there and an embedded
@@ -1358,7 +1367,8 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="podcast"],
   :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="artist"],
   :root:not([data-listat="reveal"]):not([data-listat="figma"]):not([data-list="drawer"]) .widget.c[data-kind="playlist"] {
-    --list-h: calc(64px + round(down, clamp(136px, 65.7cqh - 69.1px, 208px) - 64px, 72px));
+    --list-h: calc(var(--list-fix, 64px) +
+                   round(down, clamp(72px, 65.7cqh - 69.1px - var(--list-fix, 64px), 144px), 72px));
   }
 }
 
@@ -2229,6 +2239,18 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    read as if the list simply ended. */
 .list { width: 100%; height: 220px; background: var(--ihr-grey-150); padding: 12px 16px 0;
         display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+/* Everything in the list box that is not a 72px row, plus the 16px peek the
+   stepped modes keep under the last one. 12 of top padding + a 32 header + the
+   4 gap under it + the 16 peek.
+
+   Declared on the WIDGET, not on .list, which is where it is measured from and
+   where it would read better. --list-h is computed on the widget and a custom
+   property only inherits downward, so a value set on the list is invisible to
+   the rule that needs it and silently falls back. */
+.widget.c { --list-fix: 64px; }
+/* The episode list has no heading. Its 32 header and the 4 gap under it are the
+   36 that come off. */
+.widget.c[data-kind="podcast"] { --list-fix: 28px; }
 /* The frame's list header is a 32px row (it carries a 32px Buttons frame
    beside the label), so rendering it at the text's own 18px line-height closed
    the gap under "Episodes" by 14px. */
