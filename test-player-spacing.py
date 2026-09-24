@@ -19,6 +19,18 @@ row all have to start and end on the same two lines.
   Slider            gap 12
   brand             gap 4
 
+The vertical run is asserted outright at the 160 player the frame is drawn at.
+Every band has to land on the frame's own y, measured from the top of the player
+container, which is a stricter check than the gaps alone since it catches an
+error that two offsetting mistakes would hide.
+
+  top_bar      8 to 46
+  middle_bar   46 to 114
+  play button  48 to 112
+  Slider       118 to 134
+  brand        136 to 152
+  padding      152 to 160
+
 One value in the frame is deliberately NOT reproduced. right_buttons carries 4
 of padding where left_buttons carries none, which would put the first right
 control 12 from the play button against the left's 8. It reads as a drafting
@@ -45,6 +57,13 @@ READ = """(kind)=>{
             h:Math.round(b.height), x:Math.round(b.left), r:Math.round(b.right)};};
   const card=w.getBoundingClientRect();
   return {x:Math.round(card.left), r:Math.round(card.right),
+    ys:(()=>{const st=w.querySelector('.stage'); const t=st.getBoundingClientRect().top;
+      const band=(s)=>{const e=w.querySelector(s); if(!e) return null;
+        const b=e.getBoundingClientRect(); if(!b.height) return null;
+        return [Math.round(b.top-t), Math.round(b.bottom-t)];};
+      return {player:Math.round(st.getBoundingClientRect().height),
+              topbar:band('.topbar'), controls:band('.hero-controls'),
+              play:band('.hero-play'), slider:band('.slider'), brand:band('.list-row')};})(),
     stage:one('.stage'), topbar:one('.topbar'), thumb:one('.thumb-link'),
     meta:one('.topbar .meta'), share:one('.topbar .tb-share'),
     controls:one('.hero-controls'), play:one('.hero-play'),
@@ -108,6 +127,22 @@ async def main():
                 ck('Slider right edge', r['slider']['r'] - 8, right)
             elif kind == 'episode':
                 bad.append(('no scrubber on the episode card', None, None))
+
+        # The vertical run, at the 160 player the frame is drawn at. Podcast in
+        # Figma mode holds its player at exactly 160 from card 161 up.
+        await pg.click('button[data-listat="figma"]'); await pg.wait_for_timeout(500)
+        await pg.evaluate("()=>{const s=document.getElementById('heightRange');"
+                          "s.value='300';s.dispatchEvent(new Event('input',{bubbles:true}));}")
+        await pg.wait_for_timeout(600)
+        await pg.click('#w-podcast-c .hero-play'); await pg.wait_for_timeout(1800)
+        y = (await pg.evaluate(READ, 'podcast'))['ys']
+        print('  --- vertical run at a 160 player')
+        ck('player height', y['player'], 160)
+        ck('top_bar band', y['topbar'], [8, 46])
+        ck('middle_bar band', y['controls'], [46, 114])
+        ck('play button band', y['play'], [48, 112])
+        ck('Slider band', y['slider'], [118, 134])
+        ck('brand band', y['brand'], [136, 152])
 
         print('  errors:', errs)
         if errs:

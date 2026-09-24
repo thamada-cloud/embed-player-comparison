@@ -959,7 +959,19 @@ a.thumb-link:hover { opacity: .92; }
    lines the thumbnail governs again, so the top bar shrinks with the card:
    measured 48 at 300 down to 40 at 150, and the clearance above the button went
    from -7 to +5 there. */
-.widget.c .hero-controls { top: calc(50% + .5px); }
+/* The half pixel this carried is gone.
+
+   It arrived with the 16:9 card, whose comment described it rather than argued
+   for it, and the ratio it belonged to was removed long ago. What it cost was
+   exactly 1px against frame 2700:561776: the play button centred at 49 in a 160
+   player where the frame centres it at 48, which left 5 between the button and
+   the scrubber against the frame's 6.
+
+   Dropping it also puts the offset on the better half of the cases. The nudge
+   made even player heights land on a half pixel and odd ones land whole; plain
+   centring is the other way round, and a publisher slot is almost always an
+   even number. */
+.widget.c .hero-controls { top: 50%; }
 
 /* ---------------------------------------------------------------------------
    Design C given a height.
@@ -1611,11 +1623,27 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 
    A floor of 32, the height of the buttons that set it on podcast, centres the
    lockup in the same box on both. */
-/* 24, not 32. 32 was the height of the buttons that used to sit in this row;
-   with the list button moved to the top bar the lockup is all that is left and
-   it is 14px of logotype on an 18px line. Design C only: the other designs
-   still put controls here. */
-.widget.c .list-row { min-height: 24px; }
+/* 16, not 32 and not the 24 this was. 32 was the height of the buttons that
+   used to sit in this row, and 24 was a guess at what the lockup needed once
+   they moved to the top bar.
+
+   The frame answers it. brand, 2700:561799, is a plain row of "Listen on" at
+   12 on a 16 line beside a 62 by 14 logo, so it is 16 tall and carries no
+   minimum of its own. Our own content is already exactly 16; the 24 was padding
+   it out by 8.
+
+   Those 8 were visible, and not where they were being added. bottom_bar is
+   anchored to the bottom of the player, so a bottom block 8 too tall pushes the
+   SCRUBBER up by 8 rather than pushing the brand row down. At the 160 player the
+   frame is drawn at, that put the scrubber 3px over the play button instead of 6
+   clear of it, a 9px error on the one gap in the player with nothing between its
+   two sides. Design C only: the other designs still put controls in this row. */
+.widget.c .list-row { min-height: 16px; }
+
+/* "Listen on" is Digital Brand Caption 3 in the frame, 12 / 600 / 16 with
+   letterSpacing -0.2. The size, weight and line height were already right and
+   the tracking was not set at all. */
+.widget.c .ihr-lockup { letter-spacing: var(--ls-0); }
 
 /* ---------- player_container spacing, frame 2700:561776 ----------
    Design C only. The card carries `widget hero c`, so several of these are
