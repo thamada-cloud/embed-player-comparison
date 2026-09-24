@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260924020534">
+<link rel="stylesheet" href="widget-core.css?v=20260924024319">
 </head>
 <body data-bg="grey">
 
@@ -117,9 +117,9 @@
   <div class="colctl">
     <label for="listat300">List</label>
     <span class="seg">
-      <button type="button" id="listat300" data-listat="300" aria-pressed="true">300</button>
+      <button type="button" id="listat300" data-listat="300" aria-pressed="false">300</button>
       <button type="button" data-listat="reveal" aria-pressed="false">Reveal</button>
-      <button type="button" data-listat="figma" aria-pressed="false">Figma</button>
+      <button type="button" data-listat="figma" aria-pressed="true">Figma</button>
     </span>
   </div>
 
@@ -409,9 +409,10 @@
     [...aseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
     document.documentElement.dataset.listat = bt.dataset.listat;
   });
-  /* The CSS treats an absent attribute as 300, so this is only here to make the
-     switch's pressed state and the flag agree from the start. */
-  document.documentElement.dataset.listat = '300';
+  /* Figma is the default now. The flag has to be SET for it, unlike 300, which
+     the CSS also treats an absent attribute as; that fallback is what keeps
+     embed.html and host-home.html working, since neither runs this script. */
+  document.documentElement.dataset.listat = 'figma';
 
   const hRange = document.getElementById('heightRange');
   const hNum = document.getElementById('heightNum');
@@ -495,6 +496,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260924020534"></script>
+<script src="widget-core.js?v=20260924024319"></script>
 </body>
 </html>

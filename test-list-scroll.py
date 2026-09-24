@@ -74,6 +74,11 @@ async def main():
         await case('inline list at 600', '#w-podcast-c .list .rows',
                    '#w-podcast-c .list .row[data-act="row"]')
 
+        # The drawer half needs a card height where the list is still a drawer,
+        # which means naming the 300 threshold. The page's default mode is
+        # `figma` now, whose list opens at 161, so there is no such height in it.
+        await pg.evaluate("()=>{document.documentElement.dataset.listat='300';}")
+        await pg.wait_for_timeout(300)
         await height(pg, 240)
         await pg.click('#w-podcast-c .h-btn[data-act="list"]')
         await pg.wait_for_timeout(1000)

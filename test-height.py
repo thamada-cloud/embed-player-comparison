@@ -50,6 +50,20 @@ def set_height(pg, h):
     }""", h)
     pg.wait_for_timeout(120)
 
+def set_listat(pg, mode):
+    """Which List mode the card is in.
+
+    Every block below that asserts a stepped threshold has to say `300` out
+    loud. It used to be the default and these read it implicitly; the default is
+    `figma` now, whose list opens at 161 and glides rather than stepping, so an
+    implicit read asserted one mode's numbers against another's. Naming the mode
+    is also just better: a test of the 300 threshold should not change meaning
+    when somebody changes which toggle is pressed on load.
+    """
+    pg.evaluate("(m) => { document.documentElement.dataset.listat = m; }", mode)
+    pg.wait_for_timeout(300)
+
+
 def boxes(pg, sel):
     return pg.evaluate("""(sel) => {
       const root = document.querySelector(sel);
@@ -66,6 +80,8 @@ def boxes(pg, sel):
 
 def fill(pg):
     print("\n--- Task 1, fills the slot ---")
+    # Stated, not assumed. Everything below is the 300 threshold's numbers.
+    set_listat(pg, '300')
     set_height(pg, None)
     b = boxes(pg, "#w-podcast-c")
     # 263, not 234. The stage no longer derives its height from its width: the
@@ -130,6 +146,7 @@ def fill(pg):
 
 def inline(pg):
     print("\n--- Task 2, the inline list above 300 ---")
+    set_listat(pg, '300')
     set_height(pg, 440)
     b = boxes(pg, "#w-podcast-c")
     check("at 440, card is exactly 440 not 454", b["card"], 440)
@@ -182,10 +199,13 @@ def inline(pg):
                                  return getComputedStyle(s).visibility; }"""), "visible")
     pg.click('#w-podcast-c .sheet-close'); pg.wait_for_timeout(900)
     set_height(pg, None)
+    set_listat(pg, 'figma')
 
 def control(pg):
     print("\n--- Task 3, the height control ---")
     pg.reload(); pg.wait_for_timeout(4500)
+    # After the reload, since a reload puts the page back on its default mode.
+    set_listat(pg, '300')
     pg.evaluate("document.documentElement.style.setProperty('--player-w','411px')")
     pg.wait_for_timeout(200)
 

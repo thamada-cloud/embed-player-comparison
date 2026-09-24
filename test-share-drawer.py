@@ -35,8 +35,14 @@ PORT = 8801
 URL = 'http://localhost:%d/widget.html' % PORT
 FAILED = 0
 
+# The podcast card's share button asks what to share first now, so reaching the
+# drawer means pressing the button and then the menu's first item, "Share
+# Podcast". See test-share-menu.py for the menu itself.
 OPEN = """()=>{const w=document.querySelector('#w-podcast-c .widget');
-  if(!w.classList.contains('share-open')) w.querySelector('.h-btn[data-act="share"]').click();}"""
+  if(w.classList.contains('share-open')) return;
+  w.querySelector('.h-btn[data-act="share"]').click();}"""
+PICK = """()=>{const b=document.querySelector('#w-podcast-c .ihr-menu button');
+  if(b) b.click();}"""
 
 READ = """()=>{const w=document.querySelector('#w-podcast-c .widget');
   const P=w.querySelector('.share-panel').getBoundingClientRect();
@@ -81,7 +87,8 @@ async def main():
             await pg.evaluate("(v)=>{const s=document.getElementById('widthRange');"
                               "s.value=String(v);s.dispatchEvent(new Event('input',{bubbles:true}));}", x)
             await pg.wait_for_timeout(500)
-            await pg.evaluate(OPEN); await pg.wait_for_timeout(1100)
+            await pg.evaluate(OPEN); await pg.wait_for_timeout(600)
+            await pg.evaluate(PICK); await pg.wait_for_timeout(1100)
 
         await width(350)
         r = await pg.evaluate(READ)
@@ -93,6 +100,8 @@ async def main():
         ck('title type', [r['title']['fs'], r['title']['fw'], r['title']['lh']],
            ['18px', '700', '24px'])
         ck('title left edge', r['title']['x'], 16)
+        ck('title names the pick', await pg.evaluate(
+            "()=>document.querySelector('#w-podcast-c .share-head h2').textContent"), 'Share Podcast')
         ck('close size', [r['close']['w'], r['close']['h']], [32, 32])
         ck('close right edge', r['close']['r'], 334)
         ck('body height', r['body']['h'], 102)

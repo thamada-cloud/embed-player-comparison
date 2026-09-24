@@ -593,7 +593,13 @@ const embedHeight = (d) => EMBED_H[d && d.kind] || 200;
 
 const SHARE_TITLE = {
   podcast: 'Share Podcast',
-  episode: 'Share Podcast',
+  /* Was 'Share Podcast', taken from the Design D share drawers, which titled
+     both podcast kinds that way because their BODY named the item. Frame
+     2709:580630 has no body to name anything, and the drawer is now reached
+     through a menu, so the heading is the only thing that says what you are
+     about to share and it follows the pick. This is the episode card's first
+     menu item and so its resting value. */
+  episode: 'Share Episode',
   live: 'Share Station',
   artist: 'Share Artist Radio',
   playlist: 'Share Playlist'
@@ -1772,7 +1778,12 @@ ${listTail(d)}
        why it only retargets when it is about to open. */
     if (kind === 'share') {
       const card = root.querySelector('.widget');
-      if (card && !card.classList.contains('share-open')) retargetShare(null);
+      const open = card && card.classList.contains('share-open');
+      /* The two podcast kinds ask what to share first. Only on the way in: this
+         same action is carried by the scrim and the drawer's own close button,
+         and putting a menu up as the drawer leaves would be absurd. */
+      if (!open && hasShareMenu(w.data)) { shareMenu(btn); return; }
+      if (!open) retargetShare(null);
       shareDialog();
     }
   }
@@ -1869,6 +1880,84 @@ ${listTail(d)}
     return { title: m.title, sub: m.sub, round: m.round, art: d.art, url: listenUrl(d) };
   }
 
+  /* mm:ss, or h:mm:ss past the hour, with the leading unit unpadded. That is
+     packages/utilities formatTimeValue, which is what the menu label uses in
+     production, and it is NOT the scrubber's fmt(): that pads minutes to two
+     digits, so the same moment reads 01:30 there and 1:30 here. Both are right
+     for where they are. */
+  function shareClock(s) {
+    if (!isFinite(s) || s < 0) s = 0;
+    s = Math.trunc(s);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    const pad = (n) => (n < 10 ? '0' : '') + n;
+    return h > 0 ? h + ':' + pad(m) + ':' + pad(sec) : m + ':' + pad(sec);
+  }
+
+  /* What each menu pick shares, and what the drawer is then titled.
+
+     From apps/listen. "Share from {time}" hands over the EPISODE url with
+     ?position= on it and its drawer still says "Share Episode", because
+     production spreads the episode's own share props and replaces only the url
+     (podcast-hero.tsx shareFromPositionOnClick, episode-row.tsx likewise). */
+  function sharePick(d, pick, at) {
+    if (pick === 'podcast') return { url: showUrl(d), title: 'Share Podcast' };
+    /* `at` is the second the MENU was opened at, carried through the pick
+       rather than read again here. Reading it again is what production does,
+       and in production the label and the link recompute together on every
+       tick so they cannot disagree. Here the label is frozen the moment the
+       menu is drawn, so reading the clock at the click made the two differ by
+       however long the menu stood open: a menu saying 0:12 handed over
+       ?position=13. */
+    if (pick === 'position') {
+      return { url: episodeUrl(d) + '?position=' + Math.trunc(at || 0),
+               title: 'Share Episode' };
+    }
+    return { url: episodeUrl(d), title: 'Share Episode' };
+  }
+
+  /* The share menu, which is what the share button opens on the two podcast
+     kinds now rather than the drawer itself.
+
+     The item sets are production's, from the two heroes:
+
+       podcast   Share Podcast        always        podcast-hero.tsx
+                 Share Episode        while playing
+                 Share from {time}    while playing
+       episode   Share Episode        always        episode-hero.tsx, which
+                 Share from {time}    while playing   renders SocialShareEpisode
+                 Share Podcast        always          and then Share Podcast
+
+     Both gate the episode-level items on playing, which is the only honest
+     place to put "Share from {time}" since there is no position to name until
+     something is playing. Live radio, artist radio and playlist have no second
+     thing to share, so their button still opens the drawer directly. */
+  const hasShareMenu = (d) => !!d && (d.kind === 'podcast' || d.kind === 'episode');
+
+  function shareItems(d, at) {
+    const playing = !!w.playing;
+    const from = { value: 'position', label: 'Share from ' + shareClock(at) };
+    if (d.kind === 'podcast') {
+      return [{ value: 'podcast', label: 'Share Podcast' }].concat(
+        playing ? [{ value: 'episode', label: 'Share Episode' }, from] : []);
+    }
+    return [{ value: 'episode', label: 'Share Episode' }]
+      .concat(playing ? [from] : [])
+      .concat([{ value: 'podcast', label: 'Share Podcast' }]);
+  }
+
+  function shareMenu(btn) {
+    const d = w.data;
+    /* Read once, used by both the label and the link. See sharePick. */
+    const at = Math.trunc((w.audio && w.audio.currentTime) || 0);
+    openMenu(btn, {
+      label: 'Share options',
+      className: 'share-menu',
+      alignRight: true,
+      items: shareItems(d, at),
+      onPick: (value) => { retargetShare(null, value, at); shareDialog(true); }
+    });
+  }
+
   /* Point the share sheet at something.
 
      The sheet is rendered once from whatever is loaded, so asking from a row
@@ -1885,11 +1974,17 @@ ${listTail(d)}
 
      The subtitle is deliberately left alone. It is the SHOW, the same for every
      row in the list, and the station line on live radio. */
-  function retargetShare(r) {
+  function retargetShare(r, pick, at) {
     const d = w.data;
     const sheet = root.querySelector('.share-sheet');
     if (!d || !sheet) return;
-    const f = shareFields(d, r);
+    const f = pick ? sharePick(d, pick, at) : { url: shareFields(d, r).url, title: null };
+    /* The heading names what was picked. A row share is an episode whatever the
+       card is, and everything else falls back to the kind's own title. */
+    const head = sheet.querySelector('.share-head h2');
+    const title = f.title || (r ? 'Share Episode' : (SHARE_TITLE[d.kind] || 'Share'));
+    if (head) head.textContent = title;
+    sheet.setAttribute('aria-label', title);
     const embedCode = '<iframe allow="autoplay" width="100%" height="' + embedHeight(d) + '" src="' +
       (f.url.includes('?') ? f.url + '&embed=true' : f.url + '?embed=true') +
       '" frameborder="0"></iframe>';

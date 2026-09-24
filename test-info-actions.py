@@ -43,6 +43,13 @@ async def main():
     for k,w in tall.items():
       got=await pg.evaluate(GOT,k)
       if got!=w: bad.append((k,'buttons at default height',got,'want',w))
+    # The 300 threshold, said out loud. This block is about what happens BELOW
+    # a stepped threshold, and the page's default mode is `figma` now, whose
+    # list opens at 161 and so leaves no card height where the list is still a
+    # drawer and the card is not compact. Naming the mode is what the assertion
+    # was always about.
+    await pg.evaluate("()=>{document.documentElement.dataset.listat='300';}")
+    await pg.wait_for_timeout(300)
     await pg.evaluate("(h)=>{const s=document.getElementById('heightRange');s.value=String(h);s.dispatchEvent(new Event('input',{bubbles:true}));}",240)
     await pg.wait_for_timeout(700)
     short={'podcast':['list','share'],'episode':['info','share'],'live':['info','share'],

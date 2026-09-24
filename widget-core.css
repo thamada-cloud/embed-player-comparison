@@ -2741,8 +2741,10 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    its two rows measure 84 tall. Those last two differ from what menu.css.ts
    says, and the frame is what this was asked against, so the frame wins here
    and the speed list above keeps the code's values. */
-.row-menu { min-width: 206px; border-radius: var(--rad-6); }
-.row-menu button { padding: 12px var(--sp-8); border-radius: var(--rad-2); }
+/* The share menu is the same Menu component at the same size, so it takes the
+   same two lines rather than its own copy of them. */
+.row-menu, .share-menu { min-width: 206px; border-radius: var(--rad-6); }
+.row-menu button, .share-menu button { padding: 12px var(--sp-8); border-radius: var(--rad-2); }
 
 /* ---------------------------------------------------------------------------
    Pause veil, frame 2581:363615.
