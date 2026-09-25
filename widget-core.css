@@ -2362,12 +2362,12 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .row-meta > span { font-size: var(--fs-12); line-height: var(--lh-16);
                  letter-spacing: var(--ls-4); color: var(--ihr-grey-450);
                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* accomplice Badge. The recipe is fontSize[11] / lineHeight[16] / weight 700,
-   letterSpacing[5], uppercase, radius[2], and its size variants differ only in
-   padding: small is 0 4, large is 2 6. These sit in a dense row, so small. */
-.badge { font-size: var(--fs-11); line-height: var(--lh-16); font-weight: 700;
-         letter-spacing: var(--ls-5); text-transform: uppercase;
-         background: var(--ihr-grey-300); color: var(--ihr-grey-600); padding: 2px 4px; border-radius: 2px; }
+/* The accomplice Badge rule that lived here is gone with the explicit marker on
+   the episode rows. It was fontSize[11] / lineHeight[16] / weight 700,
+   letterSpacing[5], uppercase, radius[2], at the small variant's 0 4 padding.
+   The Figma rows still draw one; the player that ships today does not, and that
+   is what settled it. Nothing else on the page rendered a .badge, so the rule
+   went with the markup rather than sitting here unused. */
 
 .status { font-size: 12px; color: var(--ihr-grey-450); min-height: 18px; margin: 8px 0 0; }
 .status.err { color: #b00020; font-weight: 600; }

@@ -61,7 +61,12 @@ async function loadPodcast(id) {
       id: e.id, title: e.title,
       sub: new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
            (e.duration ? ' • ' + Math.round(e.duration / 60) + ' min' : ''),
-      badge: e.isExplicit ? 'e' : null, art: e.imageUrl || show.imageUrl,
+      /* No explicit badge. The API carries e.isExplicit and the Figma rows draw
+         a Badge from it, but the player that ships today does not: the same
+         episode this card was marking "E" sits unmarked in the production
+         embed's own list. The shipping behaviour wins here, so the field is not
+         carried at all rather than carried and ignored. */
+      art: e.imageUrl || show.imageUrl,
       /* Kept per row so choosing an episode can update the info drawer without
          waiting on a second request. */
       info: stripHtml(e.description)
@@ -919,8 +924,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
      siblings, each reachable on its own.
 
      Frame 2609:36099: the button is 32 square, vertically centred in the 72px
-     row, its right edge 12 in from the row's, which is where the explicit
-     badge used to sit. */
+     row, its right edge 12 in from the row's. The frame draws an explicit badge
+     to the left of it; this card no longer renders one, so the button is the
+     only thing in that corner. */
   /* An inert row is not a button. Featured artists have nothing to SELECT, and
      leaving role="button" on something that does not change the card is worse
      than leaving it plain. They are links, though: each one opens that artist on
@@ -953,7 +959,6 @@ function makeWidget(rootId, statusId, colourId, variant) {
                     </span>
                   </span>
                   <div class="row-meta"><b class="mq">${mqs(r.title)}</b><span class="mq">${mqs(r.sub)}</span></div>
-                  ${r.badge ? `<span class="badge">${esc(r.badge)}</span>` : ''}
                 </div>
                 <button class="row-more" type="button" data-act="more" data-ep="${esc(r.id)}"
                         aria-haspopup="menu" aria-expanded="false"
