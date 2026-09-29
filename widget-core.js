@@ -3477,7 +3477,11 @@ const embedUrl = {
    us.api.iheart.com rather than read off a URL. */
 const FIXED_EMBEDS = {
   'e-artist': 'https://www.iheart.com/artist/artist-33221/?embed=true',
-  'e-playlist': 'https://www.iheart.com/playlist/clean-top-hits-312064750-E63iPqfbGw4EzKMSgzoWF4?embed=true'
+  'e-playlist': 'https://www.iheart.com/playlist/clean-top-hits-312064750-E63iPqfbGw4EzKMSgzoWF4?embed=true',
+  /* Deliberately bogus, to show what a publisher's slot fills with when the
+     content is gone. The id is the only thing wrong with it; the shape is a
+     real podcast embed URL. */
+  'e-404': 'https://www.iheart.com/podcast/podcast-99999999/?embed=true'
 };
 
 /* Nothing is fetched for a source the page is not showing, so the single card

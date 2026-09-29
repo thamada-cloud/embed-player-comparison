@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260925002304">
+<link rel="stylesheet" href="widget-core.css?v=20260929210150">
 </head>
 <body data-bg="grey">
 
@@ -218,6 +218,27 @@
       <iframe id="e-playlist" title="iHeart playlist embed, current production player"
               allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
+  </section>
+
+  <!-- What the shipping player does when the content is not there.
+
+       The id in the URL is deliberately bogus. www.iheart.com answers 404 and
+       serves a page that frames like any other, no X-Frame-Options and no CSP,
+       so the slot fills with iHeart's own error rather than going blank or
+       showing the host's broken frame. Every content type answers the same page,
+       checked on podcast, episode, live and artist, so one example covers all
+       five rather than needing a row each.
+
+       Last of the shipping sections and with no design counterpart, so the two
+       column layout leaves column 2 of its row empty. That is honest: design C
+       has nothing to say here yet. -->
+  <section data-design="ship" data-kind="notfound">
+    <div class="h2row"><h2>Not found</h2></div>
+    <div class="embed">
+      <iframe id="e-404" title="iHeart embed pointed at content that does not exist, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <p class="status">Pointed at podcast-99999999, which does not exist. The page answers 404.</p>
   </section>
 
   <!-- Design A is hidden for now. Commented out rather than deleted, for the
@@ -496,6 +517,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260925002304"></script>
+<script src="widget-core.js?v=20260929210150"></script>
 </body>
 </html>

@@ -168,6 +168,10 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="2"] > [data-design][data-kind="episode"] { grid-row: 5; }
   main[data-cols="2"] > [data-design][data-kind="artist"] { grid-row: 6; }
   main[data-cols="2"] > [data-design][data-kind="playlist"] { grid-row: 7; }
+  /* The 404 example, which only the shipping side has. It takes a row of its
+     own so it stays under playlist in column 1 rather than auto-flowing into
+     the design column, and column 2 of that row is simply empty. */
+  main[data-cols="2"] > [data-design][data-kind="notfound"] { grid-row: 8; }
 }
 
 /* The three column option is gone. It existed to put what ships beside design
