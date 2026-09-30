@@ -33,7 +33,9 @@ async def main():
       return {inline:on('.list'), listH:h('.list'), btn:on('.h-btn[data-act=\\"list\\"]'),
               stage:h('.stage'), tile:h('.thumb-link')};}"""
     for at in ('300',):
-      await pg.click(f'button[data-listat="{at}"]'); await pg.wait_for_timeout(500)
+      # The switch is hidden, so the flag it wrote is written directly.
+      await pg.evaluate("(m)=>{document.documentElement.dataset.listat=m;}", at)
+      await pg.wait_for_timeout(500)
       print(f'  --- List at {at}')
       for hh in (160,170,200,240,260,300,320):
         await pg.evaluate("(h)=>{const s=document.getElementById('heightRange');s.value=String(h);s.dispatchEvent(new Event('input',{bubbles:true}));}",hh)
@@ -44,7 +46,8 @@ async def main():
         print(f"    h={hh:>3}  inline={str(r['inline']):<5} listH={r['listH']:>3} btn={str(r['btn']):<5} "
               f"stage={r['stage']:>3} tile={r['tile']:>2}  {'OK' if ok else 'WRONG'}")
         if not ok: bad.append((at,hh,r))
-    await pg.click('button[data-listat="300"]'); await pg.wait_for_timeout(400)
+    await pg.evaluate("()=>{document.documentElement.dataset.listat='300';}")
+    await pg.wait_for_timeout(400)
     print('  errors:', errs)
     if errs: bad.append(('errors',errs))
     await b.close()

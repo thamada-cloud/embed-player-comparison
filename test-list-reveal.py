@@ -26,7 +26,11 @@ async def main():
     b=await p.chromium.launch(channel='chrome'); pg=await b.new_page(viewport={'width':900,'height':1500},device_scale_factor=2)
     errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
     await pg.goto(URL, wait_until='load'); await pg.wait_for_timeout(10000)
-    await pg.click('button[data-listat="reveal"]'); await pg.wait_for_timeout(600)
+    # The List switch is commented out of the header, so Reveal is selected by
+    # writing the flag the switch would have written. The mode itself is
+    # untouched and this asserts every number it produces.
+    await pg.evaluate("()=>{document.documentElement.dataset.listat='reveal';}")
+    await pg.wait_for_timeout(500)
     print(f"{'card':>5} {'stage':>6} {'list':>5} {'play':>5} {'tile':>5}  want stage/list")
     for h in (150,160,172,173,180,200,240,300,368,400,500,600):
       await pg.evaluate("(x)=>{const s=document.getElementById('heightRange');s.value=String(x);s.dispatchEvent(new Event('input',{bubbles:true}));}",h)

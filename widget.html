@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20260929210150">
+<link rel="stylesheet" href="widget-core.css?v=20260930202228">
 </head>
 <body data-bg="grey">
 
@@ -19,8 +19,15 @@
        here survive the trip. -->
   <div class="hint"><a href="host-home.html" target="_blank" rel="noopener">See it in a publisher page</a></div>
   <!-- How the card responds to the box it is given, measured rather than
-       described. The page this control drives is documented there. -->
+       described. The page this control drives is documented there.
+
+       Hidden from this header by request. responsive.html is still built,
+       deployed and cache stamped, and index.html, gallery.html and
+       analysis.html still link to it, so the page itself is reachable and
+       nothing about it has been removed. Only this one link is out. -->
+  <!--
   <div class="hint"><a href="responsive.html">Responsive spec</a></div>
+  -->
   <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
   <div class="widthctl">
     <label for="widthRange">Player width</label>
@@ -113,7 +120,14 @@
        170 and 240 were here too, as lower thresholds to compare against 300.
        They were removed: both hand the player so little room that the compact
        row has to take over to keep it legible, which is not a list threshold
-       decision any more, it is a different card. -->
+       decision any more, it is a different card.
+
+       The switch is hidden by request and the page runs on Figma. Commented out
+       rather than deleted, the same as the three switches above it: all three
+       modes are still in the stylesheet, still tested, and putting the block
+       back brings the comparison back. The flag is set in the script below
+       whether or not this markup is here. -->
+  <!--
   <div class="colctl">
     <label for="listat300">List</label>
     <span class="seg">
@@ -122,6 +136,7 @@
       <button type="button" data-listat="figma" aria-pressed="true">Figma</button>
     </span>
   </div>
+  -->
 
   <div class="colctl">
     <label for="cols1">Columns</label>
@@ -430,9 +445,10 @@
     [...aseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
     document.documentElement.dataset.listat = bt.dataset.listat;
   });
-  /* Figma is the default now. The flag has to be SET for it, unlike 300, which
-     the CSS also treats an absent attribute as; that fallback is what keeps
-     embed.html and host-home.html working, since neither runs this script. */
+  /* Figma, and with the switch hidden this is the only thing that sets it. The
+     flag has to be SET for it, unlike 300, which the CSS also treats an absent
+     attribute as; that fallback is what keeps embed.html and host-home.html
+     working, since neither runs this script. */
   document.documentElement.dataset.listat = 'figma';
 
   const hRange = document.getElementById('heightRange');
@@ -517,6 +533,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20260929210150"></script>
+<script src="widget-core.js?v=20260930202228"></script>
 </body>
 </html>

@@ -130,7 +130,9 @@ async def main():
 
         # The vertical run, at the 160 player the frame is drawn at. Podcast in
         # Figma mode holds its player at exactly 160 from card 161 up.
-        await pg.click('button[data-listat="figma"]'); await pg.wait_for_timeout(500)
+        # The switch is hidden; the flag it set is what the card reads.
+        await pg.evaluate("()=>{document.documentElement.dataset.listat='figma';}")
+        await pg.wait_for_timeout(400)
         await pg.evaluate("()=>{const s=document.getElementById('heightRange');"
                           "s.value='300';s.dispatchEvent(new Event('input',{bubbles:true}));}")
         await pg.wait_for_timeout(600)

@@ -69,7 +69,11 @@ async def main():
         errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(URL, wait_until='load'); await pg.wait_for_timeout(12000)
-        await pg.click('button[data-listat="figma"]'); await pg.wait_for_timeout(500)
+        # The List switch is commented out of the header, so the mode is set by
+        # writing the flag the switch would have written. Figma is also the
+        # page's default now, so this is belt and braces rather than a change.
+        await pg.evaluate("()=>{document.documentElement.dataset.listat='figma';}")
+        await pg.wait_for_timeout(400)
         await pg.evaluate("()=>{const s=document.getElementById('widthRange');"
                           "s.value='420';s.dispatchEvent(new Event('input',{bubbles:true}));}")
         await pg.wait_for_timeout(500)
