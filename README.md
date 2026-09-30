@@ -5,23 +5,37 @@ one shared registry. No build step, no dependencies.
 
 | Page | For |
 | --- | --- |
-| `index.html` | **One at a time, all 50.** The session stimulus. Step through players, counterbalance the order, one frame mounted so audio cannot overlap. |
+| `widget.html` | **Our own widget prototype**, built from the Figma Audio Widgets frames. Five content types, fully interactive, beside the production embed for each one. This is where the work is. |
+| `host-home.html` | **The widget in a publisher page**, framing `embed.html`, for seeing it in a real article slot rather than on a blank background. |
 | `gallery.html` | **All 50 on one page, no filter.** Scroll through everything for internal review, screenshots and eyeballing the whole field at once. |
 | `analysis.html` | **Measured comparison.** Every player scored across 11 dimensions, with the numbers, the visual comparisons and what I would conclude. |
-| `widget.html` | **Our own widget prototype**, built from the Figma Audio Widgets frames. Two sizes, podcast and live radio, fully interactive, with a waveform driven by the real audio. |
+
+### Deprecated
+
+Two pages are retired. Neither is linked from anywhere, neither is deployed, and
+git history holds both if either is wanted back.
+
+| Page | Was | Retired |
+| --- | --- | --- |
+| `index.html` | **One at a time, all 50.** The session stimulus, stepping through players one frame at a time so audio could not overlap. | Now a redirect to `widget.html`, because the file is the repo root and deleting it would 404 the bare Pages URL for anyone holding the link. |
+| `responsive.html` | **The live responsive spec** for design C: the container model, the height and width tables, and a playground with a measured readout. | Deleted. |
 
 ## Files
 
-- `players.js` holds the player registry and every shared helper. **All three
-  pages read it, so adding a player appears everywhere.** This is the only file
-  to edit when changing the roster.
+- `players.js` holds the player registry and every shared helper. **Both roster
+  pages read it, so adding a player appears on each.** This is the only file to
+  edit when changing the roster.
+- `widget-core.js`, `widget-core.css` and the `assets/` folder are the card
+  itself, shared by `widget.html`, `gallery.html`, `embed.html` and
+  `host-home.html`. The fifteen `test-*.py` files at the root check it, each one
+  carrying its reasoning in its docstring.
 - `measure.py` measures every player and writes `measurements.js`. `analysis.html`
   renders that data. See **Measuring** below.
 - `export-players.js` flattens `players.js` into `.players.json` for the harness,
   so the measurements can never drift from the real registry.
 - `shared.css` holds the chrome and card styles both pages use, so a player looks
   identical on either page.
-- `index.html` and `gallery.html` hold only their own layout and behaviour.
+- `gallery.html` holds only its own layout and behaviour.
 - `.nojekyll` is required for GitHub Pages to serve the files as-is.
 
 ## The one-at-a-time page
@@ -51,15 +65,16 @@ echoes one contender's brand colour biases the comparison.
 Every player, always. No filter, no headings, no jump bar: open it and scroll.
 
 **A card is a service name and the player. Nothing else.** No status chips, no
-caveat bars, no notes. Everything that explains a player lives on `index.html`,
-which is the page for reading a player rather than looking at it. Blocked entries
-are the one exception, since with no embed to show, the one-line reason is all the
+caveat bars, no notes. What explains a player lived on `index.html`, which was
+the page for reading one rather than looking at it, and that page is deprecated;
+`players.js` carries the same notes in the registry itself. Blocked entries are
+the one exception, since with no embed to show, the one-line reason is all the
 card can carry.
 
 
 - **Content and theme** work the same as the other page.
 - **No per-card chrome.** If you need to know why a card shows different content,
-  or what its caveats are, open the same player on `index.html`.
+  or what its caveats are, read that player's entry in `players.js`.
 - **Columns** switches between 1, 2 and 3. One column is a centred stack.
   Multi-column uses CSS columns rather than grid, because player heights range
   from 100px to 740px and grid rows size to the tallest card, leaving large dead
