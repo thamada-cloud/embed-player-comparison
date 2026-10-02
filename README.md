@@ -1,7 +1,44 @@
 # Embed Player Comparison
 
-Real, live third-party embed players, for a user-preference test. Two pages over
-one shared registry. No build step, no dependencies.
+The iHeart embed widget prototype, built from the Figma Audio Widgets frames and
+shown beside the production embed for each content type. Also, from where this
+started, real live third-party embed players for a user-preference test. No build
+step, no dependencies.
+
+## Where this lives
+
+| | |
+| --- | --- |
+| **Source of truth** | this directory, `iheartradio/UXD` `prototypes/embed-player-comparison` |
+| **Live page** | <https://thamada-cloud.github.io/embed-player-comparison/widget.html> |
+| **Publish mirror** | `thamada-cloud/embed-player-comparison`, served at its root |
+
+Two repos, and the reason is the audience. UXD is private and so is its Pages
+site: a request there answers 302 to `github.com/pages/auth`, so a link only
+opens for someone signed in to GitHub with access to the repo. This prototype
+exists to be opened by people who have neither, which is why a public mirror
+serves the pages.
+
+**The history is not on `main`.** This came in through a `git subtree add`
+carrying all 277 of its commits, and the PR was then squash-merged, so `main`
+holds one commit for the whole prototype and `git blame` there stops at it. Those
+commits are tagged **`embed-player-comparison-history`** in this repo, and they
+are also public on the mirror. Most of the reasoning for how the card behaves is
+in those messages rather than in the code, so read them there.
+
+```bash
+git log embed-player-comparison-history -- widget-core.css
+```
+
+**The mirror is a publish target, not a second copy to edit.** `./deploy.sh`
+writes to it and nothing is ever read back. Editing it directly means the next
+deploy overwrites the edit.
+
+Because the mirror is public, three things are held back from it deliberately.
+The publisher page uses an invented masthead rather than Variety's, the Facebook
+and X share targets use a neutral glyph rather than the platforms' marks, and no
+iHeart source is included. Those constraints are about the mirror, not about
+UXD, so if the live page stops needing to be public they can be revisited.
 
 | Page | For |
 | --- | --- |
@@ -1131,9 +1168,19 @@ Three details matter.
 
 ## Deploying
 
-**Use `./deploy.sh "commit message"`.** It stamps a fresh version onto every asset
-reference, commits, pushes, then waits and confirms Pages is actually serving that
-version.
+**Use `./deploy.sh "commit message"`.** It copies this directory into a scratch
+clone of the public mirror, drops everything that is not part of the site, stamps
+a fresh version onto every asset reference, commits and pushes the mirror, then
+waits and confirms Pages is actually serving that version.
+
+**It does not commit to UXD.** UXD's `main` is protected and takes a pull request
+with a review, so source changes go through that as normal. Deploying and
+committing the source are two separate acts, which they were not while the source
+and the mirror were the same repo. Nothing in the deploy touches the working tree
+here, so a deploy never leaves a version bump sitting in your next diff.
+
+The tests, the measurement harness and the planning docs are not published. They
+belong with the source and are readable by anyone who can open UXD.
 
 The stamp is the point. Nearly all the content lives in `players.js` and
 `measurements.js`, and GitHub Pages serves them with `cache-control: max-age=600`.

@@ -2886,6 +2886,29 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    This is the same rule the card already applies below 128 tall, on the axis
    that also runs out. 319 is reused rather than a new number: it is already the
    width breakpoint below. */
+/* The top bar artwork goes below 201 wide, from the breakpoints matrix in Figma,
+   section 2719:602052. It is drawn in every cell from 201 up and in none below.
+
+   The prototype used to keep it at every width. It stops shrinking at 252,
+   where --thumb reaches its 36px floor, and held that 36 all the way down to 50,
+   so under 252 it was a square that had given up adapting while still taking
+   8 of gap and 36 of row from the title.
+
+   Measured at 200 wide, dropping it hands the title 44px back, which is about
+   five more characters before it truncates. On a card that narrow that is the
+   difference between reading the episode name and not.
+
+   201 as drawn, not 252 where the floor is. Those were the two candidates and
+   the Figma line is the one asked for.
+
+   Applies to every content type, live radio included. The matrix is drawn on a
+   podcast, and live radio's tile is a station logo rather than an episode cover,
+   so it is the most identifying thing on that card. Flagged rather than carved
+   out: say the word and live radio keeps its tile below 201. */
+@container (max-width: 200px) {
+  .widget.c .topbar a.thumb-link { display: none; }
+}
+
 @container (max-width: 319px) {
   /* Info and share go. The LIST button stays, because below 300 tall it is the
      only way to reach the episode list at all, and hiding it there stranded the
