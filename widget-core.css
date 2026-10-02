@@ -2886,31 +2886,31 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    This is the same rule the card already applies below 128 tall, on the axis
    that also runs out. 319 is reused rather than a new number: it is already the
    width breakpoint below. */
-/* When the top bar artwork goes, from the breakpoints matrix in Figma, section
-   2719:602052. It is a rule on BOTH axes rather than on width alone.
+/* The top bar artwork goes below 201 wide, at every height. From the
+   breakpoints matrix in Figma, section 2719:602052.
 
-     50 wide            gone at every height. A 36 tile plus its 8 of padding
-                        needs 52, so it cannot fit a 50px card at all.
-     51 to 200 wide     gone below 128 tall, kept from 128 up. Under 128 the
-                        play button has moved into the top bar, so the tile, the
-                        button and the title are competing for one row.
-     201 and wider      always kept.
+   It is a width rule and only a width rule. It was briefly a two-axis rule,
+   keeping the tile at 51 to 200 wide once the card cleared 128 tall, on the
+   reasoning that above 128 the play button leaves the top bar and stops
+   competing for the row. That was tried and reversed: the tile still costs the
+   title 44px there, and at 200 wide the title is the thing worth protecting.
+   Readability won over showing the artwork.
 
-   The prototype used to keep it at every size. The tile stops shrinking at 252,
-   where --thumb reaches its 36px floor, and held that 36 all the way down to 50,
-   so below 252 it was a square that had given up adapting while still taking 8
-   of gap and 36 of row from the title. Measured at 200 wide, dropping it hands
-   the title 44px back, about five more characters before it truncates.
+   The tile stops shrinking at 252, where --thumb reaches its 36px floor, and
+   held that 36 all the way down to 50, so below 252 it was a square that had
+   given up adapting while still taking 8 of gap and 36 of row from the title.
+   Measured at 200 wide, dropping it hands the title 44px back, about five more
+   characters before it truncates.
+
+   201 as drawn, not 252 where the floor is. Those were the two candidates and
+   the Figma line is the one chosen.
 
    Live radio is NOT carved out, even though its tile is a station logo rather
    than an episode cover and is the most identifying thing on that card. It does
    not need to be: the card's backdrop is already that logo at full bleed, so at
    190 wide it still reads as Z100 with the tile gone. Checked rather than
    assumed. */
-@container (max-width: 50px) {
-  .widget.c .topbar a.thumb-link { display: none; }
-}
-@container (max-width: 200px) and (max-height: 127px) {
+@container (max-width: 200px) {
   .widget.c .topbar a.thumb-link { display: none; }
 }
 
