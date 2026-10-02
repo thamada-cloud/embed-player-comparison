@@ -1277,10 +1277,18 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c .hero-bottom { margin-top: auto; }
 }
 
-/* Measured, not derived: at 76 the bottom block still clears the row by 3px and
-   at 70 it is already past the bottom of the card. Below 76 the card is the row
-   and the artwork behind it, which is all a slot that short can honestly hold. */
-@container (max-height: 75px) {
+/* The whole bottom bar goes at 100 tall and below, from the breakpoints matrix
+   in Figma, section 2719:602052. Neither the scrubber nor the brand lockup is
+   drawn anywhere in its 50-100 row, at any width.
+
+   This was 75, measured rather than derived: at 76 the bottom block still
+   cleared the compact row by 3px and at 70 it was already past the bottom of the
+   card. So 76 was the last height at which it physically fitted. Figma asks for
+   it to go 25px earlier than that, which is a judgement that a bar which only
+   just fits is not worth the room, not a correction to the measurement. The old
+   number is kept here because it is the one that says where the hard limit is,
+   if the 100 is ever revisited. */
+@container (max-height: 100px) {
   .widget.c .hero-bottom { display: none; }
 }
 
@@ -2928,6 +2936,14 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 }
 @container (max-height: 100px) {
   .widget.c .slider { display: none; }
+}
+
+/* The brand lockup goes at 50 wide. The matrix draws it in every cell from 51
+   up and in none of the 50 column. Its own content is a 53px "Listen on" beside
+   a 62px logo, so 115 before any padding, and a 50px card cannot hold a third of
+   it. Height is handled above, where the whole bottom bar goes at 100 and below. */
+@container (max-width: 50px) {
+  .widget.c .list-row { display: none; }
 }
 
 @container (max-width: 319px) {
