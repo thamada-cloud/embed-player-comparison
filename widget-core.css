@@ -172,6 +172,10 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
      own so it stays under playlist in column 1 rather than auto-flowing into
      the design column, and column 2 of that row is simply empty. */
   main[data-cols="2"] > [data-design][data-kind="notfound"] { grid-row: 8; }
+  /* The other two error examples, same reasoning, rows of their own so they
+     stay stacked under the 404 in column 1. */
+  main[data-cols="2"] > [data-design][data-kind="noflag"] { grid-row: 9; }
+  main[data-cols="2"] > [data-design][data-kind="wrongid"] { grid-row: 10; }
 }
 
 /* The three column option is gone. It existed to put what ships beside design
@@ -280,6 +284,12 @@ section.is-live > .band-note { color: #14532d; }
    and 440 would give it 240 of empty grey. */
 [data-design="ship"][data-kind="artist"] .embed iframe,
 [data-design="ship"][data-kind="playlist"] .embed iframe { height: 300px; }
+/* 300 so these two sit at the same height as the podcast embed above them and
+   the comparison is like for like. The no-flag frame holds a 5232px document
+   and will scroll inside those 300; that IS the demonstration, so it is not
+   given room to look better than it is. */
+[data-design="ship"][data-kind="noflag"] .embed iframe,
+[data-design="ship"][data-kind="wrongid"] .embed iframe { height: 300px; }
 
 /* The Auto button is a state, not an action, so it reads as pressed while no
    height is set rather than looking like a button you have yet to use. */

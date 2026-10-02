@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20261002160805">
+<link rel="stylesheet" href="widget-core.css?v=20261002190559">
 </head>
 <body data-bg="grey">
 
@@ -244,6 +244,58 @@
               allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
     <p class="status">Pointed at podcast-99999999, which does not exist. The page answers 404.</p>
+  </section>
+
+  <!-- What a publisher's slot fills with when ?embed=true is left off.
+
+       Nothing fails. The request answers 200 and iHeart serves the whole
+       website into the frame, measured at 476KB against the embed's 44KB and a
+       5232px document inside a 300px slot, app banner and global nav and
+       presets rail included.
+
+       Worth a card of its own because it is the likeliest mistake there is. The
+       URL a publisher copies out of their address bar IS this URL, and the flag
+       is the one thing they have to remember to add. Nothing in the result
+       tells them they forgot. There is no error, no empty frame and no console
+       warning.
+
+       Rendered rather than inferred from the byte count, and it is worse than
+       the byte count suggests: the 300px slot is an ad banner, the global nav,
+       a red bar and a full cookie consent wall, with no player visible at all.
+       A publisher glancing at their own page sees something that looks like a
+       broken ad unit rather than anything they would connect to iHeart. -->
+  <section data-design="ship" data-kind="noflag">
+    <div class="h2row"><h2>Embed flag missing</h2></div>
+    <div class="embed">
+      <iframe id="e-noflag" title="iHeart page embedded without the embed flag, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <p class="status">The real show URL with ?embed=true left off. The page answers 200, and the 300px slot fills with an ad, the site nav and a cookie wall. The player is somewhere below all of it.</p>
+  </section>
+
+  <!-- The failure that does not look like one.
+
+       The slug in an iHeart URL is cosmetic and the trailing id resolves the
+       content, so a URL reading stuff-you-should-know with Dateline's id on the
+       end serves Dateline, answers 200, and renders a perfectly healthy player.
+       Nothing anywhere signals it. Not the frame, not the page, not the
+       publisher reading their own CMS entry back.
+
+       This card exists precisely BECAUSE it looks fine. It is the argument for
+       sourcing ids from the API rather than hand-writing a slug, and the only
+       way to make that argument is to show the card next to the ones that fail
+       loudly and point out that this is the dangerous one.
+
+       Checked the other direction too: a wrong slug with the RIGHT id serves the
+       right show, so a stale slug on its own is harmless. The id is the whole
+       contract. -->
+  <section data-design="ship" data-kind="wrongid">
+    <div class="h2row"><h2>Wrong content, no error</h2></div>
+    <div class="embed">
+      <iframe id="e-wrongid" title="iHeart embed whose URL slug does not match the content it loads, current production player"
+              allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <p class="status">URL reads stuff-you-should-know. The id on the end is Dateline NBC, and that is what plays.</p>
   </section>
 
   <!-- Design A is hidden for now. Commented out rather than deleted, for the
@@ -523,6 +575,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261002160805"></script>
+<script src="widget-core.js?v=20261002190559"></script>
 </body>
 </html>

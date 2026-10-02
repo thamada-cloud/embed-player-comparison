@@ -3481,7 +3481,14 @@ const FIXED_EMBEDS = {
   /* Deliberately bogus, to show what a publisher's slot fills with when the
      content is gone. The id is the only thing wrong with it; the shape is a
      real podcast embed URL. */
-  'e-404': 'https://www.iheart.com/podcast/podcast-99999999/?embed=true'
+  'e-404': 'https://www.iheart.com/podcast/podcast-99999999/?embed=true',
+  /* The real show URL with the flag left off. Nothing about it is malformed,
+     which is the point: it answers 200 and serves the entire website. */
+  'e-noflag': 'https://www.iheart.com/podcast/stuff-you-should-know-26940277/',
+  /* Slug and id deliberately disagree. 43034875 is Dateline NBC, resolved from
+     us.api.iheart.com; the slug is Stuff You Should Know's. The id wins, in
+     silence. */
+  'e-wrongid': 'https://www.iheart.com/podcast/stuff-you-should-know-43034875/?embed=true'
 };
 
 /* Nothing is fetched for a source the page is not showing, so the single card
@@ -3491,8 +3498,34 @@ const setIfPresent = (id, apply) => { const el = document.getElementById(id); if
 /* Applied here rather than beside FIXED_EMBEDS itself, because setIfPresent is
    a const declared below that point and reaching it early is a dead zone throw
    rather than a hoisted function call. */
+/* The error examples are not loaded until they are scrolled to.
+
+   loading="lazy" is on the frames and is not enough on its own. Chrome's
+   threshold is generous, so it still fetched the "Embed flag missing" frame on
+   first paint, and that frame is the entire iHeart website at 476KB against an
+   embed's 44KB. The page's load event waits on every subframe, so one heavy
+   frame nobody has scrolled to yet pushed the whole page past 30 seconds. That
+   was caught as a test timeout and it is the visitor's wait too: this page is
+   opened to compare players, and all of them sit above these examples.
+
+   Holding the src back until the section intersects makes the attribute do what
+   it says. rootMargin gives it a screen of warning so it is loaded by the time
+   it is looked at, and the observer disconnects after firing because these
+   frames are stateful once running and must not be reloaded underneath someone.
+
+   No IntersectionObserver means no deferral rather than no embed. */
+const DEFERRED = new Set(['e-noflag', 'e-wrongid', 'e-404']);
+
 Object.entries(FIXED_EMBEDS).forEach(([id, src]) =>
-  setIfPresent(id, (el) => { el.src = src; }));
+  setIfPresent(id, (el) => {
+    if (!DEFERRED.has(id) || typeof IntersectionObserver !== 'function') { el.src = src; return; }
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      el.src = src;
+    }, { rootMargin: '100% 0px' });
+    io.observe(el);
+  }));
 
 /* Point a shipping embed at some content, and SAY what it is pointing at.
    It has always followed the search; there was simply no way to tell from
