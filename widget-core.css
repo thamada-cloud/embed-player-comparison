@@ -2967,6 +2967,11 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    play button, so there is no room left for a line of text to be read in. */
 @container (max-width: 50px) {
   .widget.c .topbar .meta { display: none; }
+  /* The skip controls go too. The matrix draws no secondary controls anywhere
+     in its 50 column, and a 50px card is 8 of padding either side and a 40 play
+     button, so there is nothing left for them to sit in. Hidden on .cc-side
+     rather than on the buttons, so both groups go together. */
+  .widget.c .hero-controls .cc-side { display: none; }
 }
 
 @container (max-width: 319px) {
