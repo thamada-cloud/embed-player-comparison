@@ -2914,6 +2914,22 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c .topbar a.thumb-link { display: none; }
 }
 
+/* The scrubber, from the same matrix. Two conditions, either one hides it.
+
+     below 201 wide     the bar is not scrubbable at that size and the two
+                        timestamps alone take about 80px out of a 174px row.
+                        Measured at 190 wide, the track between them is 60px.
+     100 tall or less   the whole bottom bar is gone in that row in Figma.
+
+   Scoped to .widget.c. The hero card shares this class and keeps its own
+   scrubber at every size. */
+@container (max-width: 200px) {
+  .widget.c .slider { display: none; }
+}
+@container (max-height: 100px) {
+  .widget.c .slider { display: none; }
+}
+
 @container (max-width: 319px) {
   /* Info and share go. The LIST button stays, because below 300 tall it is the
      only way to reach the episode list at all, and hiding it there stranded the
