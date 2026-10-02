@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20261002190559">
+<link rel="stylesheet" href="widget-core.css?v=20261002191009">
 </head>
 <body data-bg="grey">
 
@@ -259,18 +259,25 @@
        tells them they forgot. There is no error, no empty frame and no console
        warning.
 
-       Rendered rather than inferred from the byte count, and it is worse than
-       the byte count suggests: the 300px slot is an ad banner, the global nav,
-       a red bar and a full cookie consent wall, with no player visible at all.
-       A publisher glancing at their own page sees something that looks like a
-       broken ad unit rather than anything they would connect to iHeart. -->
+       Rendered rather than inferred from the byte count, and worse than the
+       byte count suggests. What exactly lands in the 300px slot varies between
+       loads, because the site's own ad slot does not always fill: one load gave
+       an ad banner, the global nav and a cookie consent wall with no player at
+       all, another gave the nav, the show header and a play button mostly
+       covered by the same cookie wall. The caption claims only what held in
+       both, which is site chrome and a consent wall where a player should be.
+
+       It is also slow. The frame is deferred for that reason, and still takes
+       several seconds to paint after it is scrolled to, which is itself part of
+       what the card is showing. A screenshot taken too soon after the scroll
+       catches it blank; that is the capture racing the frame, not a failure. -->
   <section data-design="ship" data-kind="noflag">
     <div class="h2row"><h2>Embed flag missing</h2></div>
     <div class="embed">
       <iframe id="e-noflag" title="iHeart page embedded without the embed flag, current production player"
               allow="autoplay" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
-    <p class="status">The real show URL with ?embed=true left off. The page answers 200, and the 300px slot fills with an ad, the site nav and a cookie wall. The player is somewhere below all of it.</p>
+    <p class="status">The real show URL with ?embed=true left off. The page answers 200 and serves the whole site, about ten times the payload. The 300px slot fills with site chrome and a cookie consent wall instead of a player.</p>
   </section>
 
   <!-- The failure that does not look like one.
@@ -575,6 +582,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261002190559"></script>
+<script src="widget-core.js?v=20261002191009"></script>
 </body>
 </html>
