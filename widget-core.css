@@ -2965,7 +2965,41 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 /* The title and subtitle go at 50 wide. The matrix draws them from 51 up and
    nowhere in the 50 column. At 50 the card is 8 of padding either side and a 40
    play button, so there is no room left for a line of text to be read in. */
+/* The LIST ROWS shed their own furniture, which is a different rule from the
+   player shedding its. From the breakpoints matrix in Figma, section
+   2719:602052, read off the annotations on the List rather than off the
+   inventory line.
+
+     row artwork        gone at 240 wide and below
+     row overflow       gone at 200 wide and below
+
+   Measured at 200 wide, a row was carrying a 56px tile, a 32px button and two
+   12px gaps, which left the episode title about 88px and collapsed it to one
+   character and an ellipsis. Dropping both hands the title the whole row.
+
+   Applied to the drawer rows as well as the inline ones. The matrix only draws
+   the inline list, but the drawer is the same rows at the same card width and
+   has the same squeeze, so splitting them would mean a 200px card whose drawer
+   is legible and whose inline list is not. */
+@container (max-width: 240px) {
+  .widget.c .row .row-art { display: none; }
+}
+@container (max-width: 200px) {
+  .widget.c .row-wrap .row-more { display: none; }
+}
+
+/* The play button is 34 at 50 wide, from the breakpoints matrix in Figma, which
+   draws it at 34 in every cell of its 50 column.
+
+   It overrides the 40px floor in --play. That floor is not arbitrary: it came
+   from the older compact frame 2666:125692, which draws the button at 40 and was
+   read as the smallest it should ever be. The matrix supersedes it at this one
+   width. Everywhere else the 40 still holds. */
 @container (max-width: 50px) {
+  /* .shell[data-fill] is carried because the base --play rule has it, and a
+     container query adds no specificity of its own. Without it this loses and
+     the button stays on its 40 floor. */
+  .shell[data-fill] .widget.c .hero-play { --play: 34px; }
   .widget.c .topbar .meta { display: none; }
   /* The skip controls go too. The matrix draws no secondary controls anywhere
      in its 50 column, and a 50px card is 8 of padding either side and a 40 play
