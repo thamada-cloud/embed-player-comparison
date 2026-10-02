@@ -2946,6 +2946,29 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c .list-row { display: none; }
 }
 
+/* The playback speed button goes below 241 wide, from the breakpoints matrix in
+   Figma, section 2719:602052. Its playback row holds back 15 and forward 30 at
+   51 to 240, and gains speed at 241, which is why the secondary count in the
+   annotations reads 2 and then 4.
+
+   Speed is the right one of the three to drop. Back 15 and forward 30 are the
+   only way to move within an episode from this card, where speed is a
+   preference that survives in the full player, so losing it costs the least.
+
+   Scoped to the transport row, not the top bar. The 1x control is a text box
+   rather than a glyph and carries its own sizing, so hiding the button hides
+   both. */
+@container (max-width: 240px) {
+  .widget.c .hero-controls .h-btn[data-act="speed"] { display: none; }
+}
+
+/* The title and subtitle go at 50 wide. The matrix draws them from 51 up and
+   nowhere in the 50 column. At 50 the card is 8 of padding either side and a 40
+   play button, so there is no room left for a line of text to be read in. */
+@container (max-width: 50px) {
+  .widget.c .topbar .meta { display: none; }
+}
+
 @container (max-width: 319px) {
   /* Info and share go. The LIST button stays, because below 300 tall it is the
      only way to reach the episode list at all, and hiding it there stranded the
