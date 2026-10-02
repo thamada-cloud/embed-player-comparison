@@ -1259,15 +1259,12 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   /* Seek, speed and skip go. There is no room for them beside the button and
      they are not what a card this short is for. */
   .widget.c .hero-controls .cc-side { display: none; }
-  /* Info, list and share go with them. They are the far end of the same row the
-     button just moved into, and at this height the row is the whole card: the
-     title and subtitle need the width more than three secondary actions do.
-     Everything they reach is still reachable, since the card links out. */
-  /* [data-act] is load-bearing, not decoration. The list button's display is
-     driven by --listbtn-display now, and `.widget.c .h-btn[data-act="list"]`
-     ties this rule's specificity and sits later in the file, so without the
-     extra attribute here it won and put the button back in the compact row. */
-  .widget.c .topbar .h-btn[data-act] { display: none; }
+  /* The trailing buttons used to go outright here, on the reasoning that at this
+     height the row is the whole card and the title needs the width more than
+     three secondary actions do. The breakpoints matrix keeps them, just later:
+     share from 241, list from 301, info from 341, against 201, 241 and 341 in
+     the taller rows. That staircase is written once further down and carries the
+     height condition with it, so this block no longer hides them at all. */
   .widget.c .topbar { padding-left: calc(var(--card-pad, 8px) + 48px);
                       min-height: 40px; }
   /* The stage is a flex column with space-between, and with the row pinned to
@@ -3008,17 +3005,44 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .widget.c .hero-controls .cc-side { display: none; }
 }
 
-@container (max-width: 319px) {
-  /* Info and share go. The LIST button stays, because below 300 tall it is the
-     only way to reach the episode list at all, and hiding it there stranded the
-     content: a 280x240 card had no inline list and no button to open the drawer.
-     Above 300 the list is inline and this button is already hidden by the rule
-     further down, so tall cards still hand back the full width.
+/* The trailing buttons arrive one at a time as the card widens, from the
+   breakpoints matrix in Figma, section 2719:602052.
 
-     Info and share are a different case. They open a description and a share
-     sheet, and the card's tile and title are links, so nothing becomes
-     unreachable when they go. */
-  .widget.c .topbar .h-btn:not([data-act="list"]) { display: none; }
+   This replaces a single cliff. Everything used to appear at once at 320 and
+   nothing existed below it, which is why the matrix's column edges sat where
+   they did and why a 310px card and a 330px card behaved so differently.
+
+                         share   list   info
+     128 tall and up      201     241    341
+     127 and below        241     301    341
+
+   The short rows need more width for the same buttons because the play button
+   has moved into this row and is competing for it.
+
+   POSITIONAL, not per button. The rule counts from the right, so the far right
+   slot survives longest and each content type fills from that end with whatever
+   buttons it has. Podcast and artist radio carry list and share, episode and
+   live carry info and share, playlist carries all three, and none of that needs
+   its own rule. The markup order is already info, list, share, which is Figma's
+   s1, s2, s3.
+
+   :nth-last-of-type counts BUTTONS only. The top bar's other children are an <a>
+   and a <div>, which are different element types and so are not counted, where
+   :nth-last-child would have counted them and shifted everything by two. */
+@container (max-width: 200px) {
+  .widget.c .topbar button.h-btn:nth-last-of-type(1) { display: none; }
+}
+@container (max-width: 240px) {
+  .widget.c .topbar button.h-btn:nth-last-of-type(2) { display: none; }
+}
+@container (max-width: 340px) {
+  .widget.c .topbar button.h-btn:nth-last-of-type(3) { display: none; }
+}
+@container (max-width: 240px) and (max-height: 127px) {
+  .widget.c .topbar button.h-btn:nth-last-of-type(1) { display: none; }
+}
+@container (max-width: 300px) and (max-height: 127px) {
+  .widget.c .topbar button.h-btn:nth-last-of-type(2) { display: none; }
 }
 
 @container (max-width: 319px) {
