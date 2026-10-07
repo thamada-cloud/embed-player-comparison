@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20261002191009">
+<link rel="stylesheet" href="widget-core.css?v=20261007031356">
 </head>
 <body data-bg="grey">
 
@@ -305,6 +305,86 @@
     <p class="status">URL reads stuff-you-should-know. The id on the end is Dateline NBC, and that is what plays.</p>
   </section>
 
+  <!-- Unsupported region.
+
+       THE ONLY RECREATION ON THIS PAGE. Every other card here is a live iframe
+       of the real player; this one cannot be, because the state is gated on the
+       viewer's country and the request cannot be moved outside the US. It is
+       rebuilt from the shipping widget's own source rather than from a
+       screenshot, so the strings, type sizes, colours and button logic are the
+       real ones, but it is still a drawing and it is labelled as one.
+
+       Three things are worth knowing before reading it.
+
+       1. There is NO error page. The widget renders in full, artwork and title
+          and play button and all. Nothing says the region is unsupported. The
+          block fires only when someone presses PLAY, which makes this a post
+          play state and not a sibling of the 404 card above.
+       2. Supported countries are hard coded as US, CA, AU and NZ. Everywhere
+          else in the world takes this path.
+       3. The five content types behave four different ways, reproduced below.
+          Podcast show and podcast episode have no geo handling at all, which is
+          correct rather than missing, since podcast audio is not restricted by
+          country the way radio and playlists are. There is nothing to draw for
+          those two.
+
+       Live radio replaces the whole player inline and has TWO states that read
+       differently and offer different help. Artist radio and playlist each pop
+       an opaque panel over the entire card instead, with their own wording. -->
+  <section data-design="ship" data-kind="georegion">
+    <div class="h2row"><h2>Unsupported region</h2></div>
+    <p class="status recreate-note">Rebuilt from the shipping widget's source, not a live embed. This state depends on the viewer's country, so it cannot be framed from here.</p>
+
+    <div class="georecreate">
+      <div class="geo-label">Live radio, UnsupportedCountry. No buttons at all.</div>
+      <div class="geo-panel">
+        <img class="geo-ihr" src="assets/ihr-logo.svg" alt="iHeart" width="20" height="16">
+        <div class="geo-mid">
+          <div>
+            <img class="geo-thumb" src="https://i.iheart.com/v3/re/assets/images/1469.png" alt="">
+            <h1 class="geo-h1">This content is not supported in your country</h1>
+            <a class="geo-textlink" href="https://help.iheart.com/hc/articles/229182368-Troubleshooting-browser-issues-with-iHeartRadio" target="_blank" rel="noopener">View Troubleshooting</a>
+          </div>
+        </div>
+      </div>
+      <p class="status">The listener gets a sentence and a troubleshooting link. Retry, iHeart.com, Listen in App and Got it are all suppressed for this state in the source. It is a dead end, and it is the state a genuine international visitor hits.</p>
+
+      <div class="geo-label">Live radio, AccessDenied. The same situation, handled better.</div>
+      <div class="geo-panel">
+        <img class="geo-ihr" src="assets/ihr-logo.svg" alt="iHeart" width="20" height="16">
+        <div class="geo-mid">
+          <div>
+            <img class="geo-thumb" src="https://i.iheart.com/v3/re/assets/images/1469.png" alt="">
+            <h1 class="geo-h1">This station is not currently available in your country.</h1>
+            <h3 class="geo-body">Please pick a different station or listen to this station using our free iHeart app.</h3>
+            <div class="geo-btns">
+              <span class="geo-btn geo-btn-out">Listen in App</span>
+              <span class="geo-btn geo-btn-fill">Got it</span>
+            </div>
+            <a class="geo-textlink" href="https://help.iheart.com/hc/articles/229182368-Troubleshooting-browser-issues-with-iHeartRadio" target="_blank" rel="noopener">View Troubleshooting</a>
+          </div>
+        </div>
+      </div>
+      <p class="status">Same card, same cause, a different error constant. This one names the reason, offers the app and lets the listener dismiss it.</p>
+
+      <div class="geo-label">Artist radio. An opaque panel over the whole card.</div>
+      <div class="geo-panel geo-modal">
+        <span class="geo-close" aria-hidden="true">&#215;</span>
+        <h1 class="geo-title">Station Not Available</h1>
+        <div class="geo-mbody"><p>We&rsquo;re sorry! This station is not available in your country.</p></div>
+      </div>
+      <p class="status">Not an overlay with a scrim. The panel is opaque and covers the card edge to edge, so the player is simply gone behind it.</p>
+
+      <div class="geo-label">Playlist. Same mechanism, different words.</div>
+      <div class="geo-panel geo-modal">
+        <span class="geo-close" aria-hidden="true">&#215;</span>
+        <h1 class="geo-title">Playback Unsupported In Current Country</h1>
+        <div class="geo-mbody"><p>This playlist is unsupported in your current country.</p></div>
+      </div>
+      <p class="status">Artist radio says "not available in your country" and titles it Station Not Available. Playlist says "unsupported in your current country" and titles it Playback Unsupported In Current Country. Both describe the same block.</p>
+    </div>
+  </section>
+
   <!-- Design A is hidden for now. Commented out rather than deleted, for the
        same reason design B was: the roster in widget-core.js builds itself from
        whichever roots exist in the page, so with w-podcast and w-live gone no
@@ -582,6 +662,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261002191009"></script>
+<script src="widget-core.js?v=20261007031356"></script>
 </body>
 </html>

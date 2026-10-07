@@ -176,6 +176,7 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
      stay stacked under the 404 in column 1. */
   main[data-cols="2"] > [data-design][data-kind="noflag"] { grid-row: 9; }
   main[data-cols="2"] > [data-design][data-kind="wrongid"] { grid-row: 10; }
+  main[data-cols="2"] > [data-design][data-kind="georegion"] { grid-row: 11; }
 }
 
 /* The three column option is gone. It existed to put what ships beside design
@@ -3060,3 +3061,67 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   .pv-copy { font-size: var(--fs-14); line-height: var(--lh-18); }
   .pv-cta { padding: 8px 20px; font-size: var(--fs-14); line-height: var(--lh-18); }
 }
+
+
+/* ===========================================================================
+   Unsupported region, recreated.
+
+   The one drawing on a page of live embeds, because the state is gated on the
+   viewer's country and the request cannot be moved outside the US. Rebuilt from
+   the shipping widget's source, not from a screenshot, so every number below is
+   the real one rather than an eyeballed match.
+
+   The widget's root font size is 10px, so its rem values halve neatly into
+   pixels here. 1rem is 10px, 11.6rem is the 116px thumb, 1.7rem is the 17px
+   button radius. Colours are the LIGHT theme, which is what the embed serves:
+   fontPrimary #27292D, fontTertiary #3F4447, modalBackground white, and the
+   thumb shadow is gray 300. Checked against the live 404 frame on this same
+   page, whose heading measured rgb(39, 41, 45) in Helvetica Neue at a 10px
+   root, which is the same chrome these states are built on.
+   ==========================================================================*/
+.georecreate { display: flex; flex-direction: column; gap: 6px; }
+.recreate-note { font-style: italic; }
+.geo-label { font-size: 12px; font-weight: 600; color: var(--ihr-grey-450);
+             margin-top: 10px; }
+/* 300 tall to sit at the same height as the embeds above, and white because the
+   embed is served on a transparent body over the host's page. */
+.geo-panel {
+  position: relative; height: 300px; box-sizing: border-box;
+  background: #fff; color: #27292D; text-align: center; padding: 20px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  border: 1px solid var(--ihr-grey-200, #E6EAED); border-radius: 6px;
+  overflow: hidden;
+}
+.geo-ihr { position: absolute; right: 10px; top: 10px; width: 20px; height: 16px; }
+/* Centred only from 169 tall up, which is the widget's own condition. */
+.geo-mid { display: flex; align-items: center; justify-content: center; height: 100%; }
+.geo-thumb { display: block; width: 116px; height: 116px; margin: 10px auto;
+             border-radius: 6px; background: #fff;
+             box-shadow: #C5CDD2 2px 3px 10px 0px; object-fit: contain; }
+.geo-h1 { font-size: 20px; line-height: 26px; font-weight: bold;
+          margin: 0 0 20px; color: #27292D; }
+.geo-body { font-size: 14px; line-height: 18px; font-weight: normal;
+            margin: 0 0 20px; color: #27292D; }
+/* ButtonsWrapper puts 1rem between siblings and 1rem under the group. */
+.geo-btns { margin-bottom: 10px; }
+.geo-btns > * + * { margin-left: 10px; }
+/* RoundedButton at 420 wide and up, which every card on this page clears. */
+.geo-btn { display: inline-block; box-sizing: border-box; min-width: 110px;
+           height: 32px; line-height: 20px; padding: 5px 14px; font-size: 14px;
+           border-radius: 17px; border: 1px solid #27292D; text-align: center; }
+.geo-btn-out  { background: transparent; color: #27292D; }
+/* ReloadButton inverts: fontPrimary fill, backgroundPrimary text and border. */
+.geo-btn-fill { background: #27292D; color: #fff; border-color: #fff; }
+.geo-textlink { display: inline-block; font-size: 12px; line-height: 1.4;
+                color: #27292D; text-decoration: underline; }
+/* The artist and playlist panel is NOT a scrim overlay. It is inset 0, opaque
+   and z-index 9999, so the player is gone rather than dimmed. 1.4rem padding
+   and the close button floats right. */
+.geo-modal { text-align: left; padding: 14px; }
+.geo-close { float: right; font-size: 20px; line-height: 1; color: #27292D; }
+.geo-title { font-size: 16px; line-height: 20px; margin: 0;
+             padding-bottom: 10px; padding-right: 30px; color: #27292D; }
+.geo-mbody { font-size: 16px; line-height: 20px; color: #3F4447; }
+.geo-mbody p { margin: 0; }
+/* The thumb is dropped under 300 wide in the widget itself. */
+@media (max-width: 299px) { .geo-thumb { display: none; } }
