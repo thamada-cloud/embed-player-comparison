@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20261007031356">
+<link rel="stylesheet" href="widget-core.css?v=20261007033102">
 </head>
 <body data-bg="grey">
 
@@ -333,10 +333,11 @@
        an opaque panel over the entire card instead, with their own wording. -->
   <section data-design="ship" data-kind="georegion">
     <div class="h2row"><h2>Unsupported region</h2></div>
-    <p class="status recreate-note">Rebuilt from the shipping widget's source, not a live embed. This state depends on the viewer's country, so it cannot be framed from here.</p>
+    <p class="ships-today"><strong>All four below are what ships today.</strong> None of them are proposals. They are drawn rather than framed because this state depends on the viewer's country, and the request cannot be moved outside the US from here. Every string, size and colour is taken from the shipping widget's own source.</p>
+    <p class="status">A listener reaches one specific panel depending on what they are listening to and which error the player gets back. Podcast shows and episodes reach none of them, because podcast audio is not restricted by country.</p>
 
     <div class="georecreate">
-      <div class="geo-label">Live radio, UnsupportedCountry. No buttons at all.</div>
+      <div class="geo-label"><span class="geo-chip">Ships today</span> Live radio, one of its two states. The player is replaced in place.</div>
       <div class="geo-panel">
         <img class="geo-ihr" src="assets/ihr-logo.svg" alt="iHeart" width="20" height="16">
         <div class="geo-mid">
@@ -347,9 +348,9 @@
           </div>
         </div>
       </div>
-      <p class="status">The listener gets a sentence and a troubleshooting link. Retry, iHeart.com, Listen in App and Got it are all suppressed for this state in the source. It is a dead end, and it is the state a genuine international visitor hits.</p>
+      <p class="status">Internally this is the UnsupportedCountry error. The listener gets a sentence and a troubleshooting link, and nothing else. Retry, iHeart.com, Listen in App and Got it are all suppressed for this state in the source. It is a dead end, and it is the state a genuine international visitor hits.</p>
 
-      <div class="geo-label">Live radio, AccessDenied. The same situation, handled better.</div>
+      <div class="geo-label"><span class="geo-chip">Ships today</span> Live radio, its other state. Same listener, same block, different handling.</div>
       <div class="geo-panel">
         <img class="geo-ihr" src="assets/ihr-logo.svg" alt="iHeart" width="20" height="16">
         <div class="geo-mid">
@@ -365,9 +366,9 @@
           </div>
         </div>
       </div>
-      <p class="status">Same card, same cause, a different error constant. This one names the reason, offers the app and lets the listener dismiss it.</p>
+      <p class="status">Internally this is the AccessDenied error. Same card and same cause as the panel above, but this one names the reason, offers the free app and lets the listener dismiss it. Which of the two a listener gets depends on which error the player returns, not on anything they did. That is the thing worth raising with product.</p>
 
-      <div class="geo-label">Artist radio. An opaque panel over the whole card.</div>
+      <div class="geo-label"><span class="geo-chip">Ships today</span> Artist radio. A panel covers the whole card.</div>
       <div class="geo-panel geo-modal">
         <span class="geo-close" aria-hidden="true">&#215;</span>
         <h1 class="geo-title">Station Not Available</h1>
@@ -375,7 +376,7 @@
       </div>
       <p class="status">Not an overlay with a scrim. The panel is opaque and covers the card edge to edge, so the player is simply gone behind it.</p>
 
-      <div class="geo-label">Playlist. Same mechanism, different words.</div>
+      <div class="geo-label"><span class="geo-chip">Ships today</span> Playlist. Same mechanism as artist radio, different words.</div>
       <div class="geo-panel geo-modal">
         <span class="geo-close" aria-hidden="true">&#215;</span>
         <h1 class="geo-title">Playback Unsupported In Current Country</h1>
@@ -662,6 +663,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261007031356"></script>
+<script src="widget-core.js?v=20261007033102"></script>
 </body>
 </html>

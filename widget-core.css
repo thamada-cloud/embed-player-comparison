@@ -3080,7 +3080,21 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    root, which is the same chrome these states are built on.
    ==========================================================================*/
 .georecreate { display: flex; flex-direction: column; gap: 6px; }
-.recreate-note { font-style: italic; }
+/* The first version of this section labelled the panels with the names of the
+   code constants, UnsupportedCountry and AccessDenied, which read as variant
+   names someone is being asked to choose between. They are not options, they
+   are four states that all ship. The banner and the per panel chip say so
+   plainly, and the constant names moved down into the captions where they
+   belong as detail rather than as a heading. */
+.ships-today { font-size: 13px; line-height: 1.5; margin: 6px 0 2px;
+               padding: 10px 12px; border-radius: 6px;
+               background: var(--ihr-grey-100, #F6F8F9);
+               border-left: 3px solid var(--ihr-red-500, #C6002B);
+               color: var(--ihr-grey-600, #27292D); }
+.geo-chip { display: inline-block; vertical-align: 1px; margin-right: 6px;
+            padding: 2px 7px; border-radius: 10px; font-size: 10px;
+            font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+            background: var(--ihr-grey-600, #27292D); color: #fff; }
 .geo-label { font-size: 12px; font-weight: 600; color: var(--ihr-grey-450);
              margin-top: 10px; }
 /* 300 tall to sit at the same height as the embeds above, and white because the
