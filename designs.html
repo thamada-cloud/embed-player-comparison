@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Design Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widget-core.css?v=20261020131516">
+</head>
+<body data-bg="grey">
+
+<header>
+  <div class="brand">Design Archive</div>
+  <!-- The same cards in a real page's rail, for judging them in context rather
+       than on a blank background. New tab, so playback and the width setting
+       here survive the trip. -->
+  <div class="hint"><a href="widget.html">Back to the comparison page</a></div>
+  <div class="hint">Window <b class="vw" id="vw">0</b> px</div>
+  <div class="widthctl">
+    <label for="widthRange">Player width</label>
+    <input id="widthRange" type="range" min="50" max="1320" step="1" aria-label="Player width">
+    <input id="widthNum" type="number" min="50" max="1320" step="1" aria-label="Player width in pixels">
+    <span class="unit">px</span>
+    <button type="button" id="widthFill">Fill</button>
+  </div>
+  <!-- Height. A slot hands a card a height as surely as it hands it a width,
+       and until this control existed the page could only ask half the question.
+       Auto is the default and means no height is set at all, so the page loads
+       exactly as it did, which is what keeps this additive.
+       100, down from 150. 150 was chosen because it is the height the iHeart
+       homepage hardcodes for this slot, and design C could not fit it anyway.
+       It fits now, so the floor moves below it: the useful range is the one
+       where the card visibly gives up, and design C stops compressing at 136. -->
+  <div class="widthctl heightctl">
+    <label for="heightRange">Player height</label>
+    <input id="heightRange" type="range" min="50" max="900" step="1" value="440"
+           aria-label="Player height">
+    <input id="heightNum" type="number" min="50" max="900" step="1"
+           aria-label="Player height in pixels">
+    <span class="unit">px</span>
+    <button type="button" id="heightAuto" aria-pressed="true">Auto</button>
+  </div>
+  <!-- The waveform and background switches are hidden for now. Their DEFAULTS
+       are still in force and are the only thing that was ever shipping here:
+       data-wave="off" on <main> below and data-bg="grey" on <body>. Putting
+       these two blocks back, along with their listeners in the script at the
+       foot of this file, is all it takes to bring the controls back.
+  <div class="colctl">
+    <label for="wavetog">Waveform</label>
+    <span class="seg">
+      <button type="button" id="wavetog" data-wave="on" aria-pressed="false">On</button>
+      <button type="button" data-wave="off" aria-pressed="true">Off</button>
+    </span>
+  </div>
+  <div class="colctl">
+    <label for="bggrey">Background</label>
+    <span class="seg">
+      <button type="button" id="bggrey" data-bg="grey" aria-pressed="true">Grey</button>
+      <button type="button" data-bg="white" aria-pressed="false">White</button>
+    </span>
+  </div>
+  -->
+  <!-- Pause overlay, Background and List are hidden for now, the same way
+       designs A and B are: commented out rather than deleted, so uncommenting a
+       block brings the switch straight back. The behaviour they choose between
+       is unaffected. Each one's default is still applied below, and the script
+       skips any switch whose markup is not here, so the page behaves exactly as
+       it did with all three left alone:
+
+         Pause overlay  off
+         Background     follows what is playing
+         List           inline once the card is tall enough
+
+  <div class="colctl">
+    <label for="veiltog">Pause overlay</label>
+    <span class="seg">
+      <button type="button" id="veiltog" data-veil="on" aria-pressed="false">On</button>
+      <button type="button" data-veil="off" aria-pressed="true">Off</button>
+    </span>
+  </div>
+
+  <div class="colctl">
+    <label for="bgtog">Background</label>
+    <span class="seg">
+      <button type="button" id="bgtog" data-bg="live" aria-pressed="true">Follows play</button>
+      <button type="button" data-bg="fixed" aria-pressed="false">Fixed</button>
+    </span>
+  </div>
+
+  <div class="colctl">
+    <label for="listtog">List</label>
+    <span class="seg">
+      <button type="button" id="listtog" data-list="auto" aria-pressed="true">Inline when it fits</button>
+      <button type="button" data-list="drawer" aria-pressed="false">Drawer only</button>
+    </span>
+  </div>
+  -->
+
+  <!-- Where the inline list takes over from the drawer. 300 is what the card has
+       shipped with. Reveal copies the shipping player's shape, the player
+       holding its size while the list is uncovered and growing only once the
+       list is full. Figma is the design file's own answer, frame 2700:561775
+       resolved as the auto-layout it actually is, where the player and the list
+       are both flex 1 0 0 and share every new pixel evenly between their own
+       bounds.
+
+       170 and 240 were here too, as lower thresholds to compare against 300.
+       They were removed: both hand the player so little room that the compact
+       row has to take over to keep it legible, which is not a list threshold
+       decision any more, it is a different card.
+
+       The switch is hidden by request and the page runs on Figma. Commented out
+       rather than deleted, the same as the three switches above it: all three
+       modes are still in the stylesheet, still tested, and putting the block
+       back brings the comparison back. The flag is set in the script below
+       whether or not this markup is here. -->
+  <!--
+  <div class="colctl">
+    <label for="listat300">List</label>
+    <span class="seg">
+      <button type="button" id="listat300" data-listat="300" aria-pressed="false">300</button>
+      <button type="button" data-listat="reveal" aria-pressed="false">Reveal</button>
+      <button type="button" data-listat="figma" aria-pressed="true">Figma</button>
+    </span>
+  </div>
+  -->
+
+  <div class="colctl">
+    <label for="cols1">Columns</label>
+    <span class="seg">
+      <button type="button" id="cols1" data-cols="1" aria-pressed="true">1</button>
+      <button type="button" id="cols2" data-cols="2" aria-pressed="false">2</button>
+    </span>
+  </div>
+</header>
+
+<main data-cols="1" data-wave="off">
+  <!-- One search per content type, for the whole page. Choosing a show or a
+       station already loads it into every card of that kind, so a box per
+       section was four controls doing one job. -->
+  <div class="searchrow">
+    <div class="search" data-for="podcast">
+      <input type="search" placeholder="Search podcasts, try Las Culturistas or Stuff You Should Know" aria-label="Search podcasts">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="live">
+      <input type="search" placeholder="Search stations, try Z100 or KFI" aria-label="Search stations">
+      <div class="results" hidden></div>
+    </div>
+    <!-- The episode box searches PODCASTS. You pick a show and the card plays
+         its most recent episode; there is no useful search for one episode
+         across the catalogue, and the show is the thing a person has a name
+         for. -->
+    <div class="search" data-for="episode">
+      <input type="search" placeholder="Search podcasts for an episode, try Crime Junkie" aria-label="Search podcasts for an episode">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="artist">
+      <input type="search" placeholder="Search artists, try Taylor Swift or Drake" aria-label="Search artists">
+      <div class="results" hidden></div>
+    </div>
+    <div class="search" data-for="playlist">
+      <input type="search" placeholder="Search playlists, try 80s Hits or Top Hits" aria-label="Search playlists">
+      <div class="results" hidden></div>
+    </div>
+  </div>
+  <!-- Every design this prototype has ever had, rendered live rather than
+       screenshotted, so they can be driven with the same width and height
+       controls as the comparison page.
+
+       The shipping player and the four error examples are deliberately NOT
+       here. They are the point of widget.html and would only pad this one.
+
+       On the letters. The prototype has had A, B, C and D and nothing else.
+       D is not a fourth card: the roster builds the Design D content types with
+       variant 'c', because D was the Figma name for taking the Design C card to
+       podcast episode, artist radio and playlist. Those three are below under
+       Design C, which is where they actually live. There is no Design E and no
+       Design F in any file or any commit in this repo's history, so there is
+       nothing to render for them. If they exist they are Figma only. -->
+  <!-- Design A. The only design with a real transport, a scrubber plus back,
+       forward and speed in a row. No top bar and no bottom bar. It is the most
+       different of the three and the one furthest from what ships. -->
+    <div class="band band-proto" data-design="a">
+    <h2>Design A</h2>
+  </div>
+
+  <section data-design="a" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell"><div id="w-live"></div></div>
+    <p class="status" id="s-live"></p>
+  </section>
+  <section data-design="a" data-kind="podcast">
+    <div class="h2row"><h2>Podcast</h2></div>
+    <div class="shell"><div id="w-podcast"></div></div>
+    <p class="status" id="s-podcast"></p>
+  </section>
+
+
+
+  <!-- Design B. The direct ancestor of C. Same hero structure, same 64px play
+       control, same top and bottom bar, no scrubber at its default height. What
+       separates it from C is vertical room and the absence of the breakpoint
+       work, so it is the cheapest of the two to bring back. -->
+    <div class="band band-proto" data-design="b">
+    <h2>Design B</h2>
+  </div>
+
+  <section data-design="b" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell" data-nobreak><div id="w-live-hero"></div></div>
+    <p class="status" id="s-live-hero"></p>
+  </section>
+  <section data-design="b" data-kind="podcast">
+    <div class="h2row"><h2>Podcast</h2></div>
+    <div class="shell" data-nobreak><div id="w-podcast-hero"></div></div>
+    <p class="status" id="s-podcast-hero"></p>
+  </section>
+
+
+  <div class="band band-proto" data-design="c">
+    <h2>Design C</h2>
+  </div>
+
+  <section data-design="c" data-kind="live">
+    <div class="h2row"><h2>Live radio</h2></div>
+    <div class="shell" data-nobreak><div id="w-live-c"></div></div>
+    <p class="status" id="s-live-c"></p>
+  </section>
+  <section data-design="c" data-kind="podcast">
+    <div class="h2row"><h2>Podcast</h2></div>
+    <div class="shell" data-nobreak><div id="w-podcast-c"></div></div>
+    <p class="status" id="s-podcast-c"></p>
+  </section>
+
+
+  <!-- The three Design D content types, frames 2669:136836, 2669:137076 and
+       2669:136837. Ordered to sit opposite their shipping counterparts.
+       Artist radio and playlist do not play. Their audio needs an authenticated
+       profile and the only unauthenticated route mints an account on iHeart
+       production per visit, which a public page should not do. The transport is
+       simulated and everything else on them is real. -->
+  <section data-design="c" data-kind="episode">
+    <div class="h2row"><h2>Podcast episode</h2></div>
+    <div class="shell" data-nobreak><div id="w-episode-c"></div></div>
+    <p class="status" id="s-episode-c"></p>
+  </section>
+
+  <section data-design="c" data-kind="artist">
+    <div class="h2row"><h2>Artist radio</h2></div>
+    <div class="shell" data-nobreak><div id="w-artist-c"></div></div>
+    <p class="status" id="s-artist-c"></p>
+  </section>
+
+  <section data-design="c" data-kind="playlist">
+    <div class="h2row"><h2>Playlist</h2></div>
+    <div class="shell" data-nobreak><div id="w-playlist-c"></div></div>
+    <p class="status" id="s-playlist-c"></p>
+  </section>
+</main>
+
+<script>
+/* One column or two. The layout is entirely CSS; this only flips the attribute
+   and tells the width control to re-measure, because a card's available width
+   halves when the designs go side by side. */
+(function () {
+  const main = document.querySelector('main');
+  /* The background and waveform listeners go with their controls. They are
+     commented out rather than guarded on a null, because a guard would quietly
+     hide the fact that the markup is missing; this way the pairing is visible
+     and uncommenting the two header blocks without these does nothing, which is
+     an obvious symptom rather than a silent one.
+
+  const bseg = document.getElementById('bggrey').parentElement;
+  bseg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-bg]'); if (!b) return;
+    [...bseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.body.dataset.bg = b.dataset.bg;
+  });
+
+  const wseg = document.getElementById('wavetog').parentElement;
+  wseg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-wave]'); if (!b) return;
+    [...wseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    main.dataset.wave = b.dataset.wave;
+  });
+  */
+
+  /* Anchored on its own button, not on '.colctl .seg'. There are two of those
+     rows now and that selector quietly started returning the waveform one, so
+     the columns toggle stopped doing anything at all. */
+  const seg = document.getElementById('cols1').parentElement;
+  seg.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-cols]'); if (!b) return;
+    [...seg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    main.dataset.cols = b.dataset.cols;
+    /* Defined in widget-core.js, which loads after this, so it is called on the
+       next frame rather than now. */
+    requestAnimationFrame(() => {
+      if (typeof syncWidthControl === 'function') syncWidthControl();
+    });
+  });
+
+  /* Height. The control sets exactly two things, the custom property and the
+     flag on <main>, because container-type cannot be made conditional on a
+     custom property's value and the CSS needs something it can select on.
+     Auto removes both rather than setting a large number, so Auto is genuinely
+     the old behaviour and not a tall slot pretending to be it.
+     Design C is the only design that reads them. Design B is deliberately left
+     frozen at 444, so above 440 the comparison is a card that grows beside one
+     that does not, which is worth knowing when reading the results. */
+  /* The pause overlay switch. Anchored on its own button, not on '.colctl .seg',
+     which returned the wrong row once there were several of these and silently
+     wired the columns toggle to the waveform one. */
+  /* Each of these three is wired only if its markup is present. They are
+     commented out of the header for now, and a getElementById on a missing one
+     returns null, so reading .parentElement off it would throw and take the rest
+     of this script, the width and height controls included, down with it.
+     The DEFAULTS are applied either way, which is what keeps the page behaving
+     as it did when the switches were visible. */
+  const vseg = (document.getElementById('veiltog') || {}).parentElement;
+  if (vseg) vseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-veil]'); if (!bt) return;
+    [...vseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    main.dataset.veil = bt.dataset.veil;
+  });
+  main.dataset.veil = 'off';
+
+  /* Both of these are the same shape as the pause overlay switch above: the
+     choice lands on <main> and the card reads it where it is used, so flipping
+     one takes effect without a reload. */
+  const bseg = (document.getElementById('bgtog') || {}).parentElement;
+  if (bseg) bseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-bg]'); if (!bt) return;
+    [...bseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    main.dataset.bg = bt.dataset.bg;
+    /* The backdrop is written at render time, so the cards are redrawn rather
+       than left on the artwork the old setting chose. */
+    repaintAll();
+  });
+  main.dataset.bg = 'live';
+
+  const lseg = (document.getElementById('listtog') || {}).parentElement;
+  if (lseg) lseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-list]'); if (!bt) return;
+    [...lseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    /* On the document element, not on <main>: the CSS guard has to work on
+       embed.html too, which has no <main> to hang it off. */
+    document.documentElement.dataset.list = bt.dataset.list;
+  });
+  document.documentElement.dataset.list = 'auto';
+
+  /* On :root for the same reason the List flag is: the CSS guard has to work on
+     embed.html too, which has no <main>. */
+  const aseg = (document.getElementById('listat300') || {}).parentElement;
+  if (aseg) aseg.addEventListener('click', (e) => {
+    const bt = e.target.closest('button[data-listat]'); if (!bt) return;
+    [...aseg.children].forEach((x) => x.setAttribute('aria-pressed', String(x === bt)));
+    document.documentElement.dataset.listat = bt.dataset.listat;
+  });
+  /* Figma, and with the switch hidden this is the only thing that sets it. The
+     flag has to be SET for it, unlike 300, which the CSS also treats an absent
+     attribute as; that fallback is what keeps embed.html and host-home.html
+     working, since neither runs this script. */
+  document.documentElement.dataset.listat = 'figma';
+
+  const hRange = document.getElementById('heightRange');
+  const hNum = document.getElementById('heightNum');
+  const hAuto = document.getElementById('heightAuto');
+  /* 50, not 100. The card still floors at its own minimum and the slot clips
+     below that, which is the behaviour chosen when the floor was set; this
+     just lets a slot that small be looked at. */
+  const H_MIN = 50, H_MAX = 900;
+
+  /* The compression rules key off the SHELL, so the shells have to be marked.
+     Design C only: it is the one design that fills the height it is given.
+
+     Always marked now, in Auto too. Auto used to unmark them, which left no size
+     container at all, and a card with no size container matches no height query:
+     Auto said 300 and behaved like nothing, so the inline episode list never
+     appeared until a height was typed in. Auto is not "no height", it is each
+     card's OWN default height, so it sets that per shell instead. */
+  const markFill = (on) => document.querySelectorAll('section[data-design="c"] .shell')
+    .forEach((sh) => { if (on) sh.dataset.fill = ''; else delete sh.dataset.fill; });
+
+  /* Per kind, straight off EMBED_H in widget-core.js so this cannot drift from
+     the heights iHeart actually publishes. widget-core.js loads BELOW this
+     block, so nothing here may call it during this script's own execution. */
+  const autoHeightFor = (sec) => embedHeight({ kind: sec.dataset.kind }) + 'px';
+
+  const applyHeight = (px) => {
+    document.documentElement.style.setProperty('--player-h', px + 'px');
+    main.dataset.h = 'on';
+    markFill(true);
+    /* Drop the per-shell Auto heights so the one on the root takes over. */
+    document.querySelectorAll('section[data-design="c"] .shell')
+      .forEach((sh) => sh.style.removeProperty('--player-h'));
+    hRange.value = String(px);
+    /* Leave the field alone while it is being typed in, or the caret jumps.
+       Same reason as the width control's own guard. */
+    if (document.activeElement !== hNum) hNum.value = String(px);
+    hAuto.setAttribute('aria-pressed', 'false');
+  };
+
+  const autoHeight = () => {
+    document.documentElement.style.removeProperty('--player-h');
+    delete main.dataset.h;
+    /* Marked, and each shell given its own card's published default, so Auto
+       renders exactly what typing that number renders. */
+    markFill(true);
+    document.querySelectorAll('section[data-design="c"]').forEach((sec) => {
+      const sh = sec.querySelector('.shell');
+      if (sh) sh.style.setProperty('--player-h', autoHeightFor(sec));
+    });
+    hNum.value = '';
+    hAuto.setAttribute('aria-pressed', 'true');
+  };
+
+  hRange.addEventListener('input', () => applyHeight(Number(hRange.value)));
+  hAuto.addEventListener('click', autoHeight);
+
+  const clampHeight = () => {
+    const raw = Number(hNum.value);
+    if (hNum.value.trim() === '' || !Number.isFinite(raw)) { autoHeight(); return; }
+    applyHeight(Math.min(H_MAX, Math.max(H_MIN, Math.round(raw))));
+  };
+  hNum.addEventListener('input', () => {
+    if (hNum.value.trim() === '') return;            /* mid-edit, leave it alone */
+    const raw = Number(hNum.value);
+    if (Number.isFinite(raw) && raw >= H_MIN && raw <= H_MAX) applyHeight(raw);
+  });
+  hNum.addEventListener('change', clampHeight);
+  hNum.addEventListener('blur', clampHeight);
+  hNum.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { clampHeight(); hNum.blur(); }
+  });
+  /* After widget-core.js, not now. This script block sits above it in the page,
+     so at this point embedHeight does not exist yet and the first Auto pass threw
+     before it could set a single height, leaving every card at 40px. The button's
+     own handler was always fine, since that runs long after load. */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoHeight);
+  } else {
+    autoHeight();
+  }
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
+<script src="widget-core.js?v=20261020131516"></script>
+</body>
+</html>
