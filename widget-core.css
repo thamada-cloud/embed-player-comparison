@@ -106,6 +106,30 @@ header {
    edge rather than 16. */
 [data-wave="off"] .widget.hero .hero-bottom { padding-bottom: var(--card-padb, 4px); }
 
+/* The same switch, now honoured by the BAR card as well, which is design A.
+   It used to be scoped to .widget.hero and left design A alone, because at the
+   time design A was the only card on the page and its waveform was not in
+   question. With design A back on the archive page the switch should mean what
+   it says for all three designs rather than two.
+
+   The spacing has to be rebuilt rather than merely vacated. The bar card's
+   .player is a column with space-between, min-height 180 and 16 of padding on
+   top only, holding a 132 tall .body and the 16 tall .wave; the 16 between them
+   is the leftover that space-between distributes, not a declared gap. Take the
+   strip out and space-between has a single child, so the body pins to the top
+   and 32 collects underneath it.
+
+   So the strip's 16 becomes 16 of bottom padding, which matches the padding
+   already on top, and the floor drops by the strip's own height, 180 down to
+   164, which is exactly 16 plus the 132 body plus 16. Nothing is left dead and
+   the inset reads symmetrically. The card goes 180 to 164 on live radio and
+   400 to 384 on podcast, the list below being untouched at 220.
+
+   min-height rather than height, so a body taller than 132 still grows the card
+   instead of spilling out of it. */
+[data-wave="off"] .widget:not(.hero) .wave { display: none; }
+[data-wave="off"] .widget:not(.hero) .player { min-height: 164px; padding-bottom: 16px; }
+
 /* The column toggle, same shape as the width control beside it. */
 .colctl { display: flex; align-items: center; gap: 8px; }
 .colctl label { font-size: 12px; color: var(--ihr-grey-450); }
