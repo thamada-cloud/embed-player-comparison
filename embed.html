@@ -8,7 +8,7 @@
      embed slot on a host page and judged at the size that slot gives it.
      The card itself is the same code the prototype page runs, loaded from the
      same two files, so the two can never drift apart. -->
-<link rel="stylesheet" href="widget-core.css?v=20261027212858">
+<link rel="stylesheet" href="widget-core.css?v=20261027213628">
 <style>
   /* An embed fills the frame it is given. No page gutters, no max width, no
      chrome: whatever the host sized the iframe to is the whole budget. */
@@ -37,7 +37,13 @@
 const ROOTS = {
   'a-podcast': 'w-podcast',      'a-live': 'w-live',
   'b-podcast': 'w-podcast-hero', 'b-live': 'w-live-hero',
-  'c-podcast': 'w-podcast-c',    'c-live': 'w-live-c'
+  'c-podcast': 'w-podcast-c',    'c-live': 'w-live-c',
+  /* The content types design C gained after this page was written. They were
+     reachable on the prototype page and nowhere else, so a single card could
+     not be linked to or dropped in a slot on its own. The map is the only
+     thing that decides what exists here, so they are one line each. */
+  'c-episode': 'w-episode-c',    'c-artist': 'w-artist-c',
+  'c-playlist': 'w-playlist-c',  'c-video': 'w-video-c'
 };
 const q = new URLSearchParams(location.search);
 const design = (q.get('design') || 'a').toLowerCase();
@@ -55,9 +61,19 @@ document.title = 'Audio widget, design ' + design.toUpperCase() + ', ' + mode;
    with and therefore what a host page dropping this into a slot should get.
    ?wave=on brings it back for anyone who wants to look at it. */
 document.body.dataset.wave = (q.get('wave') || '').toLowerCase() === 'on' ? 'on' : 'off';
+/* Where the Listen/Watch switch sits on a video card. The CSS keys off the
+   ROOT element, and without the attribute none of the three placements matches
+   and the switch is invisible, so a default has to be set here rather than left
+   to fall through. bottom is the default because it is the nearest to iOS,
+   which puts the toggle in the Now Playing footer.
+   ?lw=top and ?lw=over pick the other two, the same choices the prototype
+   page's header offers. */
+const LW = ['bottom', 'top', 'over'];
+const lw = (q.get('lw') || '').toLowerCase();
+document.documentElement.dataset.lw = LW.includes(lw) ? lw : 'bottom';
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261027212858"></script>
+<script src="widget-core.js?v=20261027213628"></script>
 <script>
 /* An embed cannot resize the box it is given, so it reports what it needs and
    leaves the decision to the host. This is the same shape as the usual embed
