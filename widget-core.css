@@ -3236,3 +3236,45 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .widget.c[data-media="video"] .stage > .art { filter: blur(18px) saturate(.8); }
 .widget.c .stage > .scrim { z-index: 2; }
 .widget.c .topbar, .widget.c .hero-controls, .widget.c .hero-bottom { z-index: 3; }
+
+/* Chrome that fades while a video plays.
+
+   2000ms is set in the script; this is only how it looks. The fade is 220ms,
+   long enough to read as a fade rather than a flicker and short enough that the
+   chrome is back before a moving pointer has finished arriving.
+
+   :focus-within is the accessibility gate and it is load bearing. iOS refuses
+   to auto-hide while VoiceOver is running, checked when the timer fires; the web
+   has no equivalent query, so the honest analogue is that anything focused
+   inside the card holds the chrome up and tabbing in brings it straight back.
+
+   opacity and pointer-events, never visibility or display. JW Player itself uses
+   visibility: hidden here, measured on iHeart's own instance, which takes the
+   controls out of the tab order on an idle player; a keyboard user would be
+   tabbing past a video whose controls had silently stopped existing. Opacity
+   alone would leave invisible controls focusable, which is just as bad in the
+   other direction, so pointer-events goes with it and :focus-within brings the
+   whole thing back the instant focus lands anywhere inside. */
+.widget.c[data-media="video"] .topbar,
+.widget.c[data-media="video"] .hero-controls,
+.widget.c[data-media="video"] .hero-bottom,
+.widget.c[data-media="video"] .lw-over { transition: opacity 220ms ease; }
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .topbar,
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-controls,
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-bottom,
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .lw-over {
+  opacity: 0; pointer-events: none;
+}
+/* The scrim goes with them. It exists to hold text off the artwork, and with no
+   text on screen it is just a veil over the video. */
+.widget.c[data-media="video"] .stage > .scrim { transition: opacity 220ms ease; }
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .stage > .scrim { opacity: 0; }
+/* Someone who has asked for less motion gets the state change without the fade,
+   rather than losing the behaviour altogether. */
+@media (prefers-reduced-motion: reduce) {
+  .widget.c[data-media="video"] .topbar,
+  .widget.c[data-media="video"] .hero-controls,
+  .widget.c[data-media="video"] .hero-bottom,
+  .widget.c[data-media="video"] .lw-over,
+  .widget.c[data-media="video"] .stage > .scrim { transition: none; }
+}

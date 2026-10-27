@@ -183,7 +183,10 @@ async function loadVideoEpisode(showId) {
   const d = await loadEpisode(showId);
   d.kind = 'video';
   d.videoUrl = omnyVideo(d.audio) || omnyVideo(d.mediaUrl);
-  d.media = 'audio';
+  /* Watch by default. A video podcast card opening on Listen shows the blurred
+     artwork and nothing else, which reads as a broken image rather than as a
+     deliberate audio-first choice. The frame is the content here. */
+  d.media = 'video';
   /* The HLS asset becomes THE source, not a second one beside the mp3, which is
      what makes Listen and Watch a presentation change rather than a reload.
      Setting d.hls routes it through the existing hls.js branch that live radio
@@ -908,6 +911,9 @@ function makeWidget(rootId, statusId, colourId, variant) {
      rewrites the markup and would otherwise drop the ring mid-load. */
   const setBuffering = (on) => {
     w.buffering = !!on;
+    /* A stall brings the chrome back; iOS refuses to hide over a buffering
+       player and re-arms once it recovers. */
+    if (w.buffering) wake(false); else armIdle();
     const el = root.querySelector('.widget');
     if (el) el.classList.toggle('buffering', w.buffering);
   };
@@ -1217,7 +1223,7 @@ ${listTail(d)}
       <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}" data-kind="${esc(d.kind)}"${d.videoUrl ? ` data-media="${esc(d.media || 'audio')}"` : ''}>
         <div class="stage">
           <img class="art" src="${esc(stageArt(d))}" alt="" crossorigin="anonymous">
-          ${d.videoUrl ? `<video class="vid" playsinline preload="none" crossorigin="anonymous"></video>` : ''}
+          ${d.videoUrl ? `<video class="vid" playsinline preload="metadata" crossorigin="anonymous"></video>` : ''}
           <div class="scrim"></div>
           ${d.videoUrl ? `<div class="lw-over">${lwToggle(d)}</div>` : ''}
           <div class="topbar">
@@ -1531,6 +1537,17 @@ ${listTail(d)}
       act(b.dataset.act, b);
     };
 
+    /* Anything the listener does brings the chrome back and restarts the clock.
+       pointermove is throttled by the attribute check rather than a timer: once
+       the card is awake the handler does almost nothing, so a moving cursor is
+       not re-arming a timeout on every frame. */
+    ['pointerdown', 'pointermove', 'keydown', 'focusin'].forEach((ev) =>
+      root.addEventListener(ev, () => {
+        const card = q('.widget');
+        if (!card || card.getAttribute('data-media') !== 'video') return;
+        if (card.hasAttribute('data-idle')) wake(); else armIdle();
+      }, { passive: true }));
+
     /* Click the card itself to play or pause, the way a video player does.
        Only the artwork designs: the bar card has no surface that is not either
        a control or the episode list.
@@ -1806,6 +1823,92 @@ ${listTail(d)}
     if (card) card.setAttribute('data-media', next);
     root.querySelectorAll('[data-act="lw"]').forEach((b) =>
       b.setAttribute('aria-pressed', String(b.dataset.media === next)));
+    /* Listen has nothing to uncover, so the chrome comes back and stays. */
+    if (next === 'video') wake(); else wake(false);
+  }
+
+  /* Idle chrome on a video card.
+
+     TWO references, and they disagree on the number, so this follows the web
+     one. iOS Rewrite's FullScreenVideoViewModel uses `hideDelaySeconds = 3.0`.
+     JW Player, which is the player actually under this surface on the web, uses
+     2000ms: measured on iHeart's own JW instance on the real now-playing page,
+     where the control bar went to opacity 0 after 2.05s of no pointer movement.
+     video.js ships the same 2000ms default and Plyr the same 2s, so 2 is the web
+     convention and 3 is a touch-platform choice. A pointer can re-summon the
+     chrome by moving a single pixel, which is why the web can afford to be
+     quicker; a finger cannot hover, so iOS giving itself another second is
+     reasonable rather than inconsistent.
+
+     The guards are iOS's, and the one that could be checked against JW agrees
+     with it. Measured on the same instance: playing and idle leaves the control
+     bar at opacity 0 and visibility hidden, paused and idle leaves it at opacity
+     1 and visible. JW sets its user-inactive flag either way and lets the CSS
+     act on it only while playing, which is the same rule as the paused gate
+     below reached a different way.
+
+       not in Listen        there is nothing to uncover, so the chrome never
+                            fades on an audio card
+       not while paused     a paused player is being read, not watched
+       not while buffering  iOS refuses to hide the overlay over a stalled
+                            player, so the spinner is never left alone
+       not while scrubbing  beginScrubbing() shows the overlay and cancels the
+                            timer there; the drag here does the same
+       not with a sheet up  the info and share sheets cover the card anyway, and
+                            fading what is underneath them helps nobody
+
+     The accessibility gate is the one that matters, and it is the one iOS was
+     most careful about. There it reads UIAccessibility.isVoiceOverRunning at
+     FIRE time, so VoiceOver switched on while a timer is already pending is
+     still honoured. The web has no equivalent query, and guessing at one would
+     be worse than not having it, so the honest analogue is :focus-within in the
+     stylesheet: anything focused inside the card holds the chrome up, and
+     tabbing in brings it straight back. That covers the keyboard case properly
+     rather than approximately, which is what the VoiceOver gate is protecting.
+
+     The chrome fades with opacity and pointer-events rather than display or
+     visibility. Both of those would take the controls out of the tab order
+     while the card is idle, so a keyboard user would be tabbing past a player
+     whose controls had silently ceased to exist. This is a DELIBERATE departure
+     from JW, which uses visibility: hidden and therefore does strand a keyboard
+     user on an idle player. Matching its timing is worth doing; matching that is
+     not. */
+  const IDLE_MS = 2000;
+
+  function idleBlocked() {
+    const card = q('.widget');
+    if (!card || card.getAttribute('data-media') !== 'video') return true;
+    if (!w.playing || w.buffering) return true;
+    if (card.classList.contains('sheet-open')) return true;
+    return !!root.querySelector('.track [data-dragging]');
+  }
+
+  function wake(rearm) {
+    const card = q('.widget');
+    if (card) card.removeAttribute('data-idle');
+    clearTimeout(w.idleTimer);
+    w.idleTimer = 0;
+    if (rearm === false) return;
+    armIdle();
+  }
+
+  function armIdle() {
+    if (idleBlocked()) { clearTimeout(w.idleTimer); w.idleTimer = 0; return; }
+    /* Arm, never RE-arm. setBuffering() is wired to timeupdate among a dozen
+       other media events, so it runs about four times a second while playing;
+       an armIdle() that cleared and restarted the countdown each time pushed the
+       deadline back faster than two seconds could ever elapse and the chrome
+       simply never faded. Restarting the clock is what wake() is for, and that
+       is reached from real interaction rather than from playback ticking over. */
+    if (w.idleTimer) return;
+    /* Re-tested when the timer FIRES, not only when it is armed, which is the
+       same reason iOS checks its gate at fire time: three seconds is long
+       enough for a pause, a stall or a sheet to have happened in between. */
+    w.idleTimer = setTimeout(() => {
+      if (idleBlocked()) return;
+      const card = q('.widget');
+      if (card) card.setAttribute('data-idle', '');
+    }, IDLE_MS);
   }
 
   function act(kind, btn) {
@@ -2218,6 +2321,29 @@ ${listTail(d)}
     if (!w.audio.src) w.audio.src = d.audio;
   }
 
+  /* Paint a first frame at rest, without downloading the episode.
+
+     attachSource() alone would leave hls.js streaming the whole thing while
+     nobody is watching, which is exactly what an embed must not do; the audio
+     path next door is careful about the same thing and says so. So the load is
+     stopped again the moment the first fragment is buffered, which is all a
+     frame needs. w.want is the play intent, so a listener who pressed play
+     inside that window is not cut off by their own prime finishing late.
+
+     Native HLS, which is Safari, needs none of this: preload on the element
+     fetches enough for a frame and stops on its own. */
+  function primeVideo() {
+    const d = w.data;
+    if (!d || d.kind !== 'video' || !d.videoUrl) return;
+    if (w.audio && (w.audio.src || w.hls)) return;
+    if (!attachSource()) return;
+    if (w.hls && window.Hls) {
+      w.hls.once(window.Hls.Events.FRAG_BUFFERED, () => {
+        if (!w.want && w.hls) w.hls.stopLoad();
+      });
+    }
+  }
+
   function attachSource() {
     const d = w.data;
     ensureAudio();
@@ -2420,6 +2546,9 @@ ${listTail(d)}
       INSTANCES.forEach((o) => { if (o !== w && o.playing) o.pause(); });   /* one at a time */
       if (!w.data || !w.data.audio) { status('Nothing loaded to play.', true); return; }
       if (!w.audio || (!w.audio.src && !w.hls)) { if (!attachSource()) return; }
+      /* A primed card stopped its own loading once it had a frame, so playing
+         has to start it again or the video sits on that one frame forever. */
+      if (w.hls && w.hls.startLoad) w.hls.startLoad();
       /* Intent is recorded before the first await, so the ring can be asked
          about at any point during the load rather than only after it. */
       w.want = true;
@@ -2459,6 +2588,8 @@ ${listTail(d)}
     refreshBuffering();
     w.playing = on;
     setPlayingClass();
+    /* Pausing brings the chrome back and leaves it up; playing starts the clock. */
+    if (on) armIdle(); else wake(false);
     /* A live stream cannot be resumed from where it left off, so live radio
        stops rather than pauses. */
     const stopper = !!(w.data && w.data.kind === 'live');
@@ -3200,7 +3331,7 @@ ${listTail(d)}
     /* A pending timer must not land on the new content, but a dismissal is
        not undone by loading something else either. */
     clearVeil();
-    w.data = data; status(''); render(); startNowPlaying(); prefetchDuration();
+    w.data = data; status(''); render(); startNowPlaying(); prefetchDuration(); primeVideo();
   };
   return w;
 }
