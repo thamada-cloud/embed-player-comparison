@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-lw="bottom">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="widget-core.css?v=20261020133706">
+<link rel="stylesheet" href="widget-core.css?v=20261027191352">
 </head>
 <body data-bg="grey">
 
@@ -133,6 +133,12 @@
   -->
 
   <div class="colctl">
+    <label for="lwBottom">Listen / Watch</label>
+    <div class="colctl" id="lwCtl">
+      <button type="button" id="lwBottom" data-lw="bottom" aria-pressed="true">Bottom</button>
+      <button type="button" id="lwTop" data-lw="top" aria-pressed="false">Top</button>
+      <button type="button" id="lwOver" data-lw="over" aria-pressed="false">Over video</button>
+    </div>
     <label for="cols1">Columns</label>
     <span class="seg">
       <button type="button" id="cols1" data-cols="1" aria-pressed="false">1</button>
@@ -478,12 +484,58 @@
     <div class="shell" data-nobreak><div id="w-playlist-c"></div></div>
     <p class="status" id="s-playlist-c"></p>
   </section>
+
+  <!-- Video podcast.
+
+       There is NO shipping counterpart for this row, which is why it has no
+       embed beside it. The production embed has no video at all: loading the
+       Hey Jonas embed returns zero video elements and zero JW Player instances
+       and the word Listen with no Watch anywhere. The widget does load JW
+       Player, at 8.7.6, but purely as an audio engine. Video exists only on the
+       full site's now-playing page, which runs JW Player 8.51.13 and the
+       Genuin video map.
+
+       The video here is REAL, not a stand-in. The public episodes endpoint
+       returns only an mp3, but iHeart's video podcasts are on Omny and the clip
+       path that ends in the audio file also serves video-hlsi.m3u8. Confirmed
+       by driving the real now-playing page and watching the network, which asks
+       for exactly that URL. Every redirect hop answers
+       access-control-allow-origin: * and the last is an HLS manifest, so hls.js
+       plays it from this origin. The manifest carries the real ad interstitials
+       as well, which is left in rather than stripped.
+
+       The toggle is iOS Rewrite's, not web's. Web renders Listen and Watch as
+       two separate buttons; iOS uses a two-segment capsule, and matching iOS
+       was the ask. All three placements are built and the header switches
+       between them. -->
+  <section data-design="c" data-kind="video">
+    <div class="h2row"><h2>Video podcast</h2></div>
+    <div class="shell" data-nobreak><div id="w-video-c"></div></div>
+    <p class="status" id="s-video-c"></p>
+  </section>
 </main>
 
 <script>
 /* One column or two. The layout is entirely CSS; this only flips the attribute
    and tells the width control to re-measure, because a card's available width
    halves when the designs go side by side. */
+/* Listen / Watch toggle placement. Three positions are built into the card at
+   once and CSS shows one, so this flips an attribute on <html> and nothing
+   re-renders. That matters more than it looks: the <video> IS the card's media
+   element, so a re-render would tear it down and restart playback, which is
+   exactly what the single-stream model exists to prevent. Switch placement
+   mid-episode and the video keeps playing. */
+(function () {
+  const ctl = document.getElementById('lwCtl');
+  if (!ctl) return;
+  ctl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-lw]'); if (!b) return;
+    document.documentElement.setAttribute('data-lw', b.dataset.lw);
+    ctl.querySelectorAll('button[data-lw]').forEach((x) =>
+      x.setAttribute('aria-pressed', String(x === b)));
+  });
+})();
+
 (function () {
   const main = document.querySelector('main');
   /* The background and waveform listeners go with their controls. They are
@@ -667,6 +719,6 @@
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
-<script src="widget-core.js?v=20261020133706"></script>
+<script src="widget-core.js?v=20261027191352"></script>
 </body>
 </html>

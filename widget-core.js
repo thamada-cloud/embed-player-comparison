@@ -154,6 +154,45 @@ async function withArtistInfo(featured) {
 /* A single episode, from the same fetch the show card makes. The frames draw no
    episode list on this one and put an info button where the list button sits,
    so the rows are dropped rather than hidden. */
+/* A video podcast episode.
+
+   The video asset is NOT exposed by the public episodes endpoint, which returns
+   only `mediaUrl`, an mp3. It is derivable from that mp3 instead: iHeart's video
+   podcasts are hosted on Omny, and the clip path that ends in the audio file
+   also serves `video-hlsi.m3u8`. Confirmed by driving the real now-playing page
+   and watching the network, which requests exactly the URL this builds, then
+   redirects through Triton to a signed HLS variant.
+
+   Checked for CORS before relying on it. Every hop answers
+   `access-control-allow-origin: *` and the last one is
+   `application/vnd.apple.mpegurl`, so hls.js can play it straight from this
+   page's origin. The manifest carries the real ad interstitials too, which is
+   production-real and worth keeping rather than stripping.
+
+   Returns kind 'video' rather than 'episode' so the roster can address it on
+   its own; everywhere behaviour matters it is treated as an episode. */
+const omnyVideo = (mediaUrl) => {
+  const m = /traffic\.omny\.fm\/d\/clips\/(.+)$/.exec(mediaUrl || '');
+  if (!m) return null;
+  const parts = m[1].split('?')[0].replace(/\/$/, '').split('/');
+  if (parts.length < 3) return null;
+  return 'https://traffic.omny.fm/d/clips/' + parts.slice(0, 3).join('/') + '/video-hlsi.m3u8';
+};
+
+async function loadVideoEpisode(showId) {
+  const d = await loadEpisode(showId);
+  d.kind = 'video';
+  d.videoUrl = omnyVideo(d.audio) || omnyVideo(d.mediaUrl);
+  d.media = 'audio';
+  /* The HLS asset becomes THE source, not a second one beside the mp3, which is
+     what makes Listen and Watch a presentation change rather than a reload.
+     Setting d.hls routes it through the existing hls.js branch that live radio
+     already uses, so nothing new has to be taught how to play it. If the video
+     could not be derived the card stays on the mp3 and simply has no toggle. */
+  if (d.videoUrl) { d.audio = d.videoUrl; d.hls = true; }
+  return d;
+}
+
 async function loadEpisode(showId) {
   const d = await loadPodcast(showId);
   /* The episode's own artwork, carried apart before the rows are dropped.
@@ -568,13 +607,18 @@ const CAPS = {
      which is exactly what the episode card's info drawer shows, and it had no
      way to reach them: the drawer was being rendered on every card already, so
      only the button was missing. */
-  playlist: { seek: false, speed: false, scrub: false, list: true,  info: true, rowsLive: true, stopNext: true }
+  playlist: { seek: false, speed: false, scrub: false, list: true,  info: true, rowsLive: true, stopNext: true },
+  /* A video podcast IS an episode, so it takes the episode's capabilities
+     exactly. Without its own row it fell through to the podcast default and
+     grew a 220px episode list, which ate the card: at a 352 card the stage was
+     left with 132 and the letterboxed video collapsed to a strip. */
+  video:    { seek: true,  speed: true,  scrub: true,  list: false, info: true }
 };
 const caps = (d) => CAPS[d && d.kind] || CAPS.podcast;
 
 /* What the info button says it is about, so a screen reader hears the thing
    rather than "This Episode" on a playlist. */
-const INFO_LABEL = { episode: 'This Episode', live: 'This Station', playlist: 'This Playlist' };
+const INFO_LABEL = { episode: 'This Episode', live: 'This Station', playlist: 'This Playlist', video: 'This Episode' };
 
 /* Share drawer headings, from the Design D frames: 2666:130642 live,
    2670:137239 podcast show, 2670:137412 podcast episode, 2666:131704 artist
@@ -593,7 +637,12 @@ const INFO_LABEL = { episode: 'This Episode', live: 'This Station', playlist: 'T
    drawer hands out, the shipping frames on the prototype page, and design C's
    own default height. The snippet said 200 for everything, which was right for
    two of the five and 100px short for the other three. */
-const EMBED_H = { podcast: 300, episode: 200, live: 200, artist: 300, playlist: 300 };
+/* video: 352, which is 16:9 at the 626 this page gives a card by default, so
+   the letterboxed frame fills the card at rest instead of collapsing into a
+   strip. 200, the fallback it was getting, left the video 185 by 104 inside a
+   626 wide card. The height control still moves it, which is the point: the
+   letterbox behaviour is the thing being judged. */
+const EMBED_H = { podcast: 300, episode: 200, live: 200, artist: 300, playlist: 300, video: 352 };
 const embedHeight = (d) => EMBED_H[d && d.kind] || 200;
 
 const SHARE_TITLE = {
@@ -607,7 +656,8 @@ const SHARE_TITLE = {
   episode: 'Share Episode',
   live: 'Share Station',
   artist: 'Share Artist Radio',
-  playlist: 'Share Playlist'
+  playlist: 'Share Playlist',
+  video: 'Share Episode'
 };
 
 /* The current track of a simulated station. Artist radio and playlist hold a
@@ -1132,19 +1182,44 @@ ${listTail(d)}
     if (caps(d).stopNext) { const t = curTrack(d); return (t && t.art) || d.art || ''; }
     /* The episode card has no rows to look the current episode up in, so its
        own art is carried on the record instead. */
-    if (d.kind === 'episode') return d.episodeArt || d.art || '';
+    if (d.kind === 'episode' || d.kind === 'video') return d.episodeArt || d.art || '';
     const row = (d.rows || []).find((r) => String(r.id) === String(d.currentEpisodeId));
     return (row && row.art) || d.art || '';
   }
+
+  /* The iOS Rewrite Listen/Watch control, from ListenWatchToggle.swift, whose
+     own header cites the Figma `listen_watch_toggle` spec. A two-segment
+     capsule, 5 between the segments, 2 of container padding, each segment 12
+     across and 6 down. Selected takes a filled capsule, unselected takes no
+     fill. Re-tapping the active segment is a no-op there and here.
+
+     Deliberately NOT the web pattern. Web today renders Listen and Watch as two
+     separate buttons, primary and secondary; matching iOS means diverging from
+     that, which was the explicit ask.
+
+     The accessible names are longer than the visible words, which is iOS's own
+     choice: the segments read "Listen Episode" and "Watch Episode" while the
+     labels say Listen and Watch. The visible word is still the first word of
+     the accessible name, so voice control's "click Watch" keeps working, and
+     aria-pressed carries the selection the way iOS's isSelected trait does. */
+  const lwToggle = (d) => !d || !d.videoUrl ? '' : `
+            <div class="lw-toggle" role="group" aria-label="Listen or watch this episode">
+              <button class="lw-seg" data-act="lw" data-media="audio"
+                      aria-pressed="${d.media !== 'video'}" aria-label="Listen Episode">Listen</button>
+              <button class="lw-seg" data-act="lw" data-media="video"
+                      aria-pressed="${d.media === 'video'}" aria-label="Watch Episode">Watch</button>
+            </div>`;
 
   function cMarkup(d, isLive) {
     const c = caps(d);
     const stream = c.stopNext;                    /* artist radio and playlist */
     return `
-      <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}" data-kind="${esc(d.kind)}">
+      <div class="widget hero c${isLive ? ' live' : ''}${stream ? ' stream' : ''}" data-kind="${esc(d.kind)}"${d.videoUrl ? ` data-media="${esc(d.media || 'audio')}"` : ''}>
         <div class="stage">
           <img class="art" src="${esc(stageArt(d))}" alt="" crossorigin="anonymous">
+          ${d.videoUrl ? `<video class="vid" playsinline preload="none" crossorigin="anonymous"></video>` : ''}
           <div class="scrim"></div>
+          ${d.videoUrl ? `<div class="lw-over">${lwToggle(d)}</div>` : ''}
           <div class="topbar">
             <a class="thumb-link" href="${esc(contentUrl(d))}" target="_blank" rel="noopener"
                aria-label="Open ${esc(d.subtitle || d.title)} on iHeart"><img class="h-thumb${c.roundThumb ? ' round' : ''}" src="${esc(d.art)}" alt=""></a>
@@ -1154,6 +1229,7 @@ ${listTail(d)}
                 : `<p class="h-ep mq">${lineLink(episodeUrl(d), d.title, 'Open this episode on iHeart')}</p>
                    <p class="h-show mq">${lineLink(showUrl(d), d.subtitle, 'Open this show on iHeart')}</p>`}
             </div>
+            ${lwToggle(d)}
             ${c.info ? `
               <button class="h-btn tb-info" data-act="info" aria-haspopup="dialog" aria-expanded="false"
                       aria-label="About ${esc(INFO_LABEL[d.kind] || 'This Episode')}">
@@ -1197,9 +1273,9 @@ ${listTail(d)}
                   </div>
                   <span class="t dur">--:--</span>
                 </div>
-                <div class="list-row">${cActions()}</div>
+                <div class="list-row">${lwToggle(d)}${cActions()}</div>
               </div>` : `
-              <div class="list-row">${cActions()}</div>`}
+              <div class="list-row">${lwToggle(d)}${cActions()}</div>`}
             <div class="wave"></div>
           </div>
           ${c.list && c.rowsLive ? sheetMarkup(d) : ''}
@@ -1712,9 +1788,30 @@ ${listTail(d)}
     });
   }
 
+  /* Listen and Watch. A presentation change and nothing else, which is what
+     iOS's isSingleStreamVideoToggleEnabled describes: one asset, so switching
+     reveals or hides a surface that is already playing rather than reloading a
+     stream. Nothing is touched here except the attribute the CSS reads and the
+     pressed state on the two segments, so playback carries straight on at the
+     same position, which is the whole point of the single-stream design.
+
+     Re-tapping the active segment is a no-op, matching the guard in
+     ListenWatchToggle.swift. */
+  function setMedia(mode) {
+    if (!w.data || !w.data.videoUrl) return;
+    const next = mode === 'video' ? 'video' : 'audio';
+    if (w.data.media === next) return;
+    w.data.media = next;
+    const card = q('.widget');
+    if (card) card.setAttribute('data-media', next);
+    root.querySelectorAll('[data-act="lw"]').forEach((b) =>
+      b.setAttribute('aria-pressed', String(b.dataset.media === next)));
+  }
+
   function act(kind, btn) {
     const a = w.audio;
     if (kind === 'play') return toggle();
+    if (kind === 'lw') return setMedia(btn.dataset.media);
     /* A list, not a cycle. iheart.com opens an accomplice Menu from this button
        rather than stepping through rates blind, which is what PlaybackSpeed in
        apps/listen/app/playback/actions does. A cycle makes you press four times
@@ -1948,7 +2045,7 @@ ${listTail(d)}
      place to put "Share from {time}" since there is no position to name until
      something is playing. Live radio, artist radio and playlist have no second
      thing to share, so their button still opens the drawer directly. */
-  const hasShareMenu = (d) => !!d && (d.kind === 'podcast' || d.kind === 'episode');
+  const hasShareMenu = (d) => !!d && (d.kind === 'podcast' || d.kind === 'episode' || d.kind === 'video');
 
   function shareItems(d, at) {
     const item = (value, label) => ({ value, label, icon: GLYPH_SHARE });
@@ -2078,7 +2175,16 @@ ${listTail(d)}
 
   function ensureAudio() {
     if (w.audio) return;
-    const a = new Audio();
+    /* A video podcast uses its own <video> AS the media element rather than a
+       second one alongside it. iOS is explicit that Listen and Watch ride ONE
+       adaptive asset and the toggle is a presentation change, uncapping the
+       bitrate and revealing the surface, not a stream reload. Pointing the card
+       at the <video> gives that for free: switching mode shows or hides a
+       surface that was already playing, so position is continuous and nothing
+       rebuffers. A <video> is an HTMLMediaElement, so every listener below and
+       the whole transport work on it unchanged. */
+    const vid = q('video.vid');
+    const a = vid || new Audio();
     a.crossOrigin = 'anonymous';     /* required before the analyser can read samples */
     /* metadata, not none. The duration lives in the file's header, and with
        'none' the browser fetches nothing until playback, so the scrubber read
@@ -2120,7 +2226,8 @@ ${listTail(d)}
       else if (window.Hls && window.Hls.isSupported()) {
         w.hls = new window.Hls({ enableWorker: true });
         w.hls.loadSource(d.audio); w.hls.attachMedia(w.audio);
-        w.hls.on(window.Hls.Events.ERROR, (_, x) => { if (x.fatal) status('Live stream error. ' + x.details, true); });
+        w.hls.on(window.Hls.Events.ERROR, (_, x) => { if (x.fatal)
+          status((d.kind === 'video' ? 'Video stream error. ' : 'Live stream error. ') + x.details, true); });
       } else { status('This browser cannot play HLS.', true); return false; }
     } else { w.audio.src = d.audio; }
     return true;
@@ -3236,9 +3343,12 @@ const WIDGET_ROSTER = [
      what is loaded into them. */
   { key: 'c-episode',  root: 'w-episode-c',  variant: 'c', kind: 'episode' },
   { key: 'c-artist',   root: 'w-artist-c',   variant: 'c', kind: 'artist' },
-  { key: 'c-playlist', root: 'w-playlist-c', variant: 'c', kind: 'playlist' }
+  { key: 'c-playlist', root: 'w-playlist-c', variant: 'c', kind: 'playlist' },
+  /* A podcast episode that happens to carry video. Its own kind only so the
+     boot can hand it different content; it behaves as an episode throughout. */
+  { key: 'c-video',    root: 'w-video-c',    variant: 'c', kind: 'video' }
 ];
-const WIDGETS = { podcast: [], live: [], episode: [], artist: [], playlist: [] };
+const WIDGETS = { podcast: [], live: [], episode: [], artist: [], playlist: [], video: [] };
 /* Keyed by the root id with its w- prefix dropped, which is also what a search
    box names in data-for, so the search wiring reads straight off this. */
 const BY_SEARCH = {};
@@ -3579,7 +3689,8 @@ const failAll = (kind, e) => WIDGETS[kind].forEach((w) =>
   const extra = [
     ['episode',  () => loadEpisode(31090140)],                            /* Las Culturistas */
     ['artist',   () => loadArtist(33221)],                                /* Taylor Swift Radio */
-    ['playlist', () => loadPlaylist('312064750', 'E63iPqfbGw4EzKMSgzoWF4')]  /* Clean Top Hits */
+    ['playlist', () => loadPlaylist('312064750', 'E63iPqfbGw4EzKMSgzoWF4')],  /* Clean Top Hits */
+    ['video',    () => loadVideoEpisode(333396848)]                        /* Hey Jonas! */
   ];
   await Promise.all(extra.map(async ([kind, get]) => {
     if (!WIDGETS[kind].length) return;

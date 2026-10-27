@@ -192,15 +192,18 @@ main { padding: 26px 20px 80px; max-width: 1320px; margin: 0 auto; display: grid
   main[data-cols="2"] > [data-design][data-kind="episode"] { grid-row: 5; }
   main[data-cols="2"] > [data-design][data-kind="artist"] { grid-row: 6; }
   main[data-cols="2"] > [data-design][data-kind="playlist"] { grid-row: 7; }
+  /* Video podcast sits with the designs rather than opposite a shipping
+     card, because the production embed has no video to put there. */
+  main[data-cols="2"] > [data-design][data-kind="video"] { grid-row: 8; }
   /* The 404 example, which only the shipping side has. It takes a row of its
      own so it stays under playlist in column 1 rather than auto-flowing into
      the design column, and column 2 of that row is simply empty. */
-  main[data-cols="2"] > [data-design][data-kind="notfound"] { grid-row: 8; }
+  main[data-cols="2"] > [data-design][data-kind="notfound"] { grid-row: 9; }
   /* The other two error examples, same reasoning, rows of their own so they
      stay stacked under the 404 in column 1. */
-  main[data-cols="2"] > [data-design][data-kind="noflag"] { grid-row: 9; }
-  main[data-cols="2"] > [data-design][data-kind="wrongid"] { grid-row: 10; }
-  main[data-cols="2"] > [data-design][data-kind="georegion"] { grid-row: 11; }
+  main[data-cols="2"] > [data-design][data-kind="noflag"] { grid-row: 10; }
+  main[data-cols="2"] > [data-design][data-kind="wrongid"] { grid-row: 11; }
+  main[data-cols="2"] > [data-design][data-kind="georegion"] { grid-row: 12; }
 }
 
 /* The three column option is gone. It existed to put what ships beside design
@@ -3163,3 +3166,73 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .geo-mbody p { margin: 0; }
 /* The thumb is dropped under 300 wide in the widget itself. */
 @media (max-width: 299px) { .geo-thumb { display: none; } }
+
+/* ===========================================================================
+   Video podcast. The Listen/Watch toggle and the video surface.
+
+   The toggle is ported from iOS Rewrite's ListenWatchToggle.swift, whose own
+   header cites the Figma `listen_watch_toggle` spec, because matching iOS was
+   the explicit ask. Web today does Listen and Watch as two separate buttons,
+   primary and secondary, so this is a deliberate divergence from current web.
+
+   Metrics are the Swift ones at face value. 5 between the segments, 2 of
+   container padding, 12 across and 6 down inside each segment. iOS names its
+   colours containerTertiary for the track and containerPrimary for the selected
+   capsule; on this card the surface behind it is artwork or video under a 70%
+   scrim, so those resolve to a translucent white track and an opaque white
+   capsule, which is the same figure-on-ground relationship the iOS tokens make
+   on their own surface.
+   ==========================================================================*/
+.lw-toggle { display: inline-flex; gap: 5px; padding: 2px; flex: 0 0 auto;
+             border-radius: 999px; background: rgba(255,255,255,.22);
+             backdrop-filter: blur(2px); }
+.lw-seg { appearance: none; border: 0; cursor: pointer; white-space: nowrap;
+          padding: 6px 12px; border-radius: 999px; background: transparent;
+          font: 600 12px/1 'Open Sans', system-ui, sans-serif; color: #fff; }
+/* aria-pressed is the selection, so the fill is keyed off it rather than off a
+   second class that could drift out of step with the accessible state. */
+.lw-seg[aria-pressed="true"] { background: #fff; color: var(--ihr-grey-600, #27292D); }
+.lw-seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Three placements, all three in the DOM and exactly one shown, so switching
+   between them is an attribute flip rather than a re-render. Re-rendering this
+   card would tear down the <video> that IS the media element and restart
+   playback, which is the one thing the single-stream model exists to avoid. */
+.lw-toggle { display: none; }
+/* 56 from the bottom, not 16. The card's own bottom chrome, the scrubber and
+   the lockup row, reaches 41 up from the stage's bottom edge, so a toggle sitting
+   at the card's usual 16 inset landed on top of the elapsed time and the Listen
+   on iHeart lockup. 41 of chrome plus the same 16 inset above it rounds to 56. */
+.lw-over { position: absolute; left: 16px; bottom: 56px; z-index: 4; }
+:root[data-lw="bottom"] .hero-bottom .lw-toggle,
+:root[data-lw="top"]    .topbar .lw-toggle,
+:root[data-lw="over"]   .lw-over .lw-toggle { display: inline-flex; }
+/* The over-video placement has no row to sit in, so it is hidden with its
+   wrapper rather than leaving an empty absolutely positioned box behind. */
+.lw-over { display: none; }
+:root[data-lw="over"] .lw-over { display: block; }
+/* In the top bar it sits between the metadata and the trailing buttons, so the
+   metadata yields first rather than the buttons being pushed off their
+   staircase. */
+.topbar .lw-toggle { margin-left: 8px; }
+/* In the bottom row the lockup is pushed to the far end, which is where it
+   already sits, and the toggle takes the space the row was giving to nothing. */
+.list-row .lw-toggle { margin-right: auto; }
+
+/* The video surface.
+
+   Letterboxed rather than cropped, which was the call: contain keeps the whole
+   16:9 frame inside a card that is nearer 2:1, and the bars are filled by the
+   artwork and scrim already behind it rather than by black, so the card keeps
+   its own identity instead of turning into a letterbox. The overlay chrome is
+   unchanged and sits on top exactly as it does over the artwork, which is why
+   nothing had to shift for the three placements to work. */
+.widget.c .stage > video.vid { position: absolute; inset: 0; width: 100%; height: 100%;
+                               object-fit: contain; display: none; z-index: 1; }
+.widget.c[data-media="video"] .stage > video.vid { display: block; }
+/* The artwork stays behind the video rather than being removed, so the
+   letterbox bars are the card's own colour field and a frame that has not
+   painted yet does not flash the page background through. */
+.widget.c[data-media="video"] .stage > .art { filter: blur(18px) saturate(.8); }
+.widget.c .stage > .scrim { z-index: 2; }
+.widget.c .topbar, .widget.c .hero-controls, .widget.c .hero-bottom { z-index: 3; }
