@@ -481,10 +481,21 @@ function listenUrl(d) {
 /* The label names the destination rather than saying "Listen on iHeart" five
    times over, so a screen reader hears which thing the link opens. The visible
    words are unchanged; only the accessible name carries the content. */
-const ihrLockup = (href, what) =>
+/* The verb follows the mode. A card showing video says Watch on iHeart, because
+   that is what the link goes on to do, and saying Listen over a playing video
+   reads as a mistake. Patched in place by setMedia() rather than re-rendered,
+   since re-rendering would tear down the <video> that IS the media element. */
+const lockupName = (verb, what) => {
+  const v = verb || 'Listen';
+  const join = v === 'Listen' ? 'Listen to ' : v + ' ';
+  return what ? join + what + ' on iHeart' : v + ' on iHeart';
+};
+const ihrLockup = (href, what, verb) =>
   '<a class="ihr-lockup" href="' + esc(href) + '" target="_blank" rel="noopener"' +
-    ' aria-label="' + esc(what ? 'Listen to ' + what + ' on iHeart' : 'Listen on iHeart') + '">' +
-    '<span>Listen on</span>' +
+    /* "Listen TO a show", but "Watch a show". The preposition belongs to the
+       verb, not to the sentence, so it is carried with it. */
+    ' aria-label="' + esc(lockupName(verb, what)) + '">' +
+    '<span>' + esc(verb || 'Listen') + ' on</span>' +
     '<img src="assets/ihr-logotype-white.svg" alt="" width="62" height="14">' +
   '</a>';
 
@@ -1545,7 +1556,15 @@ ${listTail(d)}
       root.addEventListener(ev, () => {
         const card = q('.widget');
         if (!card || card.getAttribute('data-media') !== 'video') return;
-        if (card.hasAttribute('data-idle')) wake(); else armIdle();
+        const wasIdle = card.hasAttribute('data-idle');
+        /* Remembered for the click that is about to follow this press. The
+           click handler cannot ask whether the card was faded, because this
+           listener has already woken it by then: pointerdown runs first and
+           clears the attribute, so by click time the card always looks awake
+           and the reveal-only rule never fired. The flag is the state at PRESS
+           time, which is the thing the rule is actually about. */
+        if (ev === 'pointerdown') w.wokeOnPress = wasIdle;
+        if (wasIdle) wake(); else armIdle();
       }, { passive: true }));
 
     /* Click the card itself to play or pause, the way a video player does.
@@ -1568,6 +1587,18 @@ ${listTail(d)}
           if (Math.abs(e.clientX - dx) > 6 || Math.abs(e.clientY - dy) > 6) return;
           const sel = window.getSelection && window.getSelection().toString();
           if (sel) return;
+          /* On a faded video card the first press only brings the controls back.
+             A touch device has no hover, so the tap that reveals them is the
+             same gesture that would otherwise pause: without this, one tap did
+             both, which is how it behaved and is not what any video player
+             does. The pointer path gets the same rule, which costs a mouse user
+             nothing since moving the pointer has already revealed them. */
+          /* Consumed either way, so a later press on an awake card is not
+             still holding a stale reveal from minutes ago. */
+          const woke = w.wokeOnPress;
+          w.wokeOnPress = false;
+          const card = q('.widget');
+          if (woke && card && card.getAttribute('data-media') === 'video') { wake(); return; }
           toggle();
         });
       }
@@ -1823,6 +1854,14 @@ ${listTail(d)}
     if (card) card.setAttribute('data-media', next);
     root.querySelectorAll('[data-act="lw"]').forEach((b) =>
       b.setAttribute('aria-pressed', String(b.dataset.media === next)));
+    /* The lockup's verb follows the mode. Patched, never re-rendered. */
+    const lock = root.querySelector('.ihr-lockup');
+    if (lock) {
+      const verb = next === 'video' ? 'Watch' : 'Listen';
+      const span = lock.querySelector('span');
+      if (span) span.textContent = verb + ' on';
+      lock.setAttribute('aria-label', lockupName(verb, listenName(w.data)));
+    }
     /* Listen has nothing to uncover, so the chrome comes back and stays. */
     if (next === 'video') wake(); else wake(false);
   }
@@ -2787,7 +2826,8 @@ ${listTail(d)}
      lockup on the wrong side of the card. */
   const cActions = () =>
     '<span class="lr-side"></span>' +
-    '<span class="lr-side">' + ihrLockup(listenUrl(w.data), listenName(w.data)) + '</span>';
+    '<span class="lr-side">' + ihrLockup(listenUrl(w.data), listenName(w.data),
+      (w.data && w.data.media === 'video') ? 'Watch' : 'Listen') + '</span>';
 
   /* Redrawn from the stored hover value and wherever playback now is, so the
      span always runs from the thumb to the hovered point and closes itself

@@ -1639,11 +1639,14 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    opening upward, which put their bubbles above the card's top edge inside a
    stage that clips, so they were invisible. The arrow path is redrawn pointing
    up for all of them. */
-.topbar .h-btn[aria-label]::after {
+/* The Listen/Watch switch joins this when it is placed in the top bar, for
+   exactly the reason the comment above gives: measured at 24 from the stage's
+   top edge, its upward bubble started at -8 and the stage clips. */
+.topbar .h-btn[aria-label]::after, .topbar .lw-seg[aria-label]::after {
   bottom: auto; top: calc(100% + 8px);
   transform: translateX(-50%) translateY(calc(var(--sp-8) * -1));
 }
-.topbar .h-btn[aria-label]::before {
+.topbar .h-btn[aria-label]::before, .topbar .lw-seg[aria-label]::before {
   bottom: auto; top: calc(100% + 4px);
   transform: translateX(-50%) translateY(calc(var(--sp-8) * -1));
   background-image:
@@ -1652,7 +1655,11 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 .topbar .h-btn[aria-label]:hover::after,
 .topbar .h-btn[aria-label]:hover::before,
 .topbar .h-btn[aria-label]:focus-visible::after,
-.topbar .h-btn[aria-label]:focus-visible::before {
+.topbar .h-btn[aria-label]:focus-visible::before,
+.topbar .lw-seg[aria-label]:hover::after,
+.topbar .lw-seg[aria-label]:hover::before,
+.topbar .lw-seg[aria-label]:focus-visible::after,
+.topbar .lw-seg[aria-label]:focus-visible::before {
   transform: translateX(-50%) translateY(0);
 }
 /* Share alone hangs from its right edge rather than centring, because it is the
@@ -2146,9 +2153,16 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    an <svg> with the path M0 0 L8 8 L16 0. There is no element to put that in
    here, so the same path is inlined as a data URI on a pseudo-element. The
    geometry is the component's; the delivery is not. */
-.icon-btn, .h-btn, .play-btn, .hero-play { position: relative; }
+/* .lw-seg is on this list so the Listen/Watch switch carries the same tooltip
+   as every other control on the card. It was the only one without one, which
+   read as an oversight rather than as a decision. Its aria-label is the longer
+   "Listen Episode" / "Watch Episode", so the bubble says that while the segment
+   itself says Listen or Watch; that is the component's own rule, tooltip and
+   accessible name being one string by construction, and it is why the play
+   button's bubble tracks Play, Pause and Stop without extra wiring. */
+.icon-btn, .h-btn, .play-btn, .hero-play, .lw-seg { position: relative; }
 .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
-.play-btn[aria-label]::after, .hero-play[aria-label]::after {
+.play-btn[aria-label]::after, .hero-play[aria-label]::after, .lw-seg[aria-label]::after {
   content: attr(aria-label);
   /* 8, not 11. The beak has to overlap the bubble by more than the shadow
      spreads, or the shadow draws a line across the join. elevation1 is
@@ -2164,7 +2178,7 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   white-space: nowrap; forced-color-adjust: none;
 }
 .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
-.play-btn[aria-label]::before, .hero-play[aria-label]::before {
+.play-btn[aria-label]::before, .hero-play[aria-label]::before, .lw-seg[aria-label]::before {
   content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%;
   width: var(--sp-16); height: var(--sp-8);
   background: no-repeat center/16px 8px
@@ -2175,13 +2189,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    join showed as a grey line. iheart.com has no such line, because there the
    arrow is a child of the tooltip rather than a second box behind it. */
 .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
-.play-btn[aria-label]::before, .hero-play[aria-label]::before { z-index: 7; }
+.play-btn[aria-label]::before, .hero-play[aria-label]::before, .lw-seg[aria-label]::before { z-index: 7; }
 /* Shared rest and motion. The component enters over 200ms from an 8px offset
    and leaves over 100ms, reversed and eased out. */
 .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
-.play-btn[aria-label]::after, .hero-play[aria-label]::after,
+.play-btn[aria-label]::after, .hero-play[aria-label]::after, .lw-seg[aria-label]::after,
 .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
-.play-btn[aria-label]::before, .hero-play[aria-label]::before {
+.play-btn[aria-label]::before, .hero-play[aria-label]::before, .lw-seg[aria-label]::before {
   opacity: 0; pointer-events: none; z-index: 6;
   transform: translateX(-50%) translateY(var(--sp-8));
   /* Leaving: wait the close delay, then fade out. react-aria calls these delay
@@ -2196,13 +2210,13 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
   transition-delay: 100ms;
 }
 .icon-btn[aria-label]:hover::after, .h-btn[aria-label]:hover::after,
-.play-btn[aria-label]:hover::after, .hero-play[aria-label]:hover::after,
+.play-btn[aria-label]:hover::after, .hero-play[aria-label]:hover::after, .lw-seg[aria-label]:hover::after,
 .icon-btn[aria-label]:hover::before, .h-btn[aria-label]:hover::before,
-.play-btn[aria-label]:hover::before, .hero-play[aria-label]:hover::before,
+.play-btn[aria-label]:hover::before, .hero-play[aria-label]:hover::before, .lw-seg[aria-label]:hover::before,
 .icon-btn[aria-label]:focus-visible::after, .h-btn[aria-label]:focus-visible::after,
-.play-btn[aria-label]:focus-visible::after, .hero-play[aria-label]:focus-visible::after,
+.play-btn[aria-label]:focus-visible::after, .hero-play[aria-label]:focus-visible::after, .lw-seg[aria-label]:focus-visible::after,
 .icon-btn[aria-label]:focus-visible::before, .h-btn[aria-label]:focus-visible::before,
-.play-btn[aria-label]:focus-visible::before, .hero-play[aria-label]:focus-visible::before {
+.play-btn[aria-label]:focus-visible::before, .hero-play[aria-label]:focus-visible::before, .lw-seg[aria-label]:focus-visible::before {
   opacity: 1; transform: translateX(-50%) translateY(0);
   transition: opacity 200ms, transform 200ms;
   transition-delay: 200ms;
@@ -2236,9 +2250,9 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
 }
 @media (prefers-reduced-motion: reduce) {
   .icon-btn[aria-label]::after, .h-btn[aria-label]::after,
-  .play-btn[aria-label]::after, .hero-play[aria-label]::after,
+  .play-btn[aria-label]::after, .hero-play[aria-label]::after, .lw-seg[aria-label]::after,
   .icon-btn[aria-label]::before, .h-btn[aria-label]::before,
-  .play-btn[aria-label]::before, .hero-play[aria-label]::before {
+  .play-btn[aria-label]::before, .hero-play[aria-label]::before, .lw-seg[aria-label]::before {
     /* The delays stay. They are about intent, not motion, and removing them
        would make the tooltips MORE eager for someone who asked for less. */
     transition: opacity 100ms; transform: translateX(-50%) translateY(0);
@@ -3255,20 +3269,66 @@ main[data-h="on"] section[data-design="ship"] .embed iframe { height: var(--play
    alone would leave invisible controls focusable, which is just as bad in the
    other direction, so pointer-events goes with it and :focus-within brings the
    whole thing back the instant focus lands anywhere inside. */
+/* What fades is listed one by one, and .hero-bottom is NOT on it.
+
+   The lockup lives inside .hero-bottom, and opacity on an ancestor cannot be
+   undone by a descendant; absolute positioning does not escape it either. A
+   first attempt put the lockup at opacity 1 inside a parent at 0 and it duly
+   vanished, while getComputedStyle still reported 1, because that reads the
+   element's own value and not what the ancestor does to it. So the row stays
+   fully opaque and its CONTENTS fade around the lockup instead. */
 .widget.c[data-media="video"] .topbar,
 .widget.c[data-media="video"] .hero-controls,
-.widget.c[data-media="video"] .hero-bottom,
-.widget.c[data-media="video"] .lw-over { transition: opacity 220ms ease; }
+.widget.c[data-media="video"] .hero-bottom .slider,
+.widget.c[data-media="video"] .hero-bottom .lw-toggle,
+.widget.c[data-media="video"] .lw-over { transition: opacity 160ms ease-out; }
 .widget.c[data-media="video"][data-idle]:not(:focus-within) .topbar,
 .widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-controls,
-.widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-bottom,
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-bottom .slider,
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .hero-bottom .lw-toggle,
 .widget.c[data-media="video"][data-idle]:not(:focus-within) .lw-over {
   opacity: 0; pointer-events: none;
+  /* Out slowly, in quickly, which is the asymmetry every video player uses and
+     the reason 220ms flat read as abrupt: the same short duration governed both
+     directions, so the chrome left as sharply as it arrived.
+
+     The curve is JW's own, measured off its control bar on the live page as
+     cubic-bezier(0, .25, .25, 1) over 0.25s. The curve is kept exactly; the
+     duration is longer on purpose. JW is fading one control bar, this card
+     fades a top bar, a transport, a scrubber and a toggle at once, and the more
+     there is to move the longer it needs before it stops looking like a cut.
+
+     The transition lives on the idle rule rather than the base one so it only
+     governs the way OUT. Coming back is the base rule's 160ms, because a
+     listener who has just moved the pointer is waiting on the controls. */
+  transition: opacity 420ms cubic-bezier(0, .25, .25, 1);
 }
+
+/* The branding stays. Everything else is a CONTROL and goes; the lockup is a
+   watermark and a credit, and it is the one thing on the card that says whose
+   player this is on somebody else's page. Fading it removes iHeart from the
+   publisher's page at exactly the moment the video is most watchable, which is
+   the opposite of what an embed is for.
+
+   JW agrees on its own default. Its stylesheet hides .jw-logo only for the
+   audio-only player and the dismissible floating one, never on user-inactive,
+   so a JW watermark survives the control bar fading. iHeart's own instance has
+   no logo configured, so it could not be read off the live page, but the rule
+   is in the player we are standing on, and Vimeo and YouTube's watermarks do
+   the same. The control bar going and the credit staying is the convention.
+
+   The scrim goes with the controls, so the lockup carries its own legibility
+   against whatever frame happens to be underneath it. */
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .ihr-lockup {
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.75));
+}
+
 /* The scrim goes with them. It exists to hold text off the artwork, and with no
    text on screen it is just a veil over the video. */
-.widget.c[data-media="video"] .stage > .scrim { transition: opacity 220ms ease; }
-.widget.c[data-media="video"][data-idle]:not(:focus-within) .stage > .scrim { opacity: 0; }
+.widget.c[data-media="video"] .stage > .scrim { transition: opacity 160ms ease-out; }
+.widget.c[data-media="video"][data-idle]:not(:focus-within) .stage > .scrim {
+  opacity: 0; transition: opacity 420ms cubic-bezier(0, .25, .25, 1);
+}
 /* Someone who has asked for less motion gets the state change without the fade,
    rather than losing the behaviour altogether. */
 @media (prefers-reduced-motion: reduce) {
